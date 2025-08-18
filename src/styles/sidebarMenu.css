@@ -1,0 +1,62 @@
+/* sidebarMenu.css */
+
+.sidebar-menu {
+  width: 250px;
+  background-color: #000000; /* black background */
+  border-right: 2px solid #00ffff; /* neon blue border */
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-shadow: 0 0 15px 2px rgba(0, 255, 255, 0.8), inset 0 0 8px #00FFFF;
+  user-select: none;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu li {
+  margin-bottom: 1rem;
+}
+
+.sidebar-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: #00ffff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 5px transparent;
+}
+
+.sidebar-link .icon {
+  margin-right: 0.75rem;
+  color: #00ffea;
+  display: flex;
+  align-items: center;
+  font-size: 1.3rem;
+}
+
+.sidebar-link:hover,
+.sidebar-link:focus {
+  background-color: #00ffff;
+  color: #000000;
+  outline: none;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+.sidebar-menu li.active .sidebar-link {
+  background-color: #00ffff;
+  color: #000000;
+  box-shadow: 0 0 15px #00ffff;
+}

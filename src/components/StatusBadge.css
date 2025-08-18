@@ -1,0 +1,39 @@
+.status-badge {
+  display: inline-block;
+  padding: 0.3em 0.8em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 8px #00FFFF,
+    0 0 16px #00FFFF;
+  color: #00FFFF;
+  background-color: #000000;
+  user-select: none;
+}
+
+.status-badge--award {
+  background-color: #00FF00; /* Neon green */
+  color: #000000;
+  box-shadow:
+    0 0 12px #00FF00,
+    0 0 24px #00FF00;
+}
+
+.status-badge--featured {
+  background-color: #FFA500; /* Neon orange */
+  color: #000000;
+  box-shadow:
+    0 0 12px #FFA500,
+    0 0 24px #FFA500;
+}
+
+.status-badge--alert {
+  background-color: #FF0000; /* Neon red */
+  color: #000000;
+  box-shadow:
+    0 0 12px #FF0000,
+    0 0 24px #FF0000;
+}
