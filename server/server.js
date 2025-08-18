@@ -8,16 +8,22 @@ const eaRoutes = require('./routes/eaRoutes');
 const mtAccountRoutes = require('./routes/mtAccountRoutes');           // ✅ Added
 const propFirmRoutes = require('./routes/propFirmAccountRoutes');      // ✅ Added
 const userRoutes = require('./routes/user');   // ✅ correct relative path
+const connectDB = require('./config/db');
+console.log('MONGO_URI:', process.env.MONGO_URI);
+connectDB(); // Connect to MongoDB
+
 
 
 const app = express();
 const PORT = process.env.PORT || 5000;  // ✅ Ensure backend runs on 5000 for your setup
 
 const allowedOrigins = [
-  'http://localhost:5173',   // Vite dev server
-  'http://localhost:3000', 
-  'https://ftsa-ai.com'      // production domain
+  'http://localhost:5173',               // Vite dev server
+  'http://localhost:3000',               // optional
+  'https://ftsa-ai.com',                 // production domain
+  'https://ftsa-ai-0-v1.netlify.app'    // your Netlify frontend
 ];
+
 
 
 // ✅ Enable CORS
