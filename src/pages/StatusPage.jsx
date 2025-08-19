@@ -12,6 +12,12 @@ const StatusPage = () => {
   const [error, setError] = useState(null);
   const [eaLoading, setEaLoading] = useState(false);
 const [eaError, setEaError] = useState(null);
+const [mtLogin, setMtLogin] = useState({
+  Basic: "",
+  Plus: "",
+  Unlimited: "",
+});
+
 
 
   useEffect(() => {
@@ -62,9 +68,47 @@ setEaError(null);
     setEaLoading(false);
   }
 };
-const handleSubscribe = (plan) => {
-  alert(`Subscribe clicked for plan: ${plan}`);
-  // Later you can replace this alert with real subscription logic
+const handleSubscribe = async (plan) => {
+  const loginID = mtLogin[plan];
+  if (!loginID) {
+    alert("Please enter your MT4/5 Login ID.");
+    return;
+  }
+
+  setEaLoading(true);
+  setEaError(null);
+
+  try {
+    const token = localStorage.getItem("token");
+    const resp = await fetch(`/api/subscribe`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ plan, mtLogin: loginID }),
+    });
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) {
+      throw new Error(data.error || "Subscription failed");
+    }
+
+    // Update local statusData to reflect subscription
+    setStatusData((prev) => ({
+      ...prev,
+      subscriptionActive: true,
+      currentPlan: plan,
+      nextBillingDate: data.nextBillingDate,
+    }));
+
+    alert(`Subscription successful for ${plan} plan!`);
+  } catch (err) {
+    console.error(err);
+    setEaError(err.message || "Subscription failed. Try again.");
+  } finally {
+    setEaLoading(false);
+  }
 };
 
 
@@ -121,17 +165,87 @@ const handleSubscribe = (plan) => {
         <div style={styles.planCard}>
           <h3>Basic (Monthly)</h3>
           <p>$20/month</p>
-          <NeonButton onClick={() => handleSubscribe("Basic")}>Subscribe Now</NeonButton>
+          <input
+  type="text"
+  placeholder="Enter your MT4/5 Login ID"
+  value={mtLogin.Basic}
+  onChange={(e) => setMtLogin({ ...mtLogin, Basic: e.target.value })}
+  disabled={statusData.subscriptionActive}
+  style={{
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    border: `1px solid ${neonBlue}`,
+    backgroundColor: "#000000",
+    color: neonBlue,
+    width: "100%",
+  }}
+/>
+{statusData.subscriptionActive && statusData.currentPlan === "Basic" && (
+  <span style={{ color: neonGreen }}>
+    License active until: {new Date(statusData.nextBillingDate).toLocaleDateString()}
+  </span>
+)}
+{statusData.currentPlan !== "Basic" && (
+<NeonButton onClick={() => handleSubscribe("Basic")}>Subscribe Now</NeonButton>
+)}
         </div>
         <div style={styles.planCard}>
           <h3>Plus (12 months)</h3>
           <p>$130/year</p>
-          <NeonButton onClick={() => handleSubscribe("Plus")}>Subscribe Now</NeonButton>
+          <input
+  type="text"
+  placeholder="Enter your MT4/5 Login ID"
+  value={mtLogin.Plus}
+  onChange={(e) => setMtLogin({ ...mtLogin, Plus: e.target.value })}
+  disabled={statusData.subscriptionActive}
+  style={{
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    border: `1px solid ${neonBlue}`,
+    backgroundColor: "#000000",
+    color: neonBlue,
+    width: "100%",
+  }}
+/>
+{statusData.subscriptionActive && statusData.currentPlan === "Plus" && (
+  <span style={{ color: neonGreen }}>
+    License active until: {new Date(statusData.nextBillingDate).toLocaleDateString()}
+  </span>
+)}
+{statusData.currentPlan !== "Plus" && (
+<NeonButton onClick={() => handleSubscribe("Plus")}>Subscribe Now</NeonButton>
+)}
         </div>
         <div style={styles.planCard}>
           <h3>Unlimited</h3>
           <p>$499/one-time</p>
-          <NeonButton onClick={() => handleSubscribe("Unlimited")}>Subscribe Now</NeonButton>
+          <input
+  type="text"
+  placeholder="Enter your MT4/5 Login ID"
+  value={mtLogin.Unlimited}
+  onChange={(e) => setMtLogin({ ...mtLogin, Unlimited: e.target.value })}
+  disabled={statusData.subscriptionActive}
+  style={{
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    border: `1px solid ${neonBlue}`,
+    backgroundColor: "#000000",
+    color: neonBlue,
+    width: "100%",
+  }}
+/>
+{statusData.subscriptionActive && statusData.currentPlan === "Unlimited" && (
+  <span style={{ color: neonGreen }}>
+    License active until: {new Date(statusData.nextBillingDate).toLocaleDateString()}
+  </span>
+)}
+{statusData.currentPlan !== "Unlimited" && (
+<NeonButton onClick={() => handleSubscribe("Unlimited")}>Subscribe Now</NeonButton>
+)}
+
         </div>
       </section>
 
