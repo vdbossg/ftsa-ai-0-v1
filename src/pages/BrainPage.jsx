@@ -17,6 +17,17 @@ export default function BrainPage() {
   dailySL: 1,   // daily stop loss %
 });
 
+// List of all major and minor currency pairs
+const allPairs = [
+  "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "NZDUSD", "USDCAD",
+  "EURGBP", "EURJPY", "EURCHF", "EURAUD", "EURNZD",
+  "GBPJPY", "GBPCHF", "GBPAUD", "GBPNZD",
+  "AUDJPY", "AUDNZD", "AUDCHF",
+  "CADJPY", "CADCHF",
+  "CHFJPY", "NZDJPY", "NZDCHF"
+];
+
+
 
   const loadBrainData = async () => {
     setLoading(true);
@@ -172,39 +183,26 @@ try {
 >
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>EA Settings</h2>
 
-  {/* Currency Pairs */}
-  <div style={{ marginBottom: "1rem" }}>
-    <p>Select Pairs:</p>
-    <label>
+  <div style={{ marginBottom: "1rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+  <p style={{ width: "100%" }}>Select Pairs:</p>
+  {allPairs.map((pair) => (
+    <label key={pair} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
       <input
         type="checkbox"
-        value="EURUSD"
-        checked={settings.pairs.includes("EURUSD")}
+        value={pair}
+        checked={settings.pairs.includes(pair)}
         onChange={(e) => {
           const newPairs = e.target.checked
             ? [...settings.pairs, e.target.value]
-            : settings.pairs.filter(p => p !== e.target.value);
+            : settings.pairs.filter((p) => p !== e.target.value);
           setSettings({ ...settings, pairs: newPairs });
         }}
       />
-      EURUSD
+      {pair}
     </label>
-    <label>
-      <input
-        type="checkbox"
-        value="GBPUSD"
-        checked={settings.pairs.includes("GBPUSD")}
-        onChange={(e) => {
-          const newPairs = e.target.checked
-            ? [...settings.pairs, e.target.value]
-            : settings.pairs.filter(p => p !== e.target.value);
-          setSettings({ ...settings, pairs: newPairs });
-        }}
-      />
-      GBPUSD
-    </label>
-    {/* Add more major/minor pairs as needed */}
-  </div>
+  ))}
+</div>
+
 
   {/* Risk % */}
   <div style={{ marginBottom: "1rem" }}>
