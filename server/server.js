@@ -76,6 +76,10 @@ app.get('/', (req, res) => {
 });
 
 
+// ✅ Status route for frontend
+app.get('/status', (req, res) => {
+  res.json({ status: 'ok', message: 'Backend is running' });
+});
 
 // Start server
 app.listen(PORT, () => {

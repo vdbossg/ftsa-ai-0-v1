@@ -102,34 +102,35 @@ export default function BinancePage() {
           >
             <h2 style={{ color: neonColors.neonBlue }}>ACCOUNT INFORMATION</h2>
             <p>Email: {binanceData.email}</p>
-            <p>Total Balance: ${binanceData.totalBalance.toFixed(2)}</p>
-            <p>Available Balance: ${binanceData.availableBalance.toFixed(2)}</p>
-            <p>
-              Daily PnL:{" "}
-              <span
-               style={{
-                  color:
-                    binanceData.dailyPnl >= 0
-                      ? neonColors.neonGreen
-                      : neonColors.neonRed,
-                }}
-              >
-                ${binanceData.dailyPnl.toFixed(2)}
-              </span>
-            </p>
-            <p>
-              Weekly PnL:{" "}
-              <span
-                style={{
-                  color:
-                    binanceData.weeklyPnl >= 0
-                      ? neonColors.neonGreen
-                      : neonColors.neonRed,
-                }}
-              >
-                ${binanceData.weeklyPnl.toFixed(2)}
-              </span>
-            </p>
+            <p>Total Balance: ${Number(binanceData.totalBalance ?? 0).toFixed(2)}</p>
+<p>Available Balance: ${Number(binanceData.availableBalance ?? 0).toFixed(2)}</p>
+
+<p>
+  Daily PnL:{" "}
+  <span
+    style={{
+      color:
+        (binanceData.dailyPnl ?? 0) >= 0
+          ? neonColors.neonGreen
+          : neonColors.neonRed,
+    }}
+  >
+    ${Number(binanceData.dailyPnl ?? 0).toFixed(2)}
+  </span>
+</p>
+<p>
+  Weekly PnL:{" "}
+  <span
+    style={{
+      color:
+        (binanceData.weeklyPnl ?? 0) >= 0
+          ? neonColors.neonGreen
+          : neonColors.neonRed,
+    }}
+  >
+    ${Number(binanceData.weeklyPnl ?? 0).toFixed(2)}
+  </span>
+</p>
           </section>
 
           {/* Wallet Breakdown */}
@@ -144,9 +145,9 @@ export default function BinancePage() {
           >
             <h2 style={{ color: neonColors.neonBlue }}>WALLET BREAKDOWN</h2>
             <ul>
-              <li>Spots Wallet: ${binanceData.wallets.spots.toFixed(2)}</li>
-              <li>Funding Wallet: ${binanceData.wallets.funding.toFixed(2)}</li>
-              <li>Futures Wallet: ${binanceData.wallets.futures.toFixed(2)}</li>
+              <li>Spots Wallet: ${Number(binanceData.wallets?.spots ?? 0).toFixed(2)}</li>
+<li>Funding Wallet: ${Number(binanceData.wallets?.funding ?? 0).toFixed(2)}</li>
+<li>Futures Wallet: ${Number(binanceData.wallets?.futures ?? 0).toFixed(2)}</li>
             </ul>
           </section>
 
@@ -206,16 +207,16 @@ export default function BinancePage() {
                 </tr>
               </thead>
               <tbody>
-                {binanceData.holdings.map(
-                  ({ coin, amount, usdValue, portfolioPct }) => (
-                    <tr key={coin}>
-                      <td style={{ padding: "0.5rem" }}>{coin}</td>
-                      <td style={{ padding: "0.5rem" }}>{amount}</td>
-                      <td style={{ padding: "0.5rem" }}>${usdValue.toFixed(2)}</td>
-                      <td style={{ padding: "0.5rem" }}>{portfolioPct.toFixed(2)}%</td>
-                    </tr>
-                  )
-                )}
+                {(binanceData.holdings ?? []).map(
+  ({ coin, amount, usdValue, portfolioPct }) => (
+    <tr key={coin}>
+      <td style={{ padding: "0.5rem" }}>{coin}</td>
+      <td style={{ padding: "0.5rem" }}>{amount ?? 0}</td>
+      <td style={{ padding: "0.5rem" }}>${Number(usdValue ?? 0).toFixed(2)}</td>
+      <td style={{ padding: "0.5rem" }}>{Number(portfolioPct ?? 0).toFixed(2)}%</td>
+    </tr>
+  )
+)}
               </tbody>
             </table>
           </section>
@@ -232,20 +233,21 @@ export default function BinancePage() {
           >
             <h2 style={{ color: neonColors.neonBlue }}>MARKET WATCHLIST</h2>
             <ul>
-              {binanceData.marketWatchlist.map(({ symbol, price, changePct }) => (
-                <li key={symbol} style={{ marginBottom: "0.5rem" }}>
-                  <strong>{symbol}</strong> | ${price.toFixed(2)} |{" "}
-                  <span
-                    style={{
-                      color:
-                        changePct >= 0 ? neonColors.neonGreen : neonColors.neonRed,
-                    }}
-                  >
-                    {changePct >= 0 ? "+" : ""}
-                    {changePct.toFixed(2)}%
-                  </span>
-                </li>
-              ))}
+              {(binanceData.marketWatchlist ?? []).map(({ symbol, price, changePct }) => (
+  <li key={symbol} style={{ marginBottom: "0.5rem" }}>
+    <strong>{symbol}</strong> | ${Number(price ?? 0).toFixed(2)} |{" "}
+    <span
+      style={{
+        color:
+          (changePct ?? 0) >= 0 ? neonColors.neonGreen : neonColors.neonRed,
+      }}
+    >
+      {(changePct ?? 0) >= 0 ? "+" : ""}
+{Number(changePct ?? 0).toFixed(2)}%
+    </span>
+  </li>
+))}
+
             </ul>
           </section>
 
