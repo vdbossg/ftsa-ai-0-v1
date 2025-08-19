@@ -10,12 +10,6 @@ export default function BrainPage() {
   const [chochData, setChochData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // 🔹 New state for Trading Settings
-const [selectedPairs, setSelectedPairs] = useState([]);
-const [riskPercent, setRiskPercent] = useState(1);
-const [dailyTarget, setDailyTarget] = useState(3);
-const [dailyStopLoss, setDailyStopLoss] = useState(1);
-
 
   const loadBrainData = async () => {
     setLoading(true);
@@ -54,33 +48,6 @@ const [dailyStopLoss, setDailyStopLoss] = useState(1);
     const interval = setInterval(loadBrainData, 15000);
     return () => clearInterval(interval);
   }, []);
-    const saveSettings = async () => {
-    try {
-      const payload = {
-        pairs: selectedPairs,
-        risk: riskPercent,
-        dailyTarget,
-        dailyStopLoss,
-      };
-
-      const resp = await fetch(`${APIControl.BASE_URL}/api/settings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!resp.ok) throw new Error("Failed to save settings");
-
-      alert("✅ Settings saved successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Error saving settings");
-    }
-  };
-
 
   return (
     <div
@@ -172,95 +139,6 @@ const [dailyStopLoss, setDailyStopLoss] = useState(1);
           </tbody>
         </table>
       </section>
-      {/* 🔹 Trading Settings (NEW) */}
-<section
-  style={{
-    marginBottom: "2rem",
-    border: "1px solid #00FFFF",
-    padding: "1rem",
-    borderRadius: "12px",
-    boxShadow: "0 0 10px #00FFFF",
-  }}
->
-  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trading Settings</h2>
-
-  {/* Pair Selection */}
-  <div style={{ marginBottom: "1rem" }}>
-    <h3>Select Pairs</h3>
-    {["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "NZDUSD", "USDCAD", "USDCHF"].map(
-      (pair) => (
-        <label key={pair} style={{ marginRight: "1rem" }}>
-          <input
-            type="checkbox"
-            checked={selectedPairs.includes(pair)}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setSelectedPairs([...selectedPairs, pair]);
-              } else {
-                setSelectedPairs(selectedPairs.filter((p) => p !== pair));
-              }
-            }}
-          />
-          {pair}
-        </label>
-      )
-    )}
-  </div>
-
-  {/* Risk % */}
-  <div style={{ marginBottom: "1rem" }}>
-    <h3>Risk %</h3>
-    {[0.5, 1, 1.5, 2].map((val) => (
-      <label key={val} style={{ marginRight: "1rem" }}>
-        <input
-          type="radio"
-          name="risk"
-          checked={riskPercent === val}
-          onChange={() => setRiskPercent(val)}
-        />
-        {val}%
-      </label>
-    ))}
-  </div>
-
-  {/* Daily TP % */}
-  <div style={{ marginBottom: "1rem" }}>
-    <h3>Daily Take Profit %</h3>
-    {[2, 3, 4, 5].map((val) => (
-      <label key={val} style={{ marginRight: "1rem" }}>
-        <input
-          type="radio"
-          name="dailyTarget"
-          checked={dailyTarget === val}
-          onChange={() => setDailyTarget(val)}
-        />
-        {val}%
-      </label>
-    ))}
-  </div>
-
-  {/* Daily SL % */}
-  <div style={{ marginBottom: "1rem" }}>
-    <h3>Daily Stop Loss %</h3>
-    {[0.5, 1, 2].map((val) => (
-      <label key={val} style={{ marginRight: "1rem" }}>
-        <input
-          type="radio"
-          name="dailyStopLoss"
-          checked={dailyStopLoss === val}
-          onChange={() => setDailyStopLoss(val)}
-        />
-        {val}%
-      </label>
-    ))}
-  </div>
-</section>
-    <div style={{ marginTop: "1rem" }}>
-    <NeonButton onClick={saveSettings}>Save Settings</NeonButton>
-  </div>
-
-
-
 
       {/* Auto Trade Control */}
       <section
