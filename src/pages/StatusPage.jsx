@@ -10,6 +10,9 @@ const StatusPage = () => {
   const [loading, setLoading] = useState(true);
   const [statusData, setStatusData] = useState(null);
   const [error, setError] = useState(null);
+  const [eaLoading, setEaLoading] = useState(false);
+const [eaError, setEaError] = useState(null);
+
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -29,11 +32,41 @@ const StatusPage = () => {
         setLoading(false);
       });
   }, [isAuthenticated]);
+const handleDownloadEA = async (platform) => {
+  setEaLoading(true);
+setEaError(null);
+  
+  try {
+    // Fetch personalized EA from backend with license & account injection
+    const token = localStorage.getItem("token");
+    const resp = await fetch(`/api/ea/download?platform=${platform}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    if (!resp.ok) throw new Error("Failed to generate EA");
+    // Receive EA as blob (compiled EX4/5)
+    const blob = await resp.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `FTSA_EA_${platform.toUpperCase()}.ex${platform === "mt4" ? "4" : "5"}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    console.error(err);
+    setEaError("Failed to download EA. Try again later.");
+  } finally {
+    setEaLoading(false);
+  }
+};
+const handleSubscribe = (plan) => {
+  alert(`Subscribe clicked for plan: ${plan}`);
+  // Later you can replace this alert with real subscription logic
+};
 
-  const handleDownloadEA = (platform) => {
-    // Triggers backend to generate and download EA
-    window.open(`/api/ea/download?platform=${platform}`, "_blank");
-  };
 
   if (!isAuthenticated) {
     return (
@@ -68,14 +101,17 @@ const StatusPage = () => {
           <p style={{ marginBottom: "1rem", color: "#00FF00" }}>
             Download your personalized EA for MT4 or MT5 below:
           </p>
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <NeonButton onClick={() => handleDownloadEA("mt4")}>
-              Download EA for MT4
-            </NeonButton>
-            <NeonButton onClick={() => handleDownloadEA("mt5")}>
-              Download EA for MT5
-            </NeonButton>
-          </div>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+  <NeonButton onClick={() => handleDownloadEA("mt4")}>
+    Download EA for MT4
+  </NeonButton>
+  <NeonButton onClick={() => handleDownloadEA("mt5")}>
+    Download EA for MT5
+  </NeonButton>
+  {eaLoading && <span style={{ color: "#00FFFF" }}>Generating EA...</span>}
+{eaError && <span style={{ color: "#FF0000" }}>{eaError}</span>}
+</div>
+
         </section>
       )}
 
@@ -85,17 +121,17 @@ const StatusPage = () => {
         <div style={styles.planCard}>
           <h3>Basic (Monthly)</h3>
           <p>$20/month</p>
-          <NeonButton>Subscribe Now</NeonButton>
+          <NeonButton onClick={() => handleSubscribe("Basic")}>Subscribe Now</NeonButton>
         </div>
         <div style={styles.planCard}>
           <h3>Plus (12 months)</h3>
           <p>$130/year</p>
-          <NeonButton>Subscribe Now</NeonButton>
+          <NeonButton onClick={() => handleSubscribe("Plus")}>Subscribe Now</NeonButton>
         </div>
         <div style={styles.planCard}>
           <h3>Unlimited</h3>
           <p>$499/one-time</p>
-          <NeonButton>Subscribe Now</NeonButton>
+          <NeonButton onClick={() => handleSubscribe("Unlimited")}>Subscribe Now</NeonButton>
         </div>
       </section>
 
@@ -103,7 +139,7 @@ const StatusPage = () => {
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Billing Information</h2>
         <p style={styles.billingInfo}>
-          Next billing date: {statusData.nextBillingDate || "N/A"}
+          Next billing date: {statusData.nextBillingDate ? new Date(statusData.nextBillingDate).toLocaleDateString() : "N/A"}
         </p>
       </section>
 
@@ -112,23 +148,23 @@ const StatusPage = () => {
         <h2 style={styles.sectionTitle}>Transaction History</h2>
         <table style={styles.transactionTable}>
           <thead>
-            <tr>
-              <th>Date</th>
-              <th>Plan</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(statusData.transactions || []).map((tx, i) => (
-              <tr key={i}>
-                <td>{tx.date}</td>
-                <td>{tx.plan}</td>
-                <td>${tx.amount}</td>
-                <td>{tx.paid ? "Paid" : "Pending"}</td>
-              </tr>
-            ))}
-            {statusData.transactions?.length === 0 && (
+  <tr>
+    <th style={styles.transactionTableThTd}>Date</th>
+    <th style={styles.transactionTableThTd}>Plan</th>
+    <th style={styles.transactionTableThTd}>Amount</th>
+    <th style={styles.transactionTableThTd}>Status</th>
+  </tr>
+</thead>
+<tbody>
+  {(statusData.transactions || []).map((tx, i) => (
+    <tr key={i}>
+      <td style={styles.transactionTableThTd}>{tx.date}</td>
+      <td style={styles.transactionTableThTd}>{tx.plan}</td>
+      <td style={styles.transactionTableThTd}>${tx.amount}</td>
+      <td style={styles.transactionTableThTd}>{tx.paid ? "Paid" : "Pending"}</td>
+    </tr>
+  ))}
+              {statusData.transactions?.length === 0 && (
               <tr>
                 <td colSpan="4" style={{ color: "#FFA500" }}>
                   No transactions found.

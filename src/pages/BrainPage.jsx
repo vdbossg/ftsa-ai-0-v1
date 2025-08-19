@@ -10,6 +10,13 @@ export default function BrainPage() {
   const [chochData, setChochData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [settings, setSettings] = useState({
+  pairs: [],    // array of selected pairs
+  risk: 1,      // risk % (default 1%)
+  dailyTP: 2,   // daily take profit %
+  dailySL: 1,   // daily stop loss %
+});
+
 
   const loadBrainData = async () => {
     setLoading(true);
@@ -34,6 +41,19 @@ export default function BrainPage() {
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
       });
       const chochJson = await chochResp.json();
+      // Send current settings to brain API
+try {
+  await fetch(`${APIControl.BASE_URL}/api/update-settings`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(settings),
+  });
+} catch (err) {
+  console.error("Failed to send settings to brain:", err);
+}
       setChochData(chochJson);
     } catch (err) {
       setError("Failed to load brain data");
@@ -139,6 +159,94 @@ export default function BrainPage() {
           </tbody>
         </table>
       </section>
+
+      {/* Brain Settings */}
+<section
+  style={{
+    marginBottom: "2rem",
+    border: "1px solid #00FFFF",
+    padding: "1rem",
+    borderRadius: "12px",
+    boxShadow: "0 0 10px #00FFFF",
+  }}
+>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>EA Settings</h2>
+
+  {/* Currency Pairs */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Select Pairs:</p>
+    <label>
+      <input
+        type="checkbox"
+        value="EURUSD"
+        checked={settings.pairs.includes("EURUSD")}
+        onChange={(e) => {
+          const newPairs = e.target.checked
+            ? [...settings.pairs, e.target.value]
+            : settings.pairs.filter(p => p !== e.target.value);
+          setSettings({ ...settings, pairs: newPairs });
+        }}
+      />
+      EURUSD
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        value="GBPUSD"
+        checked={settings.pairs.includes("GBPUSD")}
+        onChange={(e) => {
+          const newPairs = e.target.checked
+            ? [...settings.pairs, e.target.value]
+            : settings.pairs.filter(p => p !== e.target.value);
+          setSettings({ ...settings, pairs: newPairs });
+        }}
+      />
+      GBPUSD
+    </label>
+    {/* Add more major/minor pairs as needed */}
+  </div>
+
+  {/* Risk % */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Risk %:</p>
+    <select
+      value={settings.risk}
+      onChange={(e) => setSettings({ ...settings, risk: parseFloat(e.target.value) })}
+    >
+      <option value={0.5}>0.5%</option>
+      <option value={1}>1%</option>
+      <option value={1.5}>1.5%</option>
+      <option value={2}>2%</option>
+    </select>
+  </div>
+
+  {/* Daily TP % */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Daily Take Profit %:</p>
+    <select
+      value={settings.dailyTP}
+      onChange={(e) => setSettings({ ...settings, dailyTP: parseFloat(e.target.value) })}
+    >
+      <option value={2}>2%</option>
+      <option value={3}>3%</option>
+      <option value={4}>4%</option>
+      <option value={5}>5%</option>
+    </select>
+  </div>
+
+  {/* Daily SL % */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Daily Stop Loss %:</p>
+    <select
+      value={settings.dailySL}
+      onChange={(e) => setSettings({ ...settings, dailySL: parseFloat(e.target.value) })}
+    >
+      <option value={0.5}>0.5%</option>
+      <option value={1}>1%</option>
+      <option value={2}>2%</option>
+    </select>
+  </div>
+</section>
 
       {/* Auto Trade Control */}
       <section
