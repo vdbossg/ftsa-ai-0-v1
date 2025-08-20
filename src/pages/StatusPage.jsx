@@ -17,6 +17,9 @@ const [mtLogin, setMtLogin] = useState({
   Plus: "",
   Unlimited: "",
 });
+const [mpesaNumber, setMpesaNumber] = useState(""); // User enters MPESA number
+const [paymentLoading, setPaymentLoading] = useState(false);
+const [paymentError, setPaymentError] = useState(null);
 
 
 
@@ -93,6 +96,59 @@ const handleSubscribe = async (plan) => {
     if (!resp.ok || !data.success) {
       throw new Error(data.error || "Subscription failed");
     }
+const handleMpesaPayment = async (plan) => {
+  const loginID = mtLogin[plan];
+  if (!loginID) {
+    alert("Please enter your MT4/5 Login ID.");
+    return;
+  }
+  if (!mpesaNumber) {
+    alert("Please enter your M-PESA number.");
+    return;
+  }
+
+  setPaymentLoading(true);
+  setPaymentError(null);
+
+  try {
+    const token = localStorage.getItem("token");
+    
+    // Convert USD to KES
+    let amountUSD = 0;
+    if (plan === "Basic") amountUSD = 20;
+    if (plan === "Plus") amountUSD = 130;
+    if (plan === "Unlimited") amountUSD = 499;
+    const amountKES = amountUSD * 130; // 1 USD = 130 KES
+
+    const resp = await fetch(`/api/payment/mpesa`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ plan, mtLogin: loginID, mpesaNumber, amountKES }),
+    });
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) {
+      throw new Error(data.error || "Payment failed");
+    }
+
+    alert(`M-PESA payment request sent. Enter your PIN on your phone to complete KES ${amountKES} payment.`);
+    
+    setStatusData((prev) => ({
+      ...prev,
+      subscriptionActive: true,
+      currentPlan: plan,
+      nextBillingDate: data.nextBillingDate,
+    }));
+  } catch (err) {
+    console.error(err);
+    setPaymentError(err.message || "M-PESA payment failed. Try again.");
+  } finally {
+    setPaymentLoading(false);
+  }
+};
 
     // Update local statusData to reflect subscription
     setStatusData((prev) => ({
@@ -181,6 +237,27 @@ const handleSubscribe = async (plan) => {
     width: "100%",
   }}
 />
+<input
+  type="text"
+  placeholder="Enter your M-PESA Number"
+  value={mpesaNumber}
+  onChange={(e) => setMpesaNumber(e.target.value)}
+  disabled={statusData.subscriptionActive}
+  style={{
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    border: `1px solid ${neonBlue}`,
+    backgroundColor: "#000000",
+    color: neonBlue,
+    width: "100%",
+  }}
+/>
+
+<NeonButton onClick={() => handleMpesaPayment("Basic")}>Pay with M-PESA</NeonButton>
+{paymentLoading && <span style={{ color: "#00FFFF" }}>Processing payment...</span>}
+{paymentError && <span style={{ color: "#FF0000" }}>{paymentError}</span>}
+
 {statusData.subscriptionActive && statusData.currentPlan === "Basic" && (
   <span style={{ color: neonGreen }}>
     License active until: {new Date(statusData.nextBillingDate).toLocaleDateString()}
@@ -209,6 +286,27 @@ const handleSubscribe = async (plan) => {
     width: "100%",
   }}
 />
+<input
+  type="text"
+  placeholder="Enter your M-PESA Number"
+  value={mpesaNumber}
+  onChange={(e) => setMpesaNumber(e.target.value)}
+  disabled={statusData.subscriptionActive}
+  style={{
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    border: `1px solid ${neonBlue}`,
+    backgroundColor: "#000000",
+    color: neonBlue,
+    width: "100%",
+  }}
+/>
+
+<NeonButton onClick={() => handleMpesaPayment("Plus")}>Pay with M-PESA</NeonButton>
+{paymentLoading && <span style={{ color: "#00FFFF" }}>Processing payment...</span>}
+{paymentError && <span style={{ color: "#FF0000" }}>{paymentError}</span>}
+
 {statusData.subscriptionActive && statusData.currentPlan === "Plus" && (
   <span style={{ color: neonGreen }}>
     License active until: {new Date(statusData.nextBillingDate).toLocaleDateString()}
@@ -237,6 +335,27 @@ const handleSubscribe = async (plan) => {
     width: "100%",
   }}
 />
+<input
+  type="text"
+  placeholder="Enter your M-PESA Number"
+  value={mpesaNumber}
+  onChange={(e) => setMpesaNumber(e.target.value)}
+  disabled={statusData.subscriptionActive}
+  style={{
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    border: `1px solid ${neonBlue}`,
+    backgroundColor: "#000000",
+    color: neonBlue,
+    width: "100%",
+  }}
+/>
+
+<NeonButton onClick={() => handleMpesaPayment("Unlimited")}>Pay with M-PESA</NeonButton>
+{paymentLoading && <span style={{ color: "#00FFFF" }}>Processing payment...</span>}
+{paymentError && <span style={{ color: "#FF0000" }}>{paymentError}</span>}
+
 {statusData.subscriptionActive && statusData.currentPlan === "Unlimited" && (
   <span style={{ color: neonGreen }}>
     License active until: {new Date(statusData.nextBillingDate).toLocaleDateString()}

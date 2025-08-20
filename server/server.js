@@ -8,6 +8,7 @@ const eaRoutes = require('./routes/eaRoutes');
 const mtAccountRoutes = require('./routes/mtAccountRoutes');           // ✅ Added
 const propFirmRoutes = require('./routes/propFirmAccountRoutes');      // ✅ Added
 const userRoutes = require('./routes/user');   // ✅ correct relative path
+const mpesaRoutes = require('./routes/mpesaRoutes'); // Add this near your other routes
 const connectDB = require('./config/db');
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -59,6 +60,9 @@ app.use('/api', apiRoutes);
 app.use('/api/ea', eaRoutes);                   // Existing
 app.use('/api/mtaccounts', mtAccountRoutes);    // ✅ Added
 app.use('/api/propfirmaccounts', propFirmRoutes); // ✅ Added
+app.use('/api/mpesa', mpesaRoutes);  // ← add this line
+console.log('✅ /api/mpesa routes mounted'); 
+
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/bias', require('./routes/biasRoutes'));
