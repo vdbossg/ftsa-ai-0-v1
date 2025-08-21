@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const cfaController = require("../../controllers/cfaAccountController");
-const adminAuth = require("../../middleware/adminAuthMiddleware");
+const cfaController = require("../controllers/cfaAccountController"); // correct
+const adminAuth = require("../middleware/adminAuthMiddleware"); // singular 'middleware', matches folder
 
 // Admin routes
 router.get("/balance", adminAuth, cfaController.getBalance);
