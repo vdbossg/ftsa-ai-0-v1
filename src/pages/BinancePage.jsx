@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import NeonButton from "../components/NeonButton";
 import StatusBadge from "../components/StatusBadge";
 import LoadingSpinner from "../components/LoadingSpinner";
-import APIControl from "../brain/APIControl"; // must expose fetchBinanceData
+import APIControl from "../brain/APIControl"; // must expose loginUser & fetchBinanceData
 
 const neonColors = {
   background: "#000000",
@@ -14,43 +14,74 @@ const neonColors = {
 };
 
 export default function BinancePage() {
-  // Local login (independent from global AuthContext)
-  const [localAuth, setLocalAuth] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [binanceData, setBinanceData] = useState(null);
 
-  // Simulate login validation (replace with real API if needed)
-  const handleLogin = (e) => {
+  // -----------------------------
+  // Login Handler (calls backend)
+  // -----------------------------
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (credentials.username && credentials.password) {
-      setLocalAuth(true);
-    } else {
+    if (!credentials.username || !credentials.password) {
       setError("Please enter both username and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await APIControl.loginUser(credentials.username, credentials.password);
+      if (response?.token) {
+        setAuthToken(response.token);
+        setError(null);
+      } else {
+        setError(response?.message || "Login failed. Please try again.");
+      }
+    } catch (err) {
+      setError("Unable to login. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // -----------------------------
+  // Fetch Binance Data (after login)
+  // -----------------------------
   useEffect(() => {
-    if (!localAuth) return;
+    if (!authToken) return;
 
+    let mounted = true;
     setLoading(true);
-    APIControl.fetchBinanceData?.()
+
+    APIControl.fetchBinanceData(authToken)
       .then((data) => {
-        setBinanceData(data || {});
-        setError(null);
+        if (mounted) {
+          setBinanceData(data || {});
+          setError(null);
+        }
       })
-      .catch(() => {
-        setError("Failed to load Binance data.");
+      .catch((err) => {
+        if (mounted) {
+          setError("Failed to load Binance data.");
+        }
       })
-      .finally(() => setLoading(false));
-  }, [localAuth]);
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [authToken]);
 
   // -----------------------------
   // Login Screen
   // -----------------------------
-  if (!localAuth) {
+  if (!authToken) {
     return (
       <div
         style={{
@@ -86,13 +117,7 @@ export default function BinancePage() {
             onChange={(e) =>
               setCredentials({ ...credentials, username: e.target.value })
             }
-            style={{
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: `1px solid ${neonColors.neonBlue}`,
-              backgroundColor: "#000",
-              color: neonColors.neonBlue,
-            }}
+            style={inputStyle()}
           />
           <input
             type="password"
@@ -101,15 +126,11 @@ export default function BinancePage() {
             onChange={(e) =>
               setCredentials({ ...credentials, password: e.target.value })
             }
-            style={{
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: `1px solid ${neonColors.neonBlue}`,
-              backgroundColor: "#000",
-              color: neonColors.neonBlue,
-            }}
+            style={inputStyle()}
           />
-          <NeonButton type="submit">Login</NeonButton>
+          <NeonButton type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </NeonButton>
         </form>
       </div>
     );
@@ -273,18 +294,17 @@ export default function BinancePage() {
           {/* CONNECTION STATUS */}
           <section style={sectionStyle()}>
             <h2>CONNECTION STATUS</h2>
-            <p>Logins/Logout/Connect Entries:</p>
             <ul>
               {(binanceData.connectionHistory || []).map((entry, i) => (
                 <li key={i}>{entry}</li>
               ))}
             </ul>
-            <NeonButton onClick={() => alert("Connect Binance account - implement")}>
-              Binance Account Connected
+            <NeonButton onClick={() => APIControl.connectBinance(authToken)}>
+              Connect Binance Account
             </NeonButton>
             <NeonButton
               style={{ marginLeft: "1rem" }}
-              onClick={() => alert("Refresh Connection - implement")}
+              onClick={() => APIControl.refreshBinance(authToken)}
             >
               Refresh Connection
             </NeonButton>
@@ -319,7 +339,7 @@ export default function BinancePage() {
 }
 
 // -----------------------------
-// Styles Extracted
+// Styles
 // -----------------------------
 function sectionStyle() {
   return {
@@ -328,6 +348,16 @@ function sectionStyle() {
     padding: "1rem",
     boxShadow: `0 0 10px ${neonColors.neonBlue}`,
     backgroundColor: "#111",
+  };
+}
+
+function inputStyle() {
+  return {
+    padding: "0.5rem",
+    borderRadius: "8px",
+    border: `1px solid ${neonColors.neonBlue}`,
+    backgroundColor: "#000",
+    color: neonColors.neonBlue,
   };
 }
 

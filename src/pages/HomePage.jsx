@@ -53,7 +53,7 @@ const HomePage = () => {
     <div style={styles.page}>
       <header style={styles.header}>
         <h1 style={styles.title}>
-          Welcome back, {user?.name || user?.email || "User"}
+          Welcome back, {user?.name || user?.email || "—"}
         </h1>
         <StatusBadge status="online" label="FTSA AI Brain Online" />
       </header>
