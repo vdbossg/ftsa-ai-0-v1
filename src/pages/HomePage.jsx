@@ -4,8 +4,7 @@ import NeonButton from "../components/NeonButton";
 import StatusBadge from "../components/StatusBadge";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
-import APIControl from '/src/brain/APIControl.js';
-
+import APIControl from "../brain/APIControl";
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -14,41 +13,66 @@ const HomePage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!isAuthenticated) return; // Optionally redirect handled in App.jsx routing
+    let isMounted = true;
+    if (!isAuthenticated) return;
+
+    setLoading(true);
+    setError(null);
 
     APIControl.fetchUserInfo()
-
       .then((res) => {
-        setData(res);
-        setLoading(false);
+        if (isMounted) {
+          setData(res);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        setError("Failed to load data");
-        setLoading(false);
+        if (isMounted) {
+          setError(err?.message || "Failed to load data");
+          setLoading(false);
+        }
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, [isAuthenticated]);
 
   if (!isAuthenticated) {
-    return <div style={styles.notAuth}>Please log in to view the homepage.</div>;
+    return (
+      <div style={styles.notAuth}>
+        Please log in to view the homepage.
+      </div>
+    );
   }
 
   if (loading) return <LoadingSpinner />;
-
   if (error) return <StatusBadge status="error" label={error} />;
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <h1 style={styles.title}>Welcome back, {user?.name || "Trader"}</h1>
+        <h1 style={styles.title}>
+          Welcome back, {user?.name || user?.email || "User"}
+        </h1>
         <StatusBadge status="online" label="FTSA AI Brain Online" />
       </header>
 
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Account Overview</h2>
         <div style={styles.card}>
-          <p>Balance: ${data?.accountBalance ?? "0.00"}</p>
-          <p>Open Positions: {data?.openPositions ?? 0}</p>
-          <p>Profit/Loss: ${data?.profitLoss ?? "0.00"}</p>
+          <p>
+            Balance:{" "}
+            {data?.accountBalance != null ? `$${data.accountBalance}` : "—"}
+          </p>
+          <p>
+            Open Positions:{" "}
+            {data?.openPositions != null ? data.openPositions : "—"}
+          </p>
+          <p>
+            Profit/Loss:{" "}
+            {data?.profitLoss != null ? `$${data.profitLoss}` : "—"}
+          </p>
           <NeonButton>Go to Dashboard</NeonButton>
         </div>
       </section>
@@ -56,12 +80,15 @@ const HomePage = () => {
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Global Market News</h2>
         <div style={styles.card}>
-          {/* Simple news items */}
-          {(data?.marketNews ?? []).map((news, idx) => (
-            <p key={idx} style={styles.newsItem}>
-              {news}
-            </p>
-          ))}
+          {data?.marketNews?.length ? (
+            data.marketNews.map((news, idx) => (
+              <p key={idx} style={styles.newsItem}>
+                {news}
+              </p>
+            ))
+          ) : (
+            <p style={styles.newsItem}>No market news available</p>
+          )}
         </div>
       </section>
 
