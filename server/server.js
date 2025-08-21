@@ -9,7 +9,7 @@ const mtAccountRoutes = require('./routes/mtAccountRoutes');           // ✅ Ad
 const propFirmRoutes = require('./routes/propFirmAccountRoutes');      // ✅ Added
 const userRoutes = require('./routes/user');   // ✅ correct relative path
 const mpesaRoutes = require('./routes/mpesaRoutes'); // Add this near your other routes
-const cfaRoutes = require('./routes/admin/cfaRoutes');
+const cfaRoutes = require("./routes/cfaRoutes");
 const connectDB = require('./config/db');
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -59,7 +59,7 @@ console.log('✅ /api/user routes mounted');
 // API routes
 app.use('/api', apiRoutes);
 app.use('/api/ea', eaRoutes);                   // Existing
-app.use('/api/cfa', cfaRoutes);
+app.use("/api/cfa", cfaRoutes);
 app.use('/api/mtaccounts', mtAccountRoutes);    // ✅ Added
 app.use('/api/propfirmaccounts', propFirmRoutes); // ✅ Added
 app.use('/api/mpesa', mpesaRoutes);  // ← add this line
