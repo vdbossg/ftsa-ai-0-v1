@@ -76,6 +76,14 @@ export default function SettingsPage() {
 
   const [language, setLanguage] = useState("ENGLISH");
 
+  const [eaSettings, setEaSettings] = useState({
+  pairs: [],
+  risk: 1,
+  dailyTP: 2,
+  dailySL: 1,
+});
+
+
   useEffect(() => {
     if (!isAuthenticated) return;
     setLoading(true);
@@ -99,6 +107,13 @@ export default function SettingsPage() {
 
         setApiIntegrations(data.apiIntegrations);
         setLanguage(data.language);
+setEaSettings(data.eaSettings ?? {
+  pairs: [],
+  risk: 1,
+  dailyTP: 2,
+  dailySL: 1,
+});
+
       })
       .catch(() => setError("Failed to load settings data"))
       .finally(() => setLoading(false));
@@ -160,6 +175,7 @@ export default function SettingsPage() {
       theme,
       apiIntegrations,
       language,
+      eaSettings, // include EA settings here
     })
       .then(() => alert("Settings saved successfully!"))
       .catch(() => alert("Failed to save settings."))
@@ -431,6 +447,81 @@ export default function SettingsPage() {
               </div>
             </div>
           </section>
+          {/* EA SETTINGS */}
+<section
+  style={{
+    marginBottom: "2rem",
+    border: `2px solid ${neonColors.neonBlue}`,
+    borderRadius: "12px",
+    padding: "1rem",
+    boxShadow: `0 0 15px ${neonColors.neonBlue}`,
+    maxWidth: 400,
+  }}
+>
+  <h2 style={{ color: neonColors.neonOrange }}>EA SETTINGS</h2>
+  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    
+    <label>
+      Trading Pairs (comma separated):
+      <input
+        type="text"
+        value={eaSettings.pairs.join(",")}
+        onChange={(e) =>
+          setEaSettings((prev) => ({
+            ...prev,
+            pairs: e.target.value.split(",").map((p) => p.trim()),
+          }))
+        }
+        style={inputStyle(neonColors)}
+        placeholder="EURUSD, GBPUSD, USDJPY"
+      />
+    </label>
+
+    <label>
+      Risk per Trade (%):
+      <input
+        type="number"
+        value={eaSettings.risk}
+        onChange={(e) =>
+          setEaSettings((prev) => ({ ...prev, risk: parseFloat(e.target.value) }))
+        }
+        style={inputStyle(neonColors)}
+        min={0.1}
+        max={100}
+        step={0.1}
+      />
+    </label>
+
+    <label>
+      Daily Take Profit (%):
+      <input
+        type="number"
+        value={eaSettings.dailyTP}
+        onChange={(e) =>
+          setEaSettings((prev) => ({ ...prev, dailyTP: parseFloat(e.target.value) }))
+        }
+        style={inputStyle(neonColors)}
+        min={0}
+        step={0.1}
+      />
+    </label>
+
+    <label>
+      Daily Stop Loss (%):
+      <input
+        type="number"
+        value={eaSettings.dailySL}
+        onChange={(e) =>
+          setEaSettings((prev) => ({ ...prev, dailySL: parseFloat(e.target.value) }))
+        }
+        style={inputStyle(neonColors)}
+        min={0}
+        step={0.1}
+      />
+    </label>
+  </div>
+</section>
+
 
           {/* API & INTEGRATIONS */}
           <section

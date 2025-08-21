@@ -34,10 +34,9 @@ const allPairs = [
     setError(null);
     try {
       // Fetch market strength
-      const strengthResp = await fetch(`${APIControl.BASE_URL}/api/strength`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
-      });
-      const strengthJson = await strengthResp.json();
+      const strengthResp = await APIControl.fetchMarketStrength();
+if (!strengthResp.success) throw new Error("Failed to fetch market strength");
+const strengthJson = strengthResp.data;
       setMarketStrength(
         strengthJson.map((p) => ({
           pair: p.symbol,
@@ -48,23 +47,17 @@ const allPairs = [
       );
 
       // Fetch CHoCH direction
-      const chochResp = await fetch(`${APIControl.BASE_URL}/api/choch`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
-      });
-      const chochJson = await chochResp.json();
+      const chochResp = await APIControl.fetchChochData();
+if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
+const chochJson = chochResp.data;
       // Send current settings to brain API
 try {
-  await fetch(`${APIControl.BASE_URL}/api/update-settings`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("token")}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(settings),
-  });
+  await APIControl.saveSettingsData({
+  eaSettings: settings, // BrainPage EA settings
+});
 } catch (err) {
   console.error("Failed to send settings to brain:", err);
-}
+} 
       setChochData(chochJson);
     } catch (err) {
       setError("Failed to load brain data");
