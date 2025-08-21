@@ -44,6 +44,13 @@ const AffiliatesPage = () => {
     fetchAffiliateData();
   }
 }, [user]);
+useEffect(() => {
+  const interval = setInterval(() => {
+    if (user?.id) fetchAffiliateData();
+  }, 30000); // every 30s
+  return () => clearInterval(interval);
+}, [user]);
+
 const handleAffiliateRegister = async (e) => {
   e.preventDefault();
   const form = e.target;
@@ -89,11 +96,11 @@ const handleAffiliateRegister = async (e) => {
 
   try {
     setLoading(true);
-    const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/affiliate/withdraw`, {
-      amount: withdrawAmount,
-      method: withdrawMethod,
-      accountDetails,
-    });
+    const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/cfa/request-withdrawal`, {
+  affiliateId: user.id,
+  amount: withdrawAmount,
+  method: withdrawMethod,
+});
 
     alert(res.data.message || "Withdrawal request submitted successfully.");
 

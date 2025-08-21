@@ -1,9 +1,10 @@
 #property strict
 #include <stdlib.mqh> // For JSON parsing helper (basic)
 
-// Inputs
-input string LicenseKey = "%%LICENSE_KEY%%";
+// Inputs (placeholders for injection)
+input string LicenseKey     = "%%LICENSE_KEY%%";
 input string AllowedAccount = "%%ACCOUNT_NUMBER%%";
+input string ExpiryDate     = "%%EXPIRY_DATE%%"; // format: YYYY.MM.DD HH:MI:SS
 
 // JSON file path (shared folder)
 string TradeFile = "trade_commands.json";
@@ -38,11 +39,11 @@ public:
       // Simple parsing (for demo purposes, not full JSON parser)
       if(StringFind(json, "symbol") >= 0)
       {
-         symbol = GetJsonValue(json, "symbol");
-         entry  = StringToDouble(GetJsonValue(json, "entry"));
-         sl     = StringToDouble(GetJsonValue(json, "sl"));
-         tp     = StringToDouble(GetJsonValue(json, "tp"));
-         lot    = StringToDouble(GetJsonValue(json, "lot"));
+         symbol   = GetJsonValue(json, "symbol");
+         entry    = StringToDouble(GetJsonValue(json, "entry"));
+         sl       = StringToDouble(GetJsonValue(json, "sl"));
+         tp       = StringToDouble(GetJsonValue(json, "tp"));
+         lot      = StringToDouble(GetJsonValue(json, "lot"));
          trade_id = GetJsonValue(json, "trade_id");
          executed = false;
          return(true);
@@ -86,13 +87,22 @@ TradeManager TM;
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   // Validate account
    if(AccountInfoInteger(ACCOUNT_LOGIN) != StringToInteger(AllowedAccount))
    {
       Print("FTSA AI: License Invalid - Wrong Account");
       return(INIT_FAILED);
    }
 
-   Print("FTSA AI: License OK for account ", AllowedAccount);
+   // Validate expiry
+   datetime expiry = StringToTime(ExpiryDate);
+   if(TimeCurrent() > expiry)
+   {
+      Print("FTSA AI: License Expired - Access Denied");
+      return(INIT_FAILED);
+   }
+
+   Print("FTSA AI: License OK for account ", AllowedAccount, " until ", ExpiryDate);
    return(INIT_SUCCEEDED);
 }
 
@@ -101,6 +111,7 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnTick()
 {
+   // EA heartbeat
    Print("FTSA AI is running...");
 
    // Check for trade command
