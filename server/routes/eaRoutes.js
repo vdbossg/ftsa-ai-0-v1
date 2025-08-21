@@ -1,6 +1,6 @@
 const express = require('express');
 const { downloadEA } = require('../controllers/eaController');
-const authMiddleware = require('../middlewares/authMiddleware');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
