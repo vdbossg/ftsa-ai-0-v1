@@ -33,6 +33,9 @@ const APIControl = {
       return { success: false, error: "Login failed" };
     }
   },
+async loginUser(username, password) {
+  return this.login(username, password);
+},
 
   /**
    * Real API logout (if applicable)
@@ -309,6 +312,35 @@ async propFirmLogin(accountID, password, serverName) {
   } catch (error) {
     console.error("Error fetching Binance data:", error);
     return { success: false, data: null };
+  }
+},
+async connectBinance(token) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/binance/connect`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) return { success: false, error: "Failed to connect Binance" };
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: "Failed to connect Binance" };
+  }
+},
+async refreshBinance(token) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/binance/refresh`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+    if (!response.ok) return { success: false, error: "Failed to refresh Binance" };
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: "Failed to refresh Binance" };
   }
 },
 
