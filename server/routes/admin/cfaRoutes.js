@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const cfaController = require("../../controllers/cfaAccountController");
-const adminAuth = require("../../middlewares/adminAuthMiddleware");
+const adminAuth = require("../../middleware/adminAuthMiddleware");
 
 // Admin routes
 router.get("/balance", adminAuth, cfaController.getBalance);
