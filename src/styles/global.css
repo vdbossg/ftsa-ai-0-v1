@@ -1,11 +1,12 @@
 @import url('./variables.css');
 
+/* --- Global Reset --- */
 html, body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-sci-fi);
-  background-color: var(--color-bg);
-  color: var(--color-white);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-gray);
+  color: var(--text-dark);
   height: 100%;
 }
 
@@ -13,39 +14,63 @@ html, body {
   box-sizing: border-box;
 }
 
-/* Scrollbar styling */
+/* --- Scrollbar Styling --- */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-neon-blue);
-  box-shadow: var(--glow-blue);
+  background: var(--primary-green);
+  border-radius: 4px;
 }
 
-/* Default container styling */
+/* --- Default Container Styling --- */
 .container {
-  border: var(--container-border);
-  box-shadow: var(--container-shadow);
+  border: none;
   padding: 1rem;
   margin: 1rem 0;
   border-radius: 10px;
+  background-color: #FFFFFF; /* White for card-style containers */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* Neon Button base */
+/* --- Button Base Styling --- */
 .neon-button {
-  background: transparent;
-  color: var(--color-white);
+  background-color: var(--primary-green);
+  color: var(--text-white);
   padding: 0.75rem 1.5rem;
-  border: 2px solid var(--color-neon-blue);
-  text-transform: uppercase;
+  border: none;
+  border-radius: 25px;
+  text-transform: none;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: var(--button-shadow);
+  transition: background-color 0.3s ease;
 }
 
 .neon-button:hover {
-  background: var(--color-neon-blue);
-  color: var(--color-bg);
-  box-shadow: 0 0 20px var(--color-neon-blue), 0 0 40px var(--color-neon-blue);
+  background-color: var(--dark-green);
+  box-shadow: none;
+}
+
+/* --- Links --- */
+a {
+  color: var(--primary-green);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--dark-green);
+}
+
+/* --- Inputs & Textareas --- */
+input, textarea {
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+input:focus, textarea:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 5px var(--primary-green);
 }

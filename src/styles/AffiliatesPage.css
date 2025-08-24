@@ -1,66 +1,66 @@
-/* ========================= Affiliates Page Styles - FTSA-AI-0-v1 Neon Theme ========================= */
+/* =========================
+   Affiliates Page Styles - WhatsApp Theme
+   ========================= */
 
 /* 1️⃣ Theme Variables */
 :root {
-  --bg-dark: #000000;
-  --neon-blue: #00FFFF;
-  --neon-green: #00FF00;
-  --neon-orange: #FFA500;
-  --neon-red: #FF0000;
-  --text-white: #FFFFFF;
+  --primary-green: #25D366;
+  --dark-green: #075E54;
+  --background-gray: #ECE5DD;
+  --card-white: #FFFFFF;
+  --text-dark: #262626;
+  --text-muted: #555;
+  --error-red: #e53935;
 }
 
 /* 2️⃣ Page Container */
 .affiliates-container {
-  background-color: var(--bg-dark);
+  background-color: var(--background-gray);
   min-height: 100vh;
   padding: 20px;
   font-family: 'Orbitron', sans-serif;
-  color: var(--text-white);
+  color: var(--text-dark);
 }
 
 /* 3️⃣ Section Cards */
 .affiliates-section {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid var(--neon-green);
+  background: var(--card-white);
+  border: 1px solid var(--primary-green);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 0 12px var(--neon-green);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .affiliates-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 0 18px var(--neon-green), 0 0 30px var(--neon-green);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* 4️⃣ Titles & Headings */
 .affiliates-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--neon-green);
+  color: var(--primary-green);
   margin-bottom: 15px;
-  text-shadow: 0 0 8px var(--neon-green);
 }
 
-/* 5️⃣ Neon Buttons */
+/* 5️⃣ Buttons */
 .neon-button {
-  background: transparent;
-  border: 2px solid var(--neon-green);
-  color: var(--neon-green);
+  background-color: var(--primary-green);
+  border: none;
+  color: var(--card-white);
   padding: 10px 20px;
   font-size: 1rem;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 8px var(--neon-green);
+  border-radius: 25px;
+  transition: background-color 0.3s ease;
 }
 
 .neon-button:hover {
-  background: var(--neon-green);
-  color: var(--bg-dark);
-  box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
+  background-color: var(--dark-green);
 }
 
 /* 6️⃣ Status Badges */
@@ -74,30 +74,27 @@
 }
 
 .status-green {
-  background-color: rgba(0, 255, 0, 0.1);
-  border: 1px solid var(--neon-green);
-  color: var(--neon-green);
-  box-shadow: 0 0 8px var(--neon-green);
+  background-color: rgba(37, 211, 102, 0.1);
+  border: 1px solid var(--primary-green);
+  color: var(--primary-green);
 }
 
 .status-orange {
   background-color: rgba(255, 165, 0, 0.1);
-  border: 1px solid var(--neon-orange);
-  color: var(--neon-orange);
-  box-shadow: 0 0 8px var(--neon-orange);
+  border: 1px solid #FFA500;
+  color: #FFA500;
 }
 
 .status-red {
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid var(--neon-red);
-  color: var(--neon-red);
-  box-shadow: 0 0 8px var(--neon-red);
+  background-color: rgba(229, 57, 53, 0.1);
+  border: 1px solid var(--error-red);
+  color: var(--error-red);
 }
 
 /* 7️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top: 4px solid var(--neon-green);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid var(--primary-green);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -113,28 +110,28 @@
 
 /* 8️⃣ Affiliate Cards */
 .affiliate-card {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--neon-green);
+  background: #f9f9f9;
+  border: 1px solid var(--primary-green);
   border-radius: 10px;
   padding: 15px;
   margin: 10px 0;
-  box-shadow: 0 0 10px var(--neon-green);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .affiliate-card:hover {
   transform: scale(1.02);
-  box-shadow: 0 0 20px var(--neon-green);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .affiliate-name {
   font-size: 1.1rem;
   font-weight: bold;
-  color: var(--neon-green);
+  color: var(--primary-green);
 }
 
 .affiliate-earnings {
   font-size: 0.9rem;
-  color: var(--text-white);
+  color: var(--text-dark);
   opacity: 0.9;
 }

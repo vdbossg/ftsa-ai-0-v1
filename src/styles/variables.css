@@ -1,25 +1,19 @@
 :root {
   /* Core Colors */
-  --color-bg: #000000;
-  --color-neon-blue: #00ffff;
-  --color-neon-green: #00ff00;
-  --color-neon-orange: #ffa500;
-  --color-neon-red: #ff0000;
-  --color-white: #ffffff;
-
-  /* Shadows & Glow */
-  --glow-blue: 0 0 10px var(--color-neon-blue), 0 0 20px var(--color-neon-blue);
-  --glow-green: 0 0 10px var(--color-neon-green), 0 0 20px var(--color-neon-green);
-  --glow-orange: 0 0 10px var(--color-neon-orange), 0 0 20px var(--color-neon-orange);
-  --glow-red: 0 0 10px var(--color-neon-red), 0 0 20px var(--color-neon-red);
+  --primary-green: #25D366;       /* WhatsApp main green */
+  --dark-green: #075E54;          /* Dark green for headers/buttons */
+  --light-green: #DCF8C6;         /* Sent message bubble */
+  --background-gray: #ECE5DD;     /* App background */
+  --text-dark: #262626;           /* Standard text color */
+  --text-white: #FFFFFF;          /* White text */
 
   /* Font */
-  --font-sci-fi: 'Orbitron', sans-serif;
+  --font-sci-fi: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-  /* 3D Container */
-  --container-border: 2px solid var(--color-neon-blue);
-  --container-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+  /* Container Styling */
+  --container-border: none;       /* removed neon border */
+  --container-shadow: 0 2px 5px rgba(0,0,0,0.1);
 
-  /* Button Glow */
-  --button-shadow: 0 0 8px var(--color-neon-blue), 0 0 16px var(--color-neon-blue);
+  /* Button Shadow */
+  --button-shadow: none;          /* removed neon glow */
 }

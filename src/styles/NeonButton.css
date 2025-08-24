@@ -1,39 +1,24 @@
 /* src/styles/NeonButton.css */
 
-:root {
-  --color-neon-cyan: #00fff7;
-  --color-neon-pink: #ff2d95;
-  --color-neon-green: #39ff14;
-  --color-neon-red: #ff1744;
-  --color-bg-dark: #0a0a0a;
-  --color-text: #fff;
-}
-
 /* Base styles */
-
 .neon-button {
   cursor: pointer;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 25px;
   border: none;
-  text-transform: uppercase;
-  color: var(--color-text);
-  background-color: var(--color-bg-dark);
-  box-shadow:
-    0 0 5px var(--color-neon-cyan),
-    0 0 10px var(--color-neon-cyan),
-    0 0 20px var(--color-neon-cyan);
-  transition: all 0.3s ease;
+  text-transform: none;
+  color: var(--text-white);
+  background-color: var(--primary-green);
+  transition: background-color 0.3s ease;
   user-select: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  letter-spacing: 1.2px;
-  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.5px;
+  font-family: var(--font-sci-fi);
 }
 
 /* Sizes */
-
 .neon-button--small {
   font-size: 0.75rem;
   padding: 6px 14px;
@@ -50,76 +35,48 @@
 }
 
 /* Variants */
-
 .neon-button--primary {
-  color: var(--color-neon-cyan);
-  box-shadow:
-    0 0 10px var(--color-neon-cyan),
-    0 0 20px var(--color-neon-cyan),
-    0 0 40px var(--color-neon-cyan);
-  background-color: #0a0a0a;
+  color: var(--text-white);
+  background-color: var(--primary-green);
 }
 
 .neon-button--primary:hover:not(.neon-button--disabled),
 .neon-button--primary:focus-visible:not(.neon-button--disabled) {
-  color: #00fff7;
-  box-shadow:
-    0 0 15px var(--color-neon-cyan),
-    0 0 30px var(--color-neon-cyan),
-    0 0 50px var(--color-neon-cyan);
+  background-color: var(--dark-green);
   outline: none;
 }
 
 .neon-button--secondary {
-  color: var(--color-neon-pink);
-  box-shadow:
-    0 0 10px var(--color-neon-pink),
-    0 0 20px var(--color-neon-pink),
-    0 0 40px var(--color-neon-pink);
-  background-color: #0a0a0a;
+  color: var(--text-white);
+  background-color: #34b7f1; /* WhatsApp light blue for secondary */
 }
 
 .neon-button--secondary:hover:not(.neon-button--disabled),
 .neon-button--secondary:focus-visible:not(.neon-button--disabled) {
-  color: #ff2d95;
-  box-shadow:
-    0 0 15px var(--color-neon-pink),
-    0 0 30px var(--color-neon-pink),
-    0 0 50px var(--color-neon-pink);
+  background-color: #128C7E;
   outline: none;
 }
 
 .neon-button--danger {
-  color: var(--color-neon-red);
-  box-shadow:
-    0 0 10px var(--color-neon-red),
-    0 0 20px var(--color-neon-red),
-    0 0 40px var(--color-neon-red);
-  background-color: #0a0a0a;
+  color: var(--text-white);
+  background-color: #e53935; /* red for danger */
 }
 
 .neon-button--danger:hover:not(.neon-button--disabled),
 .neon-button--danger:focus-visible:not(.neon-button--disabled) {
-  color: #ff1744;
-  box-shadow:
-    0 0 15px var(--color-neon-red),
-    0 0 30px var(--color-neon-red),
-    0 0 50px var(--color-neon-red);
+  background-color: #c62828;
   outline: none;
 }
 
 /* Disabled */
-
 .neon-button--disabled {
   cursor: not-allowed;
-  color: #555;
-  box-shadow: none;
-  background-color: #222;
+  color: #888;
+  background-color: #ccc;
   opacity: 0.6;
 }
 
 .neon-button--disabled:hover,
 .neon-button--disabled:focus {
-  box-shadow: none;
   outline: none;
 }

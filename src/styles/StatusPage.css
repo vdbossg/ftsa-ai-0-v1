@@ -1,72 +1,70 @@
 /* =========================
    Status Page Styles
-   FTSA-AI-0-v1 Neon Theme
+   FTSA-AI-0-v1 WhatsApp Theme
    ========================= */
 
 /* 1️⃣ Theme Variables */
 :root {
-  --bg-dark: #000000;
-  --neon-blue: #00FFFF;
-  --neon-green: #00FF00;
-  --neon-orange: #FFA500;
-  --neon-red: #FF0000;
+  --primary-green: #25D366;
+  --dark-green: #075E54;
+  --background-gray: #ECE5DD;
+  --text-dark: #262626;
   --text-white: #FFFFFF;
+  --status-error: #e53935;
+  --status-warning: #FFB300;
 }
 
 /* 2️⃣ Page Container */
 .status-container {
-  background-color: var(--bg-dark);
+  background-color: var(--background-gray);
   min-height: 100vh;
   padding: 20px;
-  font-family: 'Orbitron', sans-serif;
-  color: var(--text-white);
+  font-family: var(--font-sci-fi);
+  color: var(--text-dark);
 }
 
 /* 3️⃣ Status Cards */
 .status-section {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid var(--neon-blue);
+  background: #FFFFFF;
+  border: none;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 0 12px var(--neon-blue);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .status-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 0 18px var(--neon-blue), 0 0 30px var(--neon-blue);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 /* 4️⃣ Titles & Headings */
 .status-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--neon-blue);
+  color: var(--dark-green);
   margin-bottom: 15px;
-  text-shadow: 0 0 8px var(--neon-blue);
 }
 
-/* 5️⃣ Neon Buttons */
+/* 5️⃣ Buttons */
 .neon-button {
-  background: transparent;
-  border: 2px solid var(--neon-blue);
-  color: var(--neon-blue);
+  background-color: var(--primary-green);
+  border: none;
+  color: var(--text-white);
   padding: 10px 20px;
   font-size: 1rem;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 8px var(--neon-blue);
+  border-radius: 25px;
+  transition: background-color 0.3s ease;
 }
 
 .neon-button:hover {
-  background: var(--neon-blue);
-  color: var(--bg-dark);
-  box-shadow: 0 0 20px var(--neon-blue), 0 0 40px var(--neon-blue);
+  background-color: var(--dark-green);
 }
 
-/* 6️⃣ Status Badges (More Emphasis Here) */
+/* 6️⃣ Status Badges */
 .status-badge {
   display: inline-block;
   padding: 6px 14px;
@@ -75,33 +73,25 @@
   font-weight: bold;
   text-transform: uppercase;
   margin-right: 10px;
+  color: var(--text-white);
 }
 
 .status-green {
-  background-color: rgba(0, 255, 0, 0.15);
-  border: 1px solid var(--neon-green);
-  color: var(--neon-green);
-  box-shadow: 0 0 8px var(--neon-green);
+  background-color: var(--primary-green);
 }
 
 .status-orange {
-  background-color: rgba(255, 165, 0, 0.15);
-  border: 1px solid var(--neon-orange);
-  color: var(--neon-orange);
-  box-shadow: 0 0 8px var(--neon-orange);
+  background-color: var(--status-warning);
 }
 
 .status-red {
-  background-color: rgba(255, 0, 0, 0.15);
-  border: 1px solid var(--neon-red);
-  color: var(--neon-red);
-  box-shadow: 0 0 8px var(--neon-red);
+  background-color: var(--status-error);
 }
 
 /* 7️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top: 4px solid var(--neon-blue);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid var(--primary-green);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -110,7 +100,5 @@
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }

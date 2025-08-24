@@ -1,69 +1,67 @@
 /* =========================
-   Binance Page Styles
-   FTSA-AI-0-v1 Neon Theme
+   Binance Page Styles - WhatsApp Theme
    ========================= */
 
 /* 1️⃣ Theme Variables */
 :root {
-  --bg-dark: #000000;
-  --neon-yellow: #F0B90B; /* Binance Gold */
-  --neon-green: #00FF00;
-  --neon-orange: #FFA500;
-  --neon-red: #FF0000;
-  --text-white: #FFFFFF;
+  --primary-green: #25D366;
+  --dark-green: #075E54;
+  --background-gray: #ECE5DD;
+  --card-white: #FFFFFF;
+  --text-dark: #262626;
+  --text-muted: #555;
+  --warning-yellow: #F0B90B;
+  --error-red: #e53935;
 }
 
 /* 2️⃣ Page Container */
 .binance-container {
-  background-color: var(--bg-dark);
+  background-color: var(--background-gray);
   min-height: 100vh;
   padding: 20px;
   font-family: 'Orbitron', sans-serif;
-  color: var(--text-white);
+  color: var(--text-dark);
 }
 
 /* 3️⃣ Section Cards */
 .binance-section {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid var(--neon-yellow);
+  background: var(--card-white);
+  border: 1px solid var(--warning-yellow);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 0 12px var(--neon-yellow);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .binance-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 0 18px var(--neon-yellow), 0 0 30px var(--neon-yellow);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* 4️⃣ Titles & Headings */
 .binance-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--neon-yellow);
+  color: var(--primary-green);
   margin-bottom: 15px;
-  text-shadow: 0 0 8px var(--neon-yellow);
 }
 
-/* 5️⃣ Neon Buttons */
+/* 5️⃣ Buttons */
 .neon-button {
-  background: transparent;
-  border: 2px solid var(--neon-yellow);
-  color: var(--neon-yellow);
+  background-color: var(--primary-green);
+  border: none;
+  color: var(--card-white);
   padding: 10px 20px;
   font-size: 1rem;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 8px var(--neon-yellow);
+  border-radius: 25px;
+  transition: background-color 0.3s ease;
 }
 
 .neon-button:hover {
-  background: var(--neon-yellow);
-  color: var(--bg-dark);
-  box-shadow: 0 0 20px var(--neon-yellow), 0 0 40px var(--neon-yellow);
+  background-color: var(--dark-green);
 }
 
 /* 6️⃣ Status Badges */
@@ -77,30 +75,27 @@
 }
 
 .status-green {
-  background-color: rgba(0, 255, 0, 0.1);
-  border: 1px solid var(--neon-green);
-  color: var(--neon-green);
-  box-shadow: 0 0 8px var(--neon-green);
+  background-color: rgba(37, 211, 102, 0.1);
+  border: 1px solid var(--primary-green);
+  color: var(--primary-green);
 }
 
 .status-orange {
-  background-color: rgba(255, 165, 0, 0.1);
-  border: 1px solid var(--neon-orange);
-  color: var(--neon-orange);
-  box-shadow: 0 0 8px var(--neon-orange);
+  background-color: rgba(240, 185, 11, 0.1);
+  border: 1px solid var(--warning-yellow);
+  color: var(--warning-yellow);
 }
 
 .status-red {
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid var(--neon-red);
-  color: var(--neon-red);
-  box-shadow: 0 0 8px var(--neon-red);
+  background-color: rgba(229, 57, 53, 0.1);
+  border: 1px solid var(--error-red);
+  color: var(--error-red);
 }
 
 /* 7️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top: 4px solid var(--neon-yellow);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid var(--primary-green);
   border-radius: 50%;
   width: 28px;
   height: 28px;

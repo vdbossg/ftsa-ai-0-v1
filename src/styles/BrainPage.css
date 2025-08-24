@@ -1,0 +1,117 @@
+/* src/styles/BinancePage.css */
+/* =========================
+   Binance Page Neon Theme
+   ========================= */
+
+:root {
+  --bg-dark: #000000;
+  --neon-blue: #00FFFF;
+  --neon-green: #00FF00;
+  --neon-red: #FF0000;
+  --neon-orange: #FFA500;
+  --text-white: #FFFFFF;
+  --section-bg: #111;
+}
+
+/* -------------------------
+   Page Container
+-------------------------- */
+.binance-container {
+  background-color: var(--bg-dark);
+  color: var(--neon-blue);
+  font-family: 'Orbitron', sans-serif;
+  min-height: 100vh;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+/* -------------------------
+   Headers
+-------------------------- */
+.binance-container header {
+  font-size: 1.8rem;
+  font-weight: bold;
+  border-bottom: 2px solid var(--neon-blue);
+  padding-bottom: 0.5rem;
+  text-align: center;
+}
+
+.binance-container footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--neon-blue);
+  font-size: 0.9rem;
+  color: var(--neon-blue);
+  text-align: center;
+}
+
+/* -------------------------
+   Sections / Cards
+-------------------------- */
+.binance-section {
+  border: 2px solid var(--neon-blue);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 0 10px var(--neon-blue);
+  background-color: var(--section-bg);
+}
+
+/* -------------------------
+   Forms & Inputs
+-------------------------- */
+.binance-login-form {
+  border: 2px solid var(--neon-blue);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 0 15px var(--neon-blue);
+  background-color: var(--section-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 300px;
+  margin: auto;
+}
+
+.binance-login-form input[type="text"],
+.binance-login-form input[type="password"] {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--neon-blue);
+  background-color: var(--bg-dark);
+  color: var(--neon-blue);
+  outline: none;
+}
+
+/* -------------------------
+   Tables
+-------------------------- */
+.binance-table {
+  width: 100%;
+  color: var(--neon-blue);
+  border-collapse: collapse;
+}
+
+.binance-table th {
+  border-bottom: 1px solid var(--neon-blue);
+  padding: 0.5rem;
+}
+
+.binance-table td {
+  padding: 0.5rem;
+}
+
+/* -------------------------
+   Market Watchlist & PnL
+-------------------------- */
+.positive { color: var(--neon-green); }
+.negative { color: var(--neon-red); }
+
+/* -------------------------
+   Loading Spinner / Center
+-------------------------- */
+.loading-center {
+  text-align: center;
+}
