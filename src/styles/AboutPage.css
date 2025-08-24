@@ -1,70 +1,83 @@
 /* =========================
-   About Page Styles - Admin Panel Theme
+   About Page Styles
+   FTSA-AI-0-v1 Neon Theme
    ========================= */
 
-/* 1️⃣ Page Container */
+/* 1️⃣ Theme Variables */
+:root {
+  --bg-dark: #000000;
+  --neon-blue: #00FFFF;
+  --neon-green: #00FF00;
+  --neon-orange: #FFA500;
+  --neon-red: #FF0000;
+  --text-white: #FFFFFF;
+}
+
+/* 2️⃣ Page Container */
 .about-container {
-  background-color: var(--background-gray); /* beige background */
+  background-color: var(--bg-dark);
   min-height: 100vh;
   padding: 40px 20px;
-  font-family: var(--font-sci-fi);
-  color: var(--text-dark);
+  font-family: 'Orbitron', sans-serif;
+  color: var(--text-white);
   line-height: 1.6;
 }
 
-/* 2️⃣ Info Sections (cards) */
+/* 3️⃣ Info Sections */
 .about-section {
-  background: #ffffff;
-  border: none;
-  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--neon-green);
+  border-radius: 12px;
   padding: 25px;
   margin-bottom: 25px;
-  box-shadow: var(--container-shadow);
+  box-shadow: 0 0 12px var(--neon-green);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .about-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  box-shadow: 0 0 18px var(--neon-green), 0 0 30px var(--neon-green);
 }
 
-/* 3️⃣ Titles & Headings */
+/* 4️⃣ Titles & Headings */
 .about-title {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--primary-green); /* teal heading */
+  color: var(--neon-green);
   margin-bottom: 15px;
+  text-shadow: 0 0 8px var(--neon-green);
 }
 
-/* 4️⃣ Paragraphs */
+/* 5️⃣ Paragraphs */
 .about-text {
   font-size: 1rem;
-  color: var(--text-dark);
+  color: var(--text-white);
   opacity: 0.9;
 }
 
-/* 5️⃣ Buttons */
+/* 6️⃣ Neon Buttons */
 .neon-button {
-  background-color: var(--primary-green);
-  border: none;
-  color: var(--text-white);
+  background: transparent;
+  border: 2px solid var(--neon-green);
+  color: var(--neon-green);
   padding: 10px 20px;
   font-size: 1rem;
+  letter-spacing: 1px;
   cursor: pointer;
-  border-radius: var(--radius-md); /* no more pill shape */
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: var(--button-shadow);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px var(--neon-green);
 }
 
 .neon-button:hover {
-  background-color: var(--light-green);
-  box-shadow: 0 4px 8px var(--color-shadow);
+  background: var(--neon-green);
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
 }
 
-/* 6️⃣ Loading Spinner */
+/* 7️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-green);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid var(--neon-green);
   border-radius: 50%;
   width: 28px;
   height: 28px;

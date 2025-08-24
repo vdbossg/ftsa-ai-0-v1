@@ -1,73 +1,100 @@
 /* =========================
    Trades Page Styles
-   FTSA-AI-0-v1 WhatsApp Theme
+   FTSA-AI-0-v1 Neon Theme
    ========================= */
 
 /* 1️⃣ Theme Variables */
 :root {
-  --primary-green: #25D366;
-  --dark-green: #075E54;
-  --light-green: #DCF8C6;
-  --background-gray: #ECE5DD;
-  --text-dark: #262626;
+  --bg-dark: #000000;
+  --neon-blue: #00FFFF;
+  --neon-green: #00FF00;
+  --neon-orange: #FFA500;
+  --neon-red: #FF0000;
   --text-white: #FFFFFF;
-  --table-border: #CCCCCC;
 }
 
 /* 2️⃣ Page Container */
 .trades-container {
-  background-color: var(--background-gray);
+  background-color: var(--bg-dark);
   min-height: 100vh;
   padding: 20px;
-  font-family: var(--font-sci-fi);
-  color: var(--text-dark);
+  font-family: 'Orbitron', sans-serif;
+  color: var(--text-white);
 }
 
 /* 3️⃣ Section Cards (Trade Panels) */
 .trade-section {
-  background: #FFFFFF;
-  border: 1px solid var(--primary-green);
+  background: rgba(0, 0, 0, 0.65);
+  border: 2px solid var(--neon-green);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 0 12px var(--neon-green);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .trade-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 0 18px var(--neon-green), 0 0 30px var(--neon-green);
 }
 
 /* 4️⃣ Titles & Headings */
 .trades-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--dark-green);
+  color: var(--neon-green);
   margin-bottom: 15px;
+  text-shadow: 0 0 8px var(--neon-green);
 }
 
-/* 5️⃣ Buttons */
+/* 5️⃣ Neon Buttons */
 .neon-button {
-  background-color: var(--primary-green);
-  border: none;
-  color: var(--text-white);
+  background: transparent;
+  border: 2px solid var(--neon-green);
+  color: var(--neon-green);
   padding: 10px 20px;
   font-size: 1rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   cursor: pointer;
-  border-radius: 25px;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px var(--neon-green);
 }
 
 .neon-button:hover {
-  background-color: var(--dark-green);
+  background: var(--neon-green);
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
 }
 
-/* 6️⃣ Status Badges 
-   (reuse from StatusBadge.css — only spacing here) */
+/* 6️⃣ Status Badges */
 .status-badge {
-  margin-right: 10px;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-green {
+  background-color: rgba(0, 255, 0, 0.1);
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+}
+
+.status-orange {
+  background-color: rgba(255, 165, 0, 0.1);
+  border: 1px solid var(--neon-orange);
+  color: var(--neon-orange);
+  box-shadow: 0 0 8px var(--neon-orange);
+}
+
+.status-red {
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid var(--neon-red);
+  color: var(--neon-red);
+  box-shadow: 0 0 8px var(--neon-red);
 }
 
 /* 7️⃣ Trades Table */
@@ -75,36 +102,27 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
-  border-radius: 8px;
-  overflow: hidden;
+}
+
+.trades-table th, .trades-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--neon-blue);
+  text-align: left;
 }
 
 .trades-table th {
-  padding: 12px;
-  background-color: var(--light-green);
-  color: var(--dark-green);
-  font-weight: bold;
-  text-align: left;
-  border-bottom: 2px solid var(--primary-green);
-}
-
-.trades-table td {
-  padding: 10px;
-  border-bottom: 1px solid var(--table-border);
-}
-
-.trades-table tr:nth-child(even) {
-  background-color: rgba(37, 211, 102, 0.05);
+  color: var(--neon-blue);
+  text-shadow: 0 0 5px var(--neon-blue);
 }
 
 .trades-table tr:hover {
-  background-color: rgba(37, 211, 102, 0.15);
+  background-color: rgba(0, 255, 255, 0.05);
 }
 
 /* 8️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-green);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid var(--neon-green);
   border-radius: 50%;
   width: 28px;
   height: 28px;

@@ -1,61 +1,82 @@
-/* src/styles/StatusBadge.css - WhatsApp Theme */
+/* src/styles/StatusBadge.css */
 
-/* 1️⃣ Variables */
 :root {
-  --primary-green: #25D366;   /* Online / success */
-  --dark-green: #075E54;      /* Dark green header/containers */
-  --text-dark: #262626;       /* Standard text */
-  --text-white: #FFFFFF;      /* White text */
-  --status-offline: #888888;  /* Gray for offline */
-  --status-error: #e53935;    /* Red for error */
-  --status-warning: #F0B90B;  /* Yellow for warning */
-  --status-busy: #FF7043;     /* Orange for busy */
-  --badge-bg: #FFFFFF;        /* Default badge background */
+  --color-neon-green: #39ff14;
+  --color-neon-red: #ff1744;
+  --color-neon-yellow: #ffd300;
+  --color-neon-orange: #ff8c00;
+  --color-neon-blue: #00d8ff;
+  --color-bg-dark: #0a0a0a;
+  --color-text-dark: #222;
+  --color-text-light: #fff;
 }
 
-/* 2️⃣ Base Badge */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 12px;
-  font-weight: 600;
+  border-radius: 9999px;
+  font-weight: 700;
   font-size: 0.8rem;
   font-family: 'Orbitron', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  color: var(--color-text-light);
+  background-color: var(--color-bg-dark);
+  box-shadow:
+    0 0 5px #000;
   user-select: none;
-  border: 1px solid transparent;
-  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
-/* 3️⃣ Variants (lighter background, colored border, colored text) */
-.status-badge--online,
-.status-badge--success {
-  background-color: rgba(37, 211, 102, 0.15);
-  border-color: var(--primary-green);
-  color: var(--primary-green);
+/* Variants */
+
+.status-badge--online {
+  color: var(--color-neon-green);
+  box-shadow:
+    0 0 6px var(--color-neon-green),
+    0 0 12px var(--color-neon-green),
+    0 0 18px var(--color-neon-green);
+  background-color: #041a03;
 }
 
 .status-badge--offline {
-  background-color: rgba(136, 136, 136, 0.15);
-  border-color: var(--status-offline);
-  color: var(--status-offline);
+  color: #777;
+  box-shadow: none;
+  background-color: #222;
 }
 
 .status-badge--error {
-  background-color: rgba(229, 57, 53, 0.15);
-  border-color: var(--status-error);
-  color: var(--status-error);
+  color: var(--color-neon-red);
+  box-shadow:
+    0 0 6px var(--color-neon-red),
+    0 0 12px var(--color-neon-red),
+    0 0 18px var(--color-neon-red);
+  background-color: #3a0000;
+}
+
+.status-badge--success {
+  color: var(--color-neon-green);
+  box-shadow:
+    0 0 8px var(--color-neon-green),
+    0 0 16px var(--color-neon-green),
+    0 0 24px var(--color-neon-green);
+  background-color: #043004;
 }
 
 .status-badge--warning {
-  background-color: rgba(240, 185, 11, 0.15);
-  border-color: var(--status-warning);
-  color: var(--status-warning);
+  color: var(--color-neon-yellow);
+  box-shadow:
+    0 0 6px var(--color-neon-yellow),
+    0 0 12px var(--color-neon-yellow),
+    0 0 18px var(--color-neon-yellow);
+  background-color: #3a3300;
 }
 
 .status-badge--busy {
-  background-color: rgba(255, 112, 67, 0.15);
-  border-color: var(--status-busy);
-  color: var(--status-busy);
+  color: var(--color-neon-orange);
+  box-shadow:
+    0 0 6px var(--color-neon-orange),
+    0 0 12px var(--color-neon-orange),
+    0 0 18px var(--color-neon-orange);
+  background-color: #3a1f00;
 }

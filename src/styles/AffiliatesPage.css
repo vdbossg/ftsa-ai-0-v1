@@ -1,90 +1,103 @@
-/* =========================
-   Affiliates Page Styles - Admin Panel Theme
-   ========================= */
+/* ========================= Affiliates Page Styles - FTSA-AI-0-v1 Neon Theme ========================= */
 
-/* 1️⃣ Page Container */
-.affiliates-container {
-  background-color: var(--background-gray); /* beige background */
-  min-height: 100vh;
-  padding: 20px;
-  font-family: var(--font-sci-fi);
-  color: var(--text-dark);
+/* 1️⃣ Theme Variables */
+:root {
+  --bg-dark: #000000;
+  --neon-blue: #00FFFF;
+  --neon-green: #00FF00;
+  --neon-orange: #FFA500;
+  --neon-red: #FF0000;
+  --text-white: #FFFFFF;
 }
 
-/* 2️⃣ Section Cards */
+/* 2️⃣ Page Container */
+.affiliates-container {
+  background-color: var(--bg-dark);
+  min-height: 100vh;
+  padding: 20px;
+  font-family: 'Orbitron', sans-serif;
+  color: var(--text-white);
+}
+
+/* 3️⃣ Section Cards */
 .affiliates-section {
-  background: #ffffff;
-  border: none;
-  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--neon-green);
+  border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: var(--container-shadow);
+  box-shadow: 0 0 12px var(--neon-green);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .affiliates-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  box-shadow: 0 0 18px var(--neon-green), 0 0 30px var(--neon-green);
 }
 
-/* 3️⃣ Titles & Headings */
+/* 4️⃣ Titles & Headings */
 .affiliates-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--primary-green); /* teal heading */
+  color: var(--neon-green);
   margin-bottom: 15px;
+  text-shadow: 0 0 8px var(--neon-green);
 }
 
-/* 4️⃣ Buttons */
+/* 5️⃣ Neon Buttons */
 .neon-button {
-  background-color: var(--primary-green);
-  border: none;
-  color: var(--text-white);
+  background: transparent;
+  border: 2px solid var(--neon-green);
+  color: var(--neon-green);
   padding: 10px 20px;
   font-size: 1rem;
+  letter-spacing: 1px;
   cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: var(--button-shadow);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px var(--neon-green);
 }
 
 .neon-button:hover {
-  background-color: var(--light-green);
-  box-shadow: 0 4px 8px var(--color-shadow);
+  background: var(--neon-green);
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
 }
 
-/* 5️⃣ Status Badges */
+/* 6️⃣ Status Badges */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: bold;
   text-transform: uppercase;
 }
 
 .status-green {
-  background-color: rgba(1, 93, 82, 0.08);
-  border: 1px solid var(--primary-green);
-  color: var(--primary-green);
+  background-color: rgba(0, 255, 0, 0.1);
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
 }
 
 .status-orange {
   background-color: rgba(255, 165, 0, 0.1);
-  border: 1px solid #FFA500;
-  color: #FFA500;
+  border: 1px solid var(--neon-orange);
+  color: var(--neon-orange);
+  box-shadow: 0 0 8px var(--neon-orange);
 }
 
 .status-red {
-  background-color: rgba(229, 57, 53, 0.1);
-  border: 1px solid var(--error-red);
-  color: var(--error-red);
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid var(--neon-red);
+  color: var(--neon-red);
+  box-shadow: 0 0 8px var(--neon-red);
 }
 
-/* 6️⃣ Loading Spinner */
+/* 7️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-green);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid var(--neon-green);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -98,30 +111,30 @@
   }
 }
 
-/* 7️⃣ Affiliate Cards */
+/* 8️⃣ Affiliate Cards */
 .affiliate-card {
-  background: #ffffff;
-  border: none;
-  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--neon-green);
+  border-radius: 10px;
   padding: 15px;
   margin: 10px 0;
-  box-shadow: var(--container-shadow);
+  box-shadow: 0 0 10px var(--neon-green);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .affiliate-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  transform: scale(1.02);
+  box-shadow: 0 0 20px var(--neon-green);
 }
 
 .affiliate-name {
   font-size: 1.1rem;
   font-weight: bold;
-  color: var(--primary-green);
+  color: var(--neon-green);
 }
 
 .affiliate-earnings {
   font-size: 0.9rem;
-  color: var(--text-dark);
+  color: var(--text-white);
   opacity: 0.9;
 }
