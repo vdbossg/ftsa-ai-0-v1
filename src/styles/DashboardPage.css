@@ -3,70 +3,58 @@
    FTSA-AI-0-v1 WhatsApp Theme
    ========================= */
 
-/* 1️⃣ Theme Variables */
-:root {
-  --primary-green: #25D366;
-  --dark-green: #075E54;
-  --light-green: #DCF8C6;
-  --background-gray: #ECE5DD;
-  --text-dark: #262626;
-  --text-white: #FFFFFF;
-  --status-error: #e53935;
-  --status-warning: #FFB300;
-  --status-busy: #FF7043;
-}
-
-/* 2️⃣ Page Container */
+/* 1️⃣ Page Container */
 .dashboard-container {
-  background-color: var(--background-gray);
+  background-color: #ECE5DD; /* beige background */
   min-height: 100vh;
   padding: 20px;
-  font-family: var(--font-sci-fi);
-  color: var(--text-dark);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #262626; /* black text */
 }
 
-/* 3️⃣ Section Cards */
+/* 2️⃣ Section Cards */
 .dashboard-section {
-  background: #FFFFFF;
-  border: none;
-  border-radius: 12px;
+  background: #3DA89C; /* teal card */
+  color: #fff; /* white text inside card */
+  border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
 }
 
-/* 4️⃣ Titles & Headings */
+/* 3️⃣ Titles & Headings */
 .dashboard-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--dark-green);
+  color: #262626; /* black like in screenshot */
   margin-bottom: 15px;
 }
 
-/* 5️⃣ Buttons */
+/* 4️⃣ Buttons (Top Nav Tabs) */
 .neon-button {
-  background-color: var(--primary-green);
+  background-color: #075E54; /* dark green */
   border: none;
-  color: var(--text-white);
+  color: #fff;
   padding: 10px 20px;
   font-size: 1rem;
   letter-spacing: 0.5px;
   cursor: pointer;
-  border-radius: 25px;
+  border-radius: 8px; /* square-ish like tabs */
   transition: background-color 0.3s ease;
 }
 
-.neon-button:hover {
-  background-color: var(--dark-green);
+.neon-button:hover,
+.neon-button.active {
+  background-color: #05473F; /* darker on hover/active */
 }
 
-/* 6️⃣ Status Badges */
+/* 5️⃣ Status Badges */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -74,25 +62,30 @@
   font-size: 0.85rem;
   font-weight: bold;
   text-transform: uppercase;
-  color: var(--text-white);
 }
 
 .status-green {
-  background-color: var(--primary-green);
+  background-color: rgba(37, 211, 102, 0.15);
+  border: 1px solid #25D366;
+  color: #25D366;
 }
 
 .status-orange {
-  background-color: var(--status-warning);
+  background-color: rgba(255, 179, 0, 0.15);
+  border: 1px solid #FFB300;
+  color: #FFB300;
 }
 
 .status-red {
-  background-color: var(--status-error);
+  background-color: rgba(229, 57, 53, 0.15);
+  border: 1px solid #E53935;
+  color: #E53935;
 }
 
-/* 7️⃣ Loading Spinner */
+/* 6️⃣ Loading Spinner */
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-green);
+  border-top: 4px solid #075E54; /* dark green spinner */
   border-radius: 50%;
   width: 28px;
   height: 28px;

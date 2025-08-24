@@ -6,8 +6,8 @@
 :root {
   --primary-green: #25D366;
   --dark-green: #075E54;
-  --background-gray: #ECE5DD;
-  --card-white: #FFFFFF;
+  --background-gray: #ECE5DD; /* Beige page background */
+  --card-teal: #3DA89C;       /* Flat teal cards */
   --text-dark: #262626;
   --text-muted: #555;
   --accent-blue: #34B7F1;
@@ -19,50 +19,53 @@
 .mtaccounts-container {
   background-color: var(--background-gray);
   min-height: 100vh;
-  padding: 20px;
+  padding: 24px;
   font-family: 'Orbitron', sans-serif;
   color: var(--text-dark);
 }
 
 /* 3️⃣ Section Cards */
 .mtaccounts-section {
-  background: var(--card-white);
-  border: 1px solid var(--accent-blue);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--card-teal);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  color: #fff; /* White text for contrast */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .mtaccounts-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
 /* 4️⃣ Titles & Headings */
 .mtaccounts-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--primary-green);
-  margin-bottom: 15px;
+  color: #fff; /* White title text */
+  margin-bottom: 16px;
+  text-shadow: 0 0 6px rgba(0,0,0,0.3);
 }
 
 /* 5️⃣ Buttons */
 .mtaccounts-button {
   background-color: var(--primary-green);
   border: none;
-  color: var(--card-white);
-  padding: 10px 20px;
+  color: #fff;
+  padding: 10px 22px;
   font-size: 1rem;
   letter-spacing: 0.5px;
   cursor: pointer;
   border-radius: 25px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.3);
 }
 
 .mtaccounts-button:hover {
   background-color: var(--dark-green);
+  transform: scale(1.03);
 }
 
 /* 6️⃣ Status Badges */
@@ -73,22 +76,23 @@
   font-size: 0.85rem;
   font-weight: bold;
   text-transform: uppercase;
+  margin-right: 8px;
 }
 
 .mtaccounts-badge.green {
-  background-color: rgba(37, 211, 102, 0.1);
+  background-color: rgba(37, 211, 102, 0.15);
   border: 1px solid var(--primary-green);
   color: var(--primary-green);
 }
 
 .mtaccounts-badge.orange {
-  background-color: rgba(240, 185, 11, 0.1);
+  background-color: rgba(240, 185, 11, 0.15);
   border: 1px solid var(--warning-yellow);
   color: var(--warning-yellow);
 }
 
 .mtaccounts-badge.red {
-  background-color: rgba(229, 57, 53, 0.1);
+  background-color: rgba(229, 57, 53, 0.15);
   border: 1px solid var(--error-red);
   color: var(--error-red);
 }
@@ -101,7 +105,10 @@
   width: 28px;
   height: 28px;
   animation: spin 0.8s linear infinite;
-  margin: auto;
+  margin: 16px auto;
+  box-shadow:
+    0 0 6px rgba(37, 211, 102, 0.5),
+    inset 0 0 3px rgba(37, 211, 102, 0.3);
 }
 
 @keyframes spin {

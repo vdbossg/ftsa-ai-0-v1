@@ -4,7 +4,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-sci-fi);
   background-color: var(--background-gray);
   color: var(--text-dark);
   height: 100%;
@@ -26,45 +26,48 @@ html, body {
 /* --- Default Container Styling --- */
 .container {
   border: none;
-  padding: 1rem;
+  padding: 1.5rem;
   margin: 1rem 0;
-  border-radius: 10px;
-  background-color: #FFFFFF; /* White for card-style containers */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border-radius: var(--radius-lg);
+  background-color: #ffffff;
+  box-shadow: var(--container-shadow);
 }
 
 /* --- Button Base Styling --- */
+button, 
 .neon-button {
   background-color: var(--primary-green);
   color: var(--text-white);
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 25px;
-  text-transform: none;
-  font-weight: bold;
+  border-radius: var(--radius-md); /* no more pill shape */
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--button-shadow);
 }
 
+button:hover, 
 .neon-button:hover {
-  background-color: var(--dark-green);
-  box-shadow: none;
+  background-color: var(--light-green);
+  box-shadow: 0 4px 8px var(--color-shadow);
 }
 
 /* --- Links --- */
 a {
   color: var(--primary-green);
   text-decoration: none;
+  font-weight: 500;
 }
 
 a:hover {
-  color: var(--dark-green);
+  color: var(--light-green);
 }
 
 /* --- Inputs & Textareas --- */
 input, textarea {
   border: 1px solid #ccc;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 14px;
   outline: none;
@@ -72,5 +75,5 @@ input, textarea {
 
 input:focus, textarea:focus {
   border-color: var(--primary-green);
-  box-shadow: 0 0 5px var(--primary-green);
+  box-shadow: 0 0 6px var(--primary-green);
 }

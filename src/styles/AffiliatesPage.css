@@ -1,80 +1,70 @@
 /* =========================
-   Affiliates Page Styles - WhatsApp Theme
+   Affiliates Page Styles - Admin Panel Theme
    ========================= */
 
-/* 1️⃣ Theme Variables */
-:root {
-  --primary-green: #25D366;
-  --dark-green: #075E54;
-  --background-gray: #ECE5DD;
-  --card-white: #FFFFFF;
-  --text-dark: #262626;
-  --text-muted: #555;
-  --error-red: #e53935;
-}
-
-/* 2️⃣ Page Container */
+/* 1️⃣ Page Container */
 .affiliates-container {
-  background-color: var(--background-gray);
+  background-color: var(--background-gray); /* beige background */
   min-height: 100vh;
   padding: 20px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-sci-fi);
   color: var(--text-dark);
 }
 
-/* 3️⃣ Section Cards */
+/* 2️⃣ Section Cards */
 .affiliates-section {
-  background: var(--card-white);
-  border: 1px solid var(--primary-green);
-  border-radius: 12px;
+  background: #ffffff;
+  border: none;
+  border-radius: var(--radius-lg);
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: var(--container-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .affiliates-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
 }
 
-/* 4️⃣ Titles & Headings */
+/* 3️⃣ Titles & Headings */
 .affiliates-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--primary-green);
+  color: var(--primary-green); /* teal heading */
   margin-bottom: 15px;
 }
 
-/* 5️⃣ Buttons */
+/* 4️⃣ Buttons */
 .neon-button {
   background-color: var(--primary-green);
   border: none;
-  color: var(--card-white);
+  color: var(--text-white);
   padding: 10px 20px;
   font-size: 1rem;
-  letter-spacing: 0.5px;
   cursor: pointer;
-  border-radius: 25px;
-  transition: background-color 0.3s ease;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--button-shadow);
 }
 
 .neon-button:hover {
-  background-color: var(--dark-green);
+  background-color: var(--light-green);
+  box-shadow: 0 4px 8px var(--color-shadow);
 }
 
-/* 6️⃣ Status Badges */
+/* 5️⃣ Status Badges */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: bold;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .status-green {
-  background-color: rgba(37, 211, 102, 0.1);
+  background-color: rgba(1, 93, 82, 0.08);
   border: 1px solid var(--primary-green);
   color: var(--primary-green);
 }
@@ -91,7 +81,7 @@
   color: var(--error-red);
 }
 
-/* 7️⃣ Loading Spinner */
+/* 6️⃣ Loading Spinner */
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-top: 4px solid var(--primary-green);
@@ -108,20 +98,20 @@
   }
 }
 
-/* 8️⃣ Affiliate Cards */
+/* 7️⃣ Affiliate Cards */
 .affiliate-card {
-  background: #f9f9f9;
-  border: 1px solid var(--primary-green);
-  border-radius: 10px;
+  background: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
   padding: 15px;
   margin: 10px 0;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  box-shadow: var(--container-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .affiliate-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
 .affiliate-name {

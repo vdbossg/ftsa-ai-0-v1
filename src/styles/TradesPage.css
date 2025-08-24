@@ -11,9 +11,6 @@
   --background-gray: #ECE5DD;
   --text-dark: #262626;
   --text-white: #FFFFFF;
-  --status-error: #e53935;
-  --status-warning: #FFB300;
-  --status-busy: #FF7043;
   --table-border: #CCCCCC;
 }
 
@@ -29,17 +26,17 @@
 /* 3️⃣ Section Cards (Trade Panels) */
 .trade-section {
   background: #FFFFFF;
-  border: none;
+  border: 1px solid var(--primary-green);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .trade-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* 4️⃣ Titles & Headings */
@@ -67,27 +64,10 @@
   background-color: var(--dark-green);
 }
 
-/* 6️⃣ Status Badges */
+/* 6️⃣ Status Badges 
+   (reuse from StatusBadge.css — only spacing here) */
 .status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: var(--text-white);
-}
-
-.status-green {
-  background-color: var(--primary-green);
-}
-
-.status-orange {
-  background-color: var(--status-warning);
-}
-
-.status-red {
-  background-color: var(--status-error);
+  margin-right: 10px;
 }
 
 /* 7️⃣ Trades Table */
@@ -95,20 +75,30 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
-}
-
-.trades-table th, .trades-table td {
-  padding: 10px;
-  border-bottom: 1px solid var(--table-border);
-  text-align: left;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .trades-table th {
+  padding: 12px;
+  background-color: var(--light-green);
   color: var(--dark-green);
+  font-weight: bold;
+  text-align: left;
+  border-bottom: 2px solid var(--primary-green);
+}
+
+.trades-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--table-border);
+}
+
+.trades-table tr:nth-child(even) {
+  background-color: rgba(37, 211, 102, 0.05);
 }
 
 .trades-table tr:hover {
-  background-color: rgba(37, 211, 102, 0.1); /* light green hover */
+  background-color: rgba(37, 211, 102, 0.15);
 }
 
 /* 8️⃣ Loading Spinner */

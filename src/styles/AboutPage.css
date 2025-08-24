@@ -1,77 +1,67 @@
 /* =========================
-   About Page Styles - WhatsApp Theme
+   About Page Styles - Admin Panel Theme
    ========================= */
 
-/* 1️⃣ Theme Variables */
-:root {
-  --primary-green: #25D366;
-  --dark-green: #075E54;
-  --background-gray: #ECE5DD;
-  --card-white: #FFFFFF;
-  --text-dark: #262626;
-  --text-muted: #555;
-  --error-red: #e53935;
-}
-
-/* 2️⃣ Page Container */
+/* 1️⃣ Page Container */
 .about-container {
-  background-color: var(--background-gray);
+  background-color: var(--background-gray); /* beige background */
   min-height: 100vh;
   padding: 40px 20px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-sci-fi);
   color: var(--text-dark);
   line-height: 1.6;
 }
 
-/* 3️⃣ Info Sections */
+/* 2️⃣ Info Sections (cards) */
 .about-section {
-  background: var(--card-white);
-  border: 1px solid var(--primary-green);
-  border-radius: 12px;
+  background: #ffffff;
+  border: none;
+  border-radius: var(--radius-lg);
   padding: 25px;
   margin-bottom: 25px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: var(--container-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .about-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
 }
 
-/* 4️⃣ Titles & Headings */
+/* 3️⃣ Titles & Headings */
 .about-title {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--primary-green);
+  color: var(--primary-green); /* teal heading */
   margin-bottom: 15px;
 }
 
-/* 5️⃣ Paragraphs */
+/* 4️⃣ Paragraphs */
 .about-text {
   font-size: 1rem;
   color: var(--text-dark);
   opacity: 0.9;
 }
 
-/* 6️⃣ Buttons */
+/* 5️⃣ Buttons */
 .neon-button {
   background-color: var(--primary-green);
   border: none;
-  color: var(--card-white);
+  color: var(--text-white);
   padding: 10px 20px;
   font-size: 1rem;
-  letter-spacing: 0.5px;
   cursor: pointer;
-  border-radius: 25px;
-  transition: background-color 0.3s ease;
+  border-radius: var(--radius-md); /* no more pill shape */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--button-shadow);
 }
 
 .neon-button:hover {
-  background-color: var(--dark-green);
+  background-color: var(--light-green);
+  box-shadow: 0 4px 8px var(--color-shadow);
 }
 
-/* 7️⃣ Loading Spinner */
+/* 6️⃣ Loading Spinner */
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-top: 4px solid var(--primary-green);

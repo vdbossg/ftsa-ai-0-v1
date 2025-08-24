@@ -6,11 +6,13 @@
 :root {
   --primary-green: #25D366;
   --dark-green: #075E54;
+  --light-green: #DCF8C6;
   --background-gray: #ECE5DD;
   --card-white: #FFFFFF;
   --text-dark: #262626;
   --text-muted: #555;
-  --warning-yellow: #F0B90B;
+  --accent-blue: #34B7F1;
+  --warning-yellow: #F0B90B; /* Binance accent */
   --error-red: #e53935;
 }
 
@@ -26,7 +28,7 @@
 /* 3️⃣ Section Cards */
 .binance-section {
   background: var(--card-white);
-  border: 1px solid var(--warning-yellow);
+  border: 1px solid var(--accent-blue);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -43,7 +45,7 @@
 .binance-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--primary-green);
+  color: var(--warning-yellow); /* Keep Binance yellow for titles */
   margin-bottom: 15px;
 }
 
@@ -95,7 +97,7 @@
 /* 7️⃣ Loading Spinner */
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-green);
+  border-top: 4px solid var(--warning-yellow);
   border-radius: 50%;
   width: 28px;
   height: 28px;

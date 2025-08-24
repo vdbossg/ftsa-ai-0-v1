@@ -1,4 +1,6 @@
-/* src/styles/NeonButton.css */
+/* =========================
+   Neon Button - WhatsApp Theme
+   ========================= */
 
 /* Base styles */
 .neon-button {
@@ -9,13 +11,22 @@
   text-transform: none;
   color: var(--text-white);
   background-color: var(--primary-green);
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   letter-spacing: 0.5px;
   font-family: var(--font-sci-fi);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* Hover / Focus */
+.neon-button:hover:not(.neon-button--disabled),
+.neon-button:focus-visible:not(.neon-button--disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+  outline: none;
 }
 
 /* Sizes */
@@ -26,46 +37,40 @@
 
 .neon-button--medium {
   font-size: 1rem;
-  padding: 10px 24px;
+  padding: 10px 22px;
 }
 
 .neon-button--large {
-  font-size: 1.25rem;
-  padding: 14px 36px;
+  font-size: 1.2rem;
+  padding: 14px 32px;
 }
 
 /* Variants */
 .neon-button--primary {
-  color: var(--text-white);
   background-color: var(--primary-green);
 }
 
 .neon-button--primary:hover:not(.neon-button--disabled),
 .neon-button--primary:focus-visible:not(.neon-button--disabled) {
   background-color: var(--dark-green);
-  outline: none;
 }
 
 .neon-button--secondary {
-  color: var(--text-white);
-  background-color: #34b7f1; /* WhatsApp light blue for secondary */
+  background-color: #34B7F1; /* WhatsApp blue */
 }
 
 .neon-button--secondary:hover:not(.neon-button--disabled),
 .neon-button--secondary:focus-visible:not(.neon-button--disabled) {
-  background-color: #128C7E;
-  outline: none;
+  background-color: #128C7E; /* Dark teal on hover */
 }
 
 .neon-button--danger {
-  color: var(--text-white);
-  background-color: #e53935; /* red for danger */
+  background-color: #e53935; /* Red */
 }
 
 .neon-button--danger:hover:not(.neon-button--disabled),
 .neon-button--danger:focus-visible:not(.neon-button--disabled) {
   background-color: #c62828;
-  outline: none;
 }
 
 /* Disabled */
@@ -74,9 +79,12 @@
   color: #888;
   background-color: #ccc;
   opacity: 0.6;
+  box-shadow: none;
 }
 
 .neon-button--disabled:hover,
 .neon-button--disabled:focus {
+  transform: none;
+  box-shadow: none;
   outline: none;
 }

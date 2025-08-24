@@ -11,7 +11,7 @@
   --text-dark: #262626;
   --text-white: #FFFFFF;
   --status-error: #e53935;
-  --status-warning: #FFB300;
+  --status-warning: #F0B90B;
 }
 
 /* 2️⃣ Page Container */
@@ -26,17 +26,17 @@
 /* 3️⃣ Status Cards */
 .status-section {
   background: #FFFFFF;
-  border: none;
+  border: 1px solid var(--primary-green);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .status-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* 4️⃣ Titles & Headings */
@@ -64,28 +64,10 @@
   background-color: var(--dark-green);
 }
 
-/* 6️⃣ Status Badges */
+/* 6️⃣ Status Badges (reuse global StatusBadge.css)
+   Just control spacing here */
 .status-badge {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-transform: uppercase;
   margin-right: 10px;
-  color: var(--text-white);
-}
-
-.status-green {
-  background-color: var(--primary-green);
-}
-
-.status-orange {
-  background-color: var(--status-warning);
-}
-
-.status-red {
-  background-color: var(--status-error);
 }
 
 /* 7️⃣ Loading Spinner */

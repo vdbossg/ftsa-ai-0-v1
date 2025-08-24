@@ -6,9 +6,10 @@
 :root {
   --primary-green: #25D366;
   --dark-green: #075E54;
-  --background-gray: #ECE5DD;
-  --card-white: #FFFFFF;
+  --background-beige: #ECE5DD;
+  --card-teal: #3DA89C;
   --text-dark: #262626;
+  --text-light: #FFFFFF;
   --text-muted: #555;
   --accent-blue: #34B7F1;
   --warning-yellow: #F0B90B;
@@ -17,7 +18,7 @@
 
 /* 2️⃣ Page Container */
 .settings-container {
-  background-color: var(--background-gray);
+  background-color: var(--background-beige);
   min-height: 100vh;
   padding: 20px;
   font-family: 'Orbitron', sans-serif;
@@ -26,25 +27,26 @@
 
 /* 3️⃣ Settings Sections */
 .settings-section {
-  background: var(--card-white);
-  border: 1px solid var(--accent-blue);
+  background: var(--card-teal);
+  color: var(--text-light);
+  border: none;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .settings-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
 /* 4️⃣ Section Titles */
 .settings-title {
   font-size: 1.6rem;
   font-weight: bold;
-  color: var(--primary-green);
+  color: var(--text-light);
   margin-bottom: 15px;
 }
 
@@ -52,8 +54,8 @@
 .settings-input {
   width: 100%;
   padding: 10px;
-  background: var(--background-gray);
-  border: 1px solid var(--accent-blue);
+  background: var(--background-beige);
+  border: 1px solid var(--primary-green);
   border-radius: 8px;
   color: var(--text-dark);
   font-size: 1rem;
@@ -71,17 +73,20 @@
 .neon-button {
   background-color: var(--primary-green);
   border: none;
-  color: var(--card-white);
+  color: var(--text-light);
   padding: 10px 20px;
   font-size: 1rem;
   letter-spacing: 0.5px;
   cursor: pointer;
   border-radius: 25px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
 }
 
 .neon-button:hover {
   background-color: var(--dark-green);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
 }
 
 /* 7️⃣ Status Badges */
@@ -95,26 +100,26 @@
 }
 
 .status-green {
-  background-color: rgba(37, 211, 102, 0.1);
+  background-color: rgba(37, 211, 102, 0.15);
   border: 1px solid var(--primary-green);
   color: var(--primary-green);
 }
 
 .status-orange {
-  background-color: rgba(240, 185, 11, 0.1);
+  background-color: rgba(240, 185, 11, 0.15);
   border: 1px solid var(--warning-yellow);
   color: var(--warning-yellow);
 }
 
 .status-red {
-  background-color: rgba(229, 57, 53, 0.1);
+  background-color: rgba(229, 57, 53, 0.15);
   border: 1px solid var(--error-red);
   color: var(--error-red);
 }
 
 /* 8️⃣ Loading Spinner */
 .loading-spinner {
-  border: 4px solid rgba(0,0,0,0.1);
+  border: 4px solid rgba(255,255,255,0.2);
   border-top: 4px solid var(--primary-green);
   border-radius: 50%;
   width: 28px;

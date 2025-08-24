@@ -2,70 +2,72 @@
    Journal Page Styles - WhatsApp Theme
    ========================= */
 
-/* 1️⃣ Theme Variables */
-:root {
-  --primary-green: #25D366;
-  --dark-green: #075E54;
-  --background-gray: #ECE5DD;
-  --card-white: #FFFFFF;
-  --text-dark: #262626;
-  --text-muted: #555;
-  --accent-blue: #34B7F1;
-  --warning-yellow: #F0B90B;
-  --error-red: #e53935;
-}
-
-/* 2️⃣ Page Container */
+/* 1️⃣ Page Container */
 .journal-container {
-  background-color: var(--background-gray);
+  background-color: #ECE5DD; /* beige */
   min-height: 100vh;
-  padding: 20px;
-  font-family: 'Orbitron', sans-serif;
-  color: var(--text-dark);
+  padding: 30px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #262626; /* black */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* 3️⃣ Journal Entries & Sections */
+/* 2️⃣ Journal Sections */
 .journal-section {
-  background: var(--card-white);
-  border: 1px solid var(--accent-blue);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #3DA89C; /* teal */
+  color: #fff; /* white text */
+  border: none;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 25px;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .journal-section:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
 }
 
-/* 4️⃣ Titles & Headings */
+/* 3️⃣ Titles & Headings */
 .journal-title {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: bold;
-  color: var(--primary-green);
+  color: #262626; /* black */
   margin-bottom: 15px;
 }
 
-/* 5️⃣ Buttons */
+.journal-date {
+  font-size: 0.9rem;
+  color: #444; /* muted dark gray */
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+/* 4️⃣ Buttons */
 .neon-button {
-  background-color: var(--primary-green);
+  background-color: #075E54; /* dark green */
   border: none;
-  color: var(--card-white);
-  padding: 10px 20px;
+  color: #fff;
+  padding: 10px 22px;
   font-size: 1rem;
   letter-spacing: 0.5px;
   cursor: pointer;
-  border-radius: 25px;
-  transition: background-color 0.3s ease;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.neon-button:hover {
-  background-color: var(--dark-green);
+.neon-button:hover,
+.neon-button.active {
+  background-color: #05473F; /* darker green */
+  transform: scale(1.05);
 }
 
-/* 6️⃣ Status Badges */
+/* 5️⃣ Status Badges */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -76,32 +78,32 @@
 }
 
 .status-green {
-  background-color: rgba(37, 211, 102, 0.1);
-  border: 1px solid var(--primary-green);
-  color: var(--primary-green);
+  background-color: rgba(37, 211, 102, 0.15);
+  border: 1px solid #25D366;
+  color: #25D366;
 }
 
 .status-orange {
-  background-color: rgba(240, 185, 11, 0.1);
-  border: 1px solid var(--warning-yellow);
-  color: var(--warning-yellow);
+  background-color: rgba(255, 179, 0, 0.15);
+  border: 1px solid #FFB300;
+  color: #FFB300;
 }
 
 .status-red {
-  background-color: rgba(229, 57, 53, 0.1);
-  border: 1px solid var(--error-red);
-  color: var(--error-red);
+  background-color: rgba(229, 57, 53, 0.15);
+  border: 1px solid #E53935;
+  color: #E53935;
 }
 
-/* 7️⃣ Loading Spinner */
+/* 6️⃣ Loading Spinner */
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-green);
+  border-top: 4px solid #075E54; /* dark green */
   border-radius: 50%;
   width: 28px;
   height: 28px;
   animation: spin 0.8s linear infinite;
-  margin: auto;
+  margin: 20px auto;
 }
 
 @keyframes spin {

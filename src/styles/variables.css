@@ -1,19 +1,23 @@
 :root {
-  /* Core Colors */
-  --primary-green: #25D366;       /* WhatsApp main green */
-  --dark-green: #075E54;          /* Dark green for headers/buttons */
-  --light-green: #DCF8C6;         /* Sent message bubble */
-  --background-gray: #ECE5DD;     /* App background */
-  --text-dark: #262626;           /* Standard text color */
-  --text-white: #FFFFFF;          /* White text */
+  /* Theme Colors */
+  --primary-green: #015d52;       /* Dark teal - sidebar, top nav */
+  --dark-green: #034d45;          /* Slightly darker teal for hover/active */
+  --light-green: #34a0a4;         /* Accent teal for cards, highlights */
+  --background-gray: #e8e0d6;     /* Beige page background */
+  --text-dark: #000000;           /* Standard text color */
+  --text-white: #ffffff;          /* White text */
 
   /* Font */
   --font-sci-fi: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
   /* Container Styling */
-  --container-border: none;       /* removed neon border */
-  --container-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  --container-border: none;
+  --container-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 
   /* Button Shadow */
-  --button-shadow: none;          /* removed neon glow */
+  --button-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  /* Border Radius */
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }

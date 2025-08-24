@@ -2,14 +2,13 @@
 
 .sidebar-menu {
   width: 250px;
-  background-color: var(--dark-green); /* WhatsApp dark green */
-  border-right: none; /* no neon border */
+  background-color: var(--primary-green); /* Dark teal */
   display: flex;
   flex-direction: column;
   padding: 1rem;
-  box-shadow: none; /* remove neon shadow */
-  user-select: none;
   font-family: var(--font-sci-fi);
+  color: var(--text-white);
+  min-height: 100vh;
 }
 
 .sidebar-menu ul {
@@ -19,7 +18,7 @@
 }
 
 .sidebar-menu li {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Sidebar links */
@@ -31,12 +30,12 @@
   border: none;
   color: var(--text-white);
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   padding: 0.6rem 1rem;
   cursor: pointer;
   text-decoration: none;
-  border-radius: 8px;
-  transition: background-color 0.3s ease;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
 }
 
 /* Icon inside sidebar link */
@@ -51,13 +50,13 @@
 /* Hover/focus */
 .sidebar-link:hover,
 .sidebar-link:focus {
-  background-color: var(--primary-green);
+  background-color: var(--light-green); /* Accent teal */
   color: var(--text-white);
   outline: none;
 }
 
 /* Active menu item */
 .sidebar-menu li.active .sidebar-link {
-  background-color: var(--primary-green);
+  background-color: var(--light-green); /* Accent teal */
   color: var(--text-white);
 }
