@@ -53,6 +53,29 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://ftsa-ai.com',
+    'https://ftsa-ai-0-v1.netlify.app'
+  ];
+
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    res.setHeader('Access-Control-Allow-Private-Network', 'true'); // ✅ important
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204); // ✅ preflight OK
+  }
+
+  next();
+});
 
 app.use('/api/user', userRoutes);
 console.log('✅ /api/user routes mounted');
