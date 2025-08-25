@@ -17,8 +17,17 @@ const AffiliatesPage = () => {
   const [accountDetails, setAccountDetails] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
 
-const fetchAffiliateData = async () => {
-  if (!user?.id) return; // safety check
+  // Redirect if not authenticated (pseudo code, integrate your routing logic)
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // e.g., useNavigate() from react-router-dom or your routing method
+      window.location.href = "/login";
+    }
+  }, [isAuthenticated]);
+
+  
+  useEffect(() => {
+  const fetchAffiliateData = async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/affiliate/${user.id}`);
@@ -31,23 +40,10 @@ const fetchAffiliateData = async () => {
     }
   };
 
-useEffect(() => {
   if (user?.id) {
-    fetchAffiliateData(); // fetch immediately once user.id exists
+    fetchAffiliateData();
   }
 }, [user]);
-
-
-  // Redirect if not authenticated (pseudo code, integrate your routing logic)
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // e.g., useNavigate() from react-router-dom or your routing method
-      window.location.href = "/login";
-    }
-  }, [isAuthenticated]);
-
-  
-
 useEffect(() => {
   const interval = setInterval(() => {
     if (user?.id) fetchAffiliateData();
