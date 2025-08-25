@@ -18,6 +18,7 @@ const AffiliatesPage = () => {
   const [copySuccess, setCopySuccess] = useState(false);
 
 const fetchAffiliateData = async () => {
+  if (!user?.id) return; // safety check
     try {
       setLoading(true);
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/affiliate/${user.id}`);
@@ -30,6 +31,11 @@ const fetchAffiliateData = async () => {
     }
   };
 
+useEffect(() => {
+  if (user?.id) {
+    fetchAffiliateData(); // fetch immediately once user.id exists
+  }
+}, [user]);
 
 
   // Redirect if not authenticated (pseudo code, integrate your routing logic)
@@ -41,12 +47,6 @@ const fetchAffiliateData = async () => {
   }, [isAuthenticated]);
 
   
-useEffect(() => {
-  const interval = setInterval(() => {
-    if (user?.id) fetchAffiliateData();
-  }, 30000);
-  return () => clearInterval(interval);
-}, [user]);
 
 useEffect(() => {
   const interval = setInterval(() => {
