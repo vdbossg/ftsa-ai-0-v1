@@ -1,76 +1,52 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
-import {
-  FaHome,
-  FaChartBar,
-  FaBrain,
-  FaServer,
-  FaBitcoin,
-  FaUserCog,
-  FaUsers,
-  FaBook,
-  FaExchangeAlt,
-  FaCogs,
-  FaSignOutAlt,
-  FaSignInAlt,
-  FaInfoCircle,
-  FaQuestionCircle,
-  FaHandshake
+import { Link, useLocation } from "react-router-dom";
+import { 
+  FaHome, 
+  FaChartBar, 
+  FaInfoCircle, 
+  FaSignOutAlt, 
+  FaSignInAlt 
 } from "react-icons/fa";
 
-import "./sidebarMenu.css"; // Import your custom CSS
+import "../styles/sidebarMenu.css";
 
-const menuItems = [
+const defaultLinks = [
   { label: "Home", path: "/", icon: <FaHome /> },
   { label: "Dashboard", path: "/dashboard", icon: <FaChartBar /> },
-  { label: "AI Brain", path: "/brain", icon: <FaBrain /> },
-  { label: "Status", path: "/status", icon: <FaServer /> },
-  { label: "Binance", path: "/binance", icon: <FaBitcoin /> },
-  { label: "MT Accounts", path: "/mtaccounts", icon: <FaUserCog /> },
-  { label: "Prop Firm Accounts", path: "/propfirmaccounts", icon: <FaUsers /> },
-  { label: "Journal", path: "/journal", icon: <FaBook /> },
-  { label: "Trades", path: "/trades", icon: <FaExchangeAlt /> },
-  { label: "Settings", path: "/settings", icon: <FaCogs /> },
+  { label: "AI Brain", path: "/brain" }, // ✅ New Brain page link
+  { label: "Status", path: "/status" },
+  { label: "Binance", path: "/binance" },
+  { label: "MT Accounts", path: "/mtaccounts" },
+  { label: "Prop Firm Accounts", path: "/propfirmaccounts" },
+  { label: "Journal", path: "/journal" },
+  { label: "Trades", path: "/trades" },
+  { label: "Settings", path: "/settings" },
   { label: "Login", path: "/login", icon: <FaSignInAlt /> },
   { label: "Logout", path: "/logout", icon: <FaSignOutAlt /> },
   { label: "About", path: "/about", icon: <FaInfoCircle /> },
-  { label: "Help", path: "/help", icon: <FaQuestionCircle /> },
-  { label: "Affiliates", path: "/affiliates", icon: <FaHandshake /> }
+  { label: "Help", path: "/help" },
+  { label: "Affiliates", path: "/affiliates" },
 ];
 
-const SidebarMenu = () => {
+const SidebarMenu = ({ links = defaultLinks }) => {
+  const location = useLocation();
+
   return (
-    <aside className="sidebar-menu">
-      {/* Logo */}
-      <div className="logo-container">
-        <img src="/src/assets/logo.svg" alt="Logo" className="logo" />
-        <span className="logo-text">Admin Panel</span>
-      </div>
-
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search..."
-        className="search-input"
-      />
-
-      {/* Menu Items */}
+    <nav className="sidebar-menu" aria-label="Main navigation">
       <ul>
-        {menuItems.map((item) => (
-          <li key={item.label}>
-            <NavLink
-              to={item.path}
-              className={({ isActive }) =>
-                `sidebar-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="icon">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          </li>
-        ))}
+        {links.map(({ label, path, icon }, index) => {
+          const isActive = location.pathname === path;
+          return (
+            <li key={index} className={isActive ? "active" : ""}>
+              <Link to={path} className="sidebar-link" tabIndex={0}>
+                {icon && <span className="icon">{icon}</span>}
+                {label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
-    </aside>
+    </nav>
   );
 };
 
