@@ -1,19 +1,43 @@
+// server/routes/brainRoutes.js
 const express = require("express");
 const router = express.Router();
 const brainController = require("../controllers/brainController");
+const { authenticateToken } = require("../middleware/auth");
+const User = require("../models/User");
 
-// ✅ Existing routes
-router.get("/strength", brainController.getStrength);
-router.post("/tv-webhook", brainController.receiveTradingViewSignal);
-router.get("/command", brainController.getCommand);
-router.post("/equity-report", brainController.postEquityReport);
+// ✅ Middleware: check subscription
+const checkSubscription = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.subscription) {
+      return res.status(403).json({ success: false, error: "No active subscription" });
+    }
 
-// 🆕 Upgraded FTSA AI Brain routes
-router.get("/news", brainController.getLatestNews);
-router.get("/choch", brainController.getChochDirection);
+    if (new Date(user.subscription.expiryDate) < new Date()) {
+      return res.status(403).json({ success: false, error: "Subscription expired" });
+    }
 
-// 🆕 Optional advanced endpoints
-router.get("/strongest-pair", brainController.getStrongestPair);
-router.get("/dashboard", brainController.getDashboardData);
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Subscription check failed" });
+  }
+};
+
+// ================== ROUTES ==================
+
+// ✅ Core Brain features
+router.get("/strength", authenticateToken, checkSubscription, brainController.getStrength);
+router.post("/tv-webhook", authenticateToken, checkSubscription, brainController.receiveTradingViewSignal);
+router.get("/command", authenticateToken, checkSubscription, brainController.getCommand);
+router.post("/equity-report", authenticateToken, checkSubscription, brainController.postEquityReport);
+
+// ✅ Advanced Brain features
+router.get("/news", authenticateToken, checkSubscription, brainController.getLatestNews);
+router.get("/choch", authenticateToken, checkSubscription, brainController.getChochDirection);
+
+// ✅ Optional AI insights
+router.get("/strongest-pair", authenticateToken, checkSubscription, brainController.getStrongestPair);
+router.get("/dashboard", authenticateToken, checkSubscription, brainController.getDashboardData);
 
 module.exports = router;

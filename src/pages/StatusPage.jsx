@@ -31,8 +31,8 @@ const StatusPage = () => {
         if (response.success) {
           setStatusData(response.data);
           setError(null);
-          if (response.data.subscriptionActive && response.data.nextBillingDate) {
-            initializeCountdown(response.data.nextBillingDate);
+          if (response.data.subscription?.expiryDate) {
+            initializeCountdown(response.data.subscription.expiryDate);
           }
         } else {
           setError(response.error || "Failed to load system status");
@@ -105,13 +105,15 @@ const StatusPage = () => {
 
       setStatusData((prev) => ({
         ...prev,
-        subscriptionActive: true,
-        currentPlan: selectedPlan,
-        nextBillingDate: data.nextBillingDate,
-        licenseKey: data.licenseKey,
+        subscription: {
+          plan: selectedPlan,
+          expiryDate: data.expiryDate,
+          licenseKey: data.licenseKey,
+          mtLogin: mtLogin[selectedPlan],
+        },
       }));
 
-      initializeCountdown(data.nextBillingDate);
+      initializeCountdown(data.expiryDate);
       setModalOpen(false);
       alert(`Subscription successful for ${selectedPlan} plan!`);
     } catch (err) {
@@ -161,14 +163,14 @@ const StatusPage = () => {
       <header style={styles.header}>
         <h1 style={styles.title}>FTSA AI System Status</h1>
         <StatusBadge
-          status={statusData.subscriptionActive ? "online" : "offline"}
+          status={statusData.subscription ? "online" : "offline"}
           label={
-            statusData.subscriptionActive
-              ? "Your Subscription is ACTIVE"
+            statusData.subscription
+              ? `Your ${statusData.subscription.plan} Subscription is ACTIVE`
               : "No Active Subscription"
           }
         />
-        {statusData.subscriptionActive && timeLeft && (
+        {statusData.subscription && timeLeft && (
           <p style={{ color: neonGreen }}>
             Expires in: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
           </p>
@@ -188,13 +190,13 @@ const StatusPage = () => {
               ${plan === "Basic" ? 25 : plan === "Plus" ? 130 : 499}{" "}
               {plan !== "Unlimited" ? plan === "Basic" ? "/month" : "/year" : "/one-time"}
             </p>
-            {!statusData.subscriptionActive && (
+            {!statusData.subscription && (
               <NeonButton onClick={() => openSubscriptionModal(plan)}>Subscribe Now</NeonButton>
             )}
-            {statusData.subscriptionActive && statusData.currentPlan === plan && (
+            {statusData.subscription && statusData.subscription.plan === plan && (
               <span style={{ color: neonGreen }}>
                 License active until:{" "}
-                {new Date(statusData.nextBillingDate).toLocaleDateString()}
+                {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
               </span>
             )}
           </div>
@@ -202,7 +204,7 @@ const StatusPage = () => {
       </section>
 
       {/* === EA Download === */}
-      {statusData.subscriptionActive && (
+      {statusData.subscription && (
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>EA Download</h2>
           <p style={{ marginBottom: "1rem", color: "#00FF00" }}>

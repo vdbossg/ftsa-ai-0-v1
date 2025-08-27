@@ -12,6 +12,17 @@ const TradingSettingsSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Sub-schema for subscription info
+const SubscriptionSchema = new mongoose.Schema(
+  {
+    plan: { type: String, enum: ["Basic", "Plus", "Unlimited"], required: true },
+    mtLogin: { type: String, required: true },
+    licenseKey: { type: String, required: true },
+    expiryDate: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 const UserSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
@@ -20,8 +31,14 @@ const UserSchema = new mongoose.Schema(
     phone: { type: String, required: true, unique: true, trim: true },
     password: { type: String, required: true },
 
-    // ✅ where we’ll store the BrainPage settings
+    // ✅ BrainPage settings
     tradingSettings: { type: TradingSettingsSchema, default: () => ({}) },
+
+    // ✅ Subscription info
+    subscription: { type: SubscriptionSchema },
+
+    // ✅ Affiliate reference (who referred this user)
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "Affiliate", default: null },
   },
   { timestamps: true }
 );

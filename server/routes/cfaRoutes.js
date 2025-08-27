@@ -1,14 +1,16 @@
+// server/routes/cfaRoutes.js
 const express = require("express");
 const router = express.Router();
-const cfaController = require("../controllers/cfaAccountController"); // correct
-const adminAuth = require("../middleware/adminAuthMiddleware"); // singular 'middleware', matches folder
+const cfaController = require("../controllers/cfaAccountController");
+const { authenticateToken } = require("../middleware/auth"); // for affiliates
+const adminAuth = require("../middleware/adminAuthMiddleware"); // for admins
 
-// Admin routes
+// ================== ADMIN CFA ROUTES ==================
 router.get("/balance", adminAuth, cfaController.getBalance);
-router.post("/release-payout", adminAuth, cfaController.releaseAffiliatePayout);
+router.post("/release-payout/:affiliateId", adminAuth, cfaController.releaseAffiliatePayout);
 
-// Public / affiliate routes
-router.post("/deposit", cfaController.deposit);
-router.post("/request-withdrawal", cfaController.requestAffiliateWithdrawal);
+// ================== AFFILIATE CFA ROUTES ==================
+router.post("/deposit", authenticateToken, cfaController.deposit);
+router.post("/request-withdrawal", authenticateToken, cfaController.requestAffiliateWithdrawal);
 
 module.exports = router;
