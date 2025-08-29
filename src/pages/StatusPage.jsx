@@ -236,10 +236,18 @@ const StatusPage = () => {
               style={styles.input}
             >
               <option value="">Select Payment Method</option>
-              <option value="mpesa">M-PESA</option>
-              <option value="paypal">PayPal</option>
-              <option value="visa">Visa</option>
-              <option value="bank">Bank Transfer</option>
+  <option value="mpesa">M-PESA</option>
+  <option value="airtelke">Airtel Kenya</option>
+  <option value="airteltz">Airtel Tanzania</option>
+  <option value="paynet">Paynet</option>
+  <option value="unionpay">UnionPay</option>
+  <option value="ovo">Ovo</option>
+  <option value="dana">Dana</option>
+  <option value="boleto">Boleto</option>
+  <option value="picpay">PicPay</option>
+  <option value="paypal">PayPal</option>
+  <option value="visa">Visa</option>
+  <option value="bank">Bank Transfer</option>
             </select>
             <button onClick={handleSubscribe} disabled={processing} style={styles.modalButton}>
               {processing ? "Processing..." : `Pay $${selectedPlan === "Basic" ? 25 : selectedPlan === "Plus" ? 130 : 499}`}

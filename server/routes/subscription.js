@@ -4,7 +4,8 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
-const { verifyPaymentCFA } = require("../services/cfaPayment"); 
+
+const { processPayment } = require("../services/paymentService"); // OCB Bank payment service
 const { authenticateToken } = require("../middleware/auth");
 
 const Payment = require("../models/Payment");
@@ -21,14 +22,14 @@ const calculateExpiry = (plan) => {
   const now = new Date();
   if (plan === "Basic") now.setMonth(now.getMonth() + 1);
   else if (plan === "Plus") now.setFullYear(now.getFullYear() + 1);
-  else if (plan === "Unlimited") now.setFullYear(now.getFullYear() + 100); 
+  else if (plan === "Unlimited") now.setFullYear(now.getFullYear() + 100);
   return now;
 };
 
 // ===================== SUBSCRIBE =====================
 router.post("/", authenticateToken, async (req, res) => {
   try {
-    const { plan, mtLogin, paymentMethod, amount } = req.body;
+    const { plan, mtLogin, paymentMethod, amount, paymentDetails } = req.body;
     const userId = req.user.id;
 
     // Check fixed amounts
@@ -37,10 +38,19 @@ router.post("/", authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, error: "Invalid payment amount" });
     }
 
-    // Verify payment via CFA
-    const paymentVerified = await verifyPaymentCFA(userId, amount, paymentMethod);
-    if (!paymentVerified) {
-      return res.status(400).json({ success: false, error: "Payment not verified by CFA" });
+    // ------------------ Process Payment via OCB Bank ------------------
+    try {
+      await processPayment({
+        userId,
+        amount,
+        method: paymentMethod,
+        details: paymentDetails,
+      });
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        error: `Payment failed via OCB Bank: ${err.message}`,
+      });
     }
 
     // Generate license & expiry
@@ -54,13 +64,13 @@ router.post("/", authenticateToken, async (req, res) => {
       method: paymentMethod,
       status: "completed",
       plan,
-      transactionId: `${userId}_${Date.now()}`
+      transactionId: `${userId}_${Date.now()}`,
     });
     await payment.save();
 
-    // Save subscription info to user (instead of memory)
+    // Save subscription info to user
     await User.findByIdAndUpdate(userId, {
-      subscription: { plan, mtLogin, licenseKey, expiryDate }
+      subscription: { plan, mtLogin, licenseKey, expiryDate },
     });
 
     res.json({ success: true, nextBillingDate: expiryDate, licenseKey });

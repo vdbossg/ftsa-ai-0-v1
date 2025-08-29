@@ -19,6 +19,8 @@ const SubscriptionSchema = new mongoose.Schema(
     mtLogin: { type: String, required: true },
     licenseKey: { type: String, required: true },
     expiryDate: { type: Date, required: true },
+    paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment", default: null }, // links to Payment
+    ocbTransactionId: { type: mongoose.Schema.Types.ObjectId, ref: "Transaction", default: null } // links to OCB Bank transaction
   },
   { _id: false }
 );
