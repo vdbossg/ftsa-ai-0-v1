@@ -4,17 +4,23 @@ import APIControl from "../brain/APIControl";
 // Create the context
 const LanguageContext = createContext();
 
+// ==============================
+// Languages list
+// ==============================
+export const languages = ["en", "sw", "es", "zh", "ar", "hi"];
+
 // Context provider
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState("ENGLISH");
+  const [language, setLanguage] = useState("en"); // ✅ default should match your translations keys
 
   // Load language from backend when app starts
   useEffect(() => {
     async function loadLanguage() {
       const data = await APIControl.fetchSettingsData();
 
-      if (data && data.eaSettings !== undefined && data.language) {
-        setLanguage(data.language);
+      if (data && data.language) {
+        // Make sure it's a supported language code
+        setLanguage(data.language.toLowerCase());
       }
     }
     loadLanguage();
@@ -73,54 +79,12 @@ export const translations = {
     ar: "إعدادات اللغة",
     hi: "भाषा सेटिंग्स",
   },
-  en: {
-    en: "English",
-    sw: "Kiingereza",
-    es: "Inglés",
-    zh: "英语",
-    ar: "الإنجليزية",
-    hi: "अंग्रेज़ी",
-  },
-  sw: {
-    en: "Swahili",
-    sw: "Kiswahili",
-    es: "Suajili",
-    zh: "斯瓦西里语",
-    ar: "السواحيلية",
-    hi: "स्वाहिली",
-  },
-  es: {
-    en: "Spanish",
-    sw: "Kihispania",
-    es: "Español",
-    zh: "西班牙语",
-    ar: "الإسبانية",
-    hi: "स्पैनिश",
-  },
-  zh: {
-    en: "Chinese",
-    sw: "Kichina",
-    es: "Chino",
-    zh: "中文",
-    ar: "الصينية",
-    hi: "चीनी",
-  },
-  ar: {
-    en: "Arabic",
-    sw: "Kiarabu",
-    es: "Árabe",
-    zh: "阿拉伯语",
-    ar: "العربية",
-    hi: "अरबी",
-  },
-  hi: {
-    en: "Hindi",
-    sw: "Kihindi",
-    es: "Hindi",
-    zh: "印地语",
-    ar: "الهندية",
-    hi: "हिन्दी",
-  },
+  en: { en: "English", sw: "Kiingereza", es: "Inglés", zh: "英语", ar: "الإنجليزية", hi: "अंग्रेज़ी" },
+  sw: { en: "Swahili", sw: "Kiswahili", es: "Suajili", zh: "斯瓦西里语", ar: "السواحيلية", hi: "स्वाहिली" },
+  es: { en: "Spanish", sw: "Kihispania", es: "Español", zh: "西班牙语", ar: "الإسبانية", hi: "स्पैनिश" },
+  zh: { en: "Chinese", sw: "Kichina", es: "Chino", zh: "中文", ar: "الصينية", hi: "चीनी" },
+  ar: { en: "Arabic", sw: "Kiarabu", es: "Árabe", zh: "阿拉伯语", ar: "العربية", hi: "अरबी" },
+  hi: { en: "Hindi", sw: "Kihindi", es: "Hindi", zh: "印地语", ar: "الهندية", hi: "हिन्दी" },
   dataPrivacy: {
     en: "Data & Privacy",
     sw: "Takwimu na Faragha",
