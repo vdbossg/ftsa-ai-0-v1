@@ -37,19 +37,21 @@ exports.deposit = async (req, res) => {
 // Request affiliate withdrawal
 exports.requestAffiliateWithdrawal = async (req, res) => {
   try {
-    const affiliateId = req.user.id; // ✅ only logged-in affiliate
-    const { amount, method } = req.body;
+    const { affiliateId, amount, method, accountDetails } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ success: false, message: "Invalid withdrawal amount" });
     }
 
     const affiliate = await Affiliate.findById(affiliateId);
-    if (!affiliate || affiliate.pendingCommission < amount) {
-      return res.status(400).json({ success: false, message: "Insufficient commission balance" });
-    }
+    if (!affiliate || affiliate.availableBalance < amount) {
+  return res.status(400).json({ success: false, message: "Insufficient balance" });
+}
 
-    const currentBalance = await cfaAccount.getBalance();
+affiliate.availableBalance -= amount;
+await affiliate.save();
+
+const currentBalance = await cfaAccount.getBalance();
     if (amount > currentBalance) {
       return res.status(400).json({ success: false, message: "Insufficient CFA account balance" });
     }
