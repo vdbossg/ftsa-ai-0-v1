@@ -51,13 +51,7 @@ const strengthJson = strengthResp.data;
 if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
 const chochJson = chochResp.data;
       // Send current settings to brain API
-try {
-  await APIControl.saveSettingsData({
-  eaSettings: settings, // BrainPage EA settings
-});
-} catch (err) {
-  console.error("Failed to send settings to brain:", err);
-} 
+
       setChochData(chochJson);
     } catch (err) {
       setError("Failed to load brain data");
@@ -67,11 +61,33 @@ try {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
+  const initialize = async () => {
+    // 1️⃣ Load saved settings from backend
+    try {
+      const resp = await APIControl.fetchSettingsData();
+      if (resp.success && resp.data?.tradingSettings) {
+        const s = resp.data.tradingSettings;
+        setSettings({
+          pairs: s.pairs || [],
+          risk: s.risk || 1,
+          dailyTP: s.dailyTarget || 2,      // map backend field to frontend
+          dailySL: s.dailyStopLoss || 1,    // map backend field to frontend
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load saved settings", err);
+    }
+
+    // 2️⃣ Load brain data
     loadBrainData();
     const interval = setInterval(loadBrainData, 15000);
     return () => clearInterval(interval);
-  }, []);
+  };
+
+  initialize();
+}, []);
+
 
   return (
     <div

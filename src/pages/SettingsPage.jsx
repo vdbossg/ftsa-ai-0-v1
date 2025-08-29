@@ -6,6 +6,232 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
 import "../styles/SettingsPage.css";
+import { useLanguage } from "../contexts/LanguageContext";
+
+
+export const translations = {
+  ENGLISH: {
+    profileSettings: "PROFILE SETTINGS",
+    profitPhoto: "Profit Photo URL",
+    firstName: "First Name",
+    middleName: "Middle Name",
+    sirName: "Sir Name",
+    phoneNumber: "Phone Number",
+    email: "Email",
+    county: "County",
+    securitySettings: "SECURITY SETTINGS",
+    oldPassword: "Old Password",
+    newPassword: "New Password",
+    confirmNewPassword: "Confirm New Password",
+    twoFactorAuth: "Two-Factor Authentication",
+    notificationPreferences: "NOTIFICATION PREFERENCES",
+    themeCustomization: "THEME CUSTOMIZATION",
+    darkMode: "Dark Mode",
+    neonAccentColor: "Neon Accent Color",
+    eaSettings: "EA SETTINGS",
+    tradingPairs: "Trading Pairs (comma separated)",
+    riskPerTrade: "Risk per Trade (%)",
+    dailyTP: "Daily Take Profit (%)",
+    dailySL: "Daily Stop Loss (%)",
+    apiIntegrations: "API & INTEGRATIONS",
+    connected: "CONNECTED 🟩",
+    notConnected: "NOT CONNECTED 🟥",
+    dataPrivacy: "DATA & PRIVACY",
+    exportData: "Export data as CSV",
+    deleteAccount: "Delete Account",
+    privacyPolicy: "Privacy Policy",
+    languageSettings: "LANGUAGE SETTINGS",
+    saveSettings: "Save Settings",
+    pleaseLogin: "Please login to access settings.",
+    on: "ON",
+    off: "OFF"
+  },
+
+  SWAHILI: {
+    profileSettings: "MPANGILIKO WA PROFAYILI",
+    profitPhoto: "URL ya Picha ya Faida",
+    firstName: "Jina la Kwanza",
+    middleName: "Jina la Kati",
+    sirName: "Jina la Mwisho",
+    phoneNumber: "Nambari ya Simu",
+    email: "Barua Pepe",
+    county: "Kaunti",
+    securitySettings: "MPANGILIKO WA USALAMA",
+    oldPassword: "Nenosiri la Zamani",
+    newPassword: "Nenosiri Jipya",
+    confirmNewPassword: "Thibitisha Nenosiri Jipya",
+    twoFactorAuth: "Uthibitisho wa Hatua Mbili",
+    notificationPreferences: "UPREFERENSI ZA TAARIFA",
+    themeCustomization: "UBADILISHO WA MUUNDO",
+    darkMode: "Hali ya Giza",
+    neonAccentColor: "Rangi ya Neon",
+    eaSettings: "MPANGILIKO WA EA",
+    tradingPairs: "Jozi za Biashara (zagawanywe kwa koma)",
+    riskPerTrade: "Hatari kwa Biashara (%)",
+    dailyTP: "Faida ya Kila Siku (%)",
+    dailySL: "Hasara ya Kila Siku (%)",
+    apiIntegrations: "API & INTEGRATIONS",
+    connected: "IMEUNGANISHWA 🟩",
+    notConnected: "HAIJUNGANISHWA 🟥",
+    dataPrivacy: "DATA & USALAMA",
+    exportData: "Hamisha data kama CSV",
+    deleteAccount: "Futa Akaunti",
+    privacyPolicy: "Sera ya Usalama",
+    languageSettings: "MPANGILIKO WA LUGHA",
+    saveSettings: "Hifadhi Mpangilio",
+    pleaseLogin: "Tafadhali ingia ili kupata mpangilio.",
+    on: "WAKO",
+    off: "ZIMEZIMWA"
+  },
+
+  SPANISH: {
+    profileSettings: "CONFIGURACIÓN DE PERFIL",
+    profitPhoto: "URL de Foto de Ganancias",
+    firstName: "Nombre",
+    middleName: "Segundo Nombre",
+    sirName: "Apellido",
+    phoneNumber: "Número de Teléfono",
+    email: "Correo Electrónico",
+    county: "Condado",
+    securitySettings: "CONFIGURACIÓN DE SEGURIDAD",
+    oldPassword: "Contraseña Antigua",
+    newPassword: "Nueva Contraseña",
+    confirmNewPassword: "Confirmar Nueva Contraseña",
+    twoFactorAuth: "Autenticación de Dos Factores",
+    notificationPreferences: "PREFERENCIAS DE NOTIFICACIÓN",
+    themeCustomization: "PERSONALIZACIÓN DEL TEMA",
+    darkMode: "Modo Oscuro",
+    neonAccentColor: "Color Neon",
+    eaSettings: "CONFIGURACIÓN DE EA",
+    tradingPairs: "Pares de Trading (separados por comas)",
+    riskPerTrade: "Riesgo por Trade (%)",
+    dailyTP: "Take Profit Diario (%)",
+    dailySL: "Stop Loss Diario (%)",
+    apiIntegrations: "API & INTEGRACIONES",
+    connected: "CONECTADO 🟩",
+    notConnected: "NO CONECTADO 🟥",
+    dataPrivacy: "DATOS & PRIVACIDAD",
+    exportData: "Exportar datos como CSV",
+    deleteAccount: "Eliminar Cuenta",
+    privacyPolicy: "Política de Privacidad",
+    languageSettings: "CONFIGURACIÓN DE IDIOMA",
+    saveSettings: "Guardar Configuración",
+    pleaseLogin: "Por favor inicia sesión para acceder a la configuración.",
+    on: "ENCENDIDO",
+    off: "APAGADO"
+  },
+
+  CHINESE: {
+    profileSettings: "个人设置",
+    profitPhoto: "收益照片 URL",
+    firstName: "名字",
+    middleName: "中间名",
+    sirName: "姓氏",
+    phoneNumber: "电话号码",
+    email: "电子邮箱",
+    county: "县",
+    securitySettings: "安全设置",
+    oldPassword: "旧密码",
+    newPassword: "新密码",
+    confirmNewPassword: "确认新密码",
+    twoFactorAuth: "双重身份验证",
+    notificationPreferences: "通知偏好",
+    themeCustomization: "主题自定义",
+    darkMode: "黑暗模式",
+    neonAccentColor: "霓虹强调色",
+    eaSettings: "EA 设置",
+    tradingPairs: "交易对（逗号分隔）",
+    riskPerTrade: "每笔交易风险 (%)",
+    dailyTP: "每日止盈 (%)",
+    dailySL: "每日止损 (%)",
+    apiIntegrations: "API 与集成",
+    connected: "已连接 🟩",
+    notConnected: "未连接 🟥",
+    dataPrivacy: "数据与隐私",
+    exportData: "导出数据为 CSV",
+    deleteAccount: "删除账户",
+    privacyPolicy: "隐私政策",
+    languageSettings: "语言设置",
+    saveSettings: "保存设置",
+    pleaseLogin: "请登录以访问设置。",
+    on: "开启",
+    off: "关闭"
+  },
+
+  ARABIC: {
+    profileSettings: "إعدادات الملف الشخصي",
+    profitPhoto: "رابط صورة الربح",
+    firstName: "الاسم الأول",
+    middleName: "الاسم الأوسط",
+    sirName: "اسم العائلة",
+    phoneNumber: "رقم الهاتف",
+    email: "البريد الإلكتروني",
+    county: "المقاطعة",
+    securitySettings: "إعدادات الأمان",
+    oldPassword: "كلمة المرور القديمة",
+    newPassword: "كلمة المرور الجديدة",
+    confirmNewPassword: "تأكيد كلمة المرور الجديدة",
+    twoFactorAuth: "المصادقة الثنائية",
+    notificationPreferences: "تفضيلات الإشعارات",
+    themeCustomization: "تخصيص المظهر",
+    darkMode: "الوضع الداكن",
+    neonAccentColor: "لون النيون",
+    eaSettings: "إعدادات EA",
+    tradingPairs: "أزواج التداول (مفصولة بفواصل)",
+    riskPerTrade: "المخاطرة لكل صفقة (%)",
+    dailyTP: "الربح اليومي (%)",
+    dailySL: "وقف الخسارة اليومي (%)",
+    apiIntegrations: "API والتكاملات",
+    connected: "متصل 🟩",
+    notConnected: "غير متصل 🟥",
+    dataPrivacy: "البيانات والخصوصية",
+    exportData: "تصدير البيانات كملف CSV",
+    deleteAccount: "حذف الحساب",
+    privacyPolicy: "سياسة الخصوصية",
+    languageSettings: "إعدادات اللغة",
+    saveSettings: "حفظ الإعدادات",
+    pleaseLogin: "الرجاء تسجيل الدخول للوصول إلى الإعدادات.",
+    on: "تشغيل",
+    off: "إيقاف"
+  },
+
+  INDIA: {
+    profileSettings: "प्रोफ़ाइल सेटिंग्स",
+    profitPhoto: "लाभ फ़ोटो URL",
+    firstName: "पहला नाम",
+    middleName: "मध्यम नाम",
+    sirName: "उपनाम",
+    phoneNumber: "फ़ोन नंबर",
+    email: "ईमेल",
+    county: "काउंटी",
+    securitySettings: "सुरक्षा सेटिंग्स",
+    oldPassword: "पुराना पासवर्ड",
+    newPassword: "नया पासवर्ड",
+    confirmNewPassword: "नया पासवर्ड पुष्टि करें",
+    twoFactorAuth: "दो-कारक प्रमाणीकरण",
+    notificationPreferences: "सूचना प्राथमिकताएँ",
+    themeCustomization: "थीम अनुकूलन",
+    darkMode: "डार्क मोड",
+    neonAccentColor: "नीऑन हाइलाइट रंग",
+    eaSettings: "ईए सेटिंग्स",
+    tradingPairs: "ट्रेडिंग पेयर्स (कॉमा से अलग करें)",
+    riskPerTrade: "प्रति ट्रेड जोखिम (%)",
+    dailyTP: "दैनिक लाभ (%)",
+    dailySL: "दैनिक स्टॉप लॉस (%)",
+    apiIntegrations: "एपीआई और इंटीग्रेशन",
+    connected: "कनेक्टेड 🟩",
+    notConnected: "कनेक्टेड नहीं 🟥",
+    dataPrivacy: "डेटा और गोपनीयता",
+    exportData: "CSV के रूप में डेटा निर्यात करें",
+    deleteAccount: "खाता हटाएँ",
+    privacyPolicy: "गोपनीयता नीति",
+    languageSettings: "भाषा सेटिंग्स",
+    saveSettings: "सेटिंग्स सहेजें",
+    pleaseLogin: "सेटिंग्स तक पहुँचने के लिए कृपया लॉगिन करें।",
+    on: "चालू",
+    off: "बंद"
+  }
+};
 
 const neonColors = {
   background: "#000000",
@@ -74,7 +300,9 @@ export default function SettingsPage() {
     deleteAccount: false,
   });
 
-  const [language, setLanguage] = useState("ENGLISH");
+  const { language, setLanguage } = useLanguage();
+
+
 
   const [eaSettings, setEaSettings] = useState({
   pairs: [],
@@ -227,19 +455,22 @@ setEaSettings(data.eaSettings ?? {
               boxShadow: `0 0 15px ${neonColors.neonBlue}`,
             }}
           >
-            <h2 style={{ color: neonColors.neonGreen }}>PROFILE SETTINGS</h2>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-              <label style={{ flex: "1 1 200px" }}>
-                Profit Photo URL:
-                <input
-                  type="text"
-                  name="profitPhoto"
-                  value={profile.profitPhoto}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                  placeholder="Image URL"
-                />
-              </label>
+            <h2 style={{ color: neonColors.neonGreen }}>
+  {translations[language].profileSettings}
+</h2>
+<div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+  <label style={{ flex: "1 1 200px" }}>
+    {translations[language].profitPhoto}:
+    <input
+      type="text"
+      name="profitPhoto"
+      value={profile.profitPhoto}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={translations[language].profitPhoto}
+    />
+  </label>
+
               <label style={{ flex: "1 1 150px" }}>
                 First Name:
                 <input
@@ -313,18 +544,21 @@ setEaSettings(data.eaSettings ?? {
               boxShadow: `0 0 15px ${neonColors.neonBlue}`,
             }}
           >
-            <h2 style={{ color: neonColors.neonOrange }}>SECURITY SETTINGS</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: 400 }}>
-              <label>
-                Old Password:
-                <input
-                  type="password"
-                  name="oldPassword"
-                  value={security.oldPassword}
-                  onChange={handleSecurityChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
+            <h2 style={{ color: neonColors.neonOrange }}>
+  {translations[language].securitySettings}
+</h2>
+<div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: 400 }}>
+  <label>
+    {translations[language].oldPassword}:
+    <input
+      type="password"
+      name="oldPassword"
+      value={security.oldPassword}
+      onChange={handleSecurityChange}
+      style={inputStyle(neonColors)}
+    />
+  </label>
+
               <label>
                 New Password:
                 <input
@@ -374,27 +608,29 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>NOTIFICATION PREFERENCES</h2>
-            {Object.entries(notifications || {}).map(([key, val]) => (
-              <label
-                key={key}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-              >
-                {key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase())}
-                <NeonButton
-                  onClick={() => handleToggleNotifications(key)}
-                  style={{
-                    border: `2px solid ${val ? neonColors.neonGreen : neonColors.neonRed}`,
-                    backgroundColor: val ? "#002200" : "transparent",
-                    minWidth: 80,
-                  }}
-                >
-                  {val ? "ON" : "OFF"}
-                </NeonButton>
-              </label>
-            ))}
+            <h2 style={{ color: neonColors.neonBlue }}>
+  {translations[language].notificationPreferences}
+</h2>
+{Object.entries(notifications || {}).map(([key, val]) => (
+  <label
+    key={key}
+    style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+  >
+    {translations[language][key] || key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase())}
+    <NeonButton
+      onClick={() => handleToggleNotifications(key)}
+      style={{
+        border: `2px solid ${val ? neonColors.neonGreen : neonColors.neonRed}`,
+        backgroundColor: val ? "#002200" : "transparent",
+        minWidth: 80,
+      }}
+    >
+      {val ? translations[language].on : translations[language].off}
+    </NeonButton>
+  </label>
+))}
           </section>
 
           {/* THEME CUSTOMIZATION */}
@@ -408,22 +644,24 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>THEME CUSTOMIZATION</h2>
-            <label
-              style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}
-            >
-              Dark Mode:
-              <NeonButton
-                onClick={handleToggleThemeMode}
-                style={{
-                  border: `2px solid ${theme.darkMode ? neonColors.neonGreen : neonColors.neonRed}`,
-                  backgroundColor: theme.darkMode ? "#002200" : "transparent",
-                  minWidth: 80,
-                }}
-              >
-                {theme.darkMode ? "ON" : "OFF"}
-              </NeonButton>
-            </label>
+            <h2 style={{ color: neonColors.neonBlue }}>
+  {translations[language].themeCustomization}
+</h2>
+<label
+  style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}
+>
+  {translations[language].darkMode}:
+  <NeonButton
+    onClick={handleToggleThemeMode}
+    style={{
+      border: `2px solid ${theme.darkMode ? neonColors.neonGreen : neonColors.neonRed}`,
+      backgroundColor: theme.darkMode ? "#002200" : "transparent",
+      minWidth: 80,
+    }}
+  >
+    {theme.darkMode ? translations[language].on : translations[language].off}
+  </NeonButton>
+</label>
             <div>
               Neon Accent Color:
               <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
@@ -458,25 +696,25 @@ setEaSettings(data.eaSettings ?? {
     maxWidth: 400,
   }}
 >
-  <h2 style={{ color: neonColors.neonOrange }}>EA SETTINGS</h2>
-  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-    
-    <label>
-      Trading Pairs (comma separated):
-      <input
-        type="text"
-        value={eaSettings.pairs.join(",")}
-        onChange={(e) =>
-          setEaSettings((prev) => ({
-            ...prev,
-            pairs: e.target.value.split(",").map((p) => p.trim()),
-          }))
-        }
-        style={inputStyle(neonColors)}
-        placeholder="EURUSD, GBPUSD, USDJPY"
-      />
-    </label>
-
+<h2 style={{ color: neonColors.neonOrange }}>
+  {translations[language].eaSettings}
+</h2>
+<div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+  <label>
+    {translations[language].tradingPairs}:
+    <input
+      type="text"
+      value={eaSettings.pairs.join(",")}
+      onChange={(e) =>
+        setEaSettings((prev) => ({
+          ...prev,
+          pairs: e.target.value.split(",").map((p) => p.trim()),
+        }))
+      }
+      style={inputStyle(neonColors)}
+      placeholder="EURUSD, GBPUSD, USDJPY"
+    />
+  </label>
     <label>
       Risk per Trade (%):
       <input
@@ -534,25 +772,29 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>API & INTEGRATIONS</h2>
-            {Object.entries(apiIntegrations || {}).map(([key, val]) => (
-              <label
-                key={key}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-              >
-                {key.toUpperCase()}
-                <NeonButton
-                  onClick={() => handleApiIntegrationToggle(key)}
-                  style={{
-                    border: `2px solid ${val ? neonColors.neonGreen : neonColors.neonRed}`,
-                    backgroundColor: val ? "#002200" : "transparent",
-                    minWidth: 80,
-                  }}
-                >
-                  {val ? "CONNECTED 🟩" : "NOT CONNECTED 🟥"}
-                </NeonButton>
-              </label>
-            ))}
+            <h2 style={{ color: neonColors.neonBlue }}>
+  {translations[language].apiIntegrations}
+</h2>
+{Object.entries(apiIntegrations || {}).map(([key, val]) => (
+  <label
+    key={key}
+    style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+  >
+    {key.toUpperCase()}
+    <NeonButton
+      onClick={() => handleApiIntegrationToggle(key)}
+      style={{
+        border: `2px solid ${val ? neonColors.neonGreen : neonColors.neonRed}`,
+        backgroundColor: val ? "#002200" : "transparent",
+        minWidth: 80,
+      }}
+    >
+      {val
+        ? translations[language].connected
+        : translations[language].notConnected}
+    </NeonButton>
+  </label>
+))}
           </section>
 
           {/* DATA & PRIVACY */}
@@ -566,33 +808,35 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonRed }}>DATA & PRIVACY</h2>
-            <NeonButton
-              onClick={() => alert("Exporting data as CSV...")}
-              style={{ marginBottom: "1rem" }}
-            >
-              Export data as CSV
-            </NeonButton>
-            <NeonButton
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Are you sure you want to DELETE your account? This action is irreversible."
-                  )
-                ) {
-                  alert("Account deleted");
-                }
-              }}
-              style={{ backgroundColor: neonColors.neonRed, borderColor: neonColors.neonRed }}
-            >
-              Delete Account
-            </NeonButton>
-            <p style={{ marginTop: "1rem", fontSize: "0.8rem" }}>
-              <a href="/privacy-policy" style={{ color: neonColors.neonBlue }}>
-                Privacy Policy
-              </a>
-            </p>
-          </section>
+            <h2 style={{ color: neonColors.neonRed }}>
+  {translations[language].dataPrivacy}
+</h2>
+
+<NeonButton
+  onClick={() => alert(translations[language].exportingCsv)}
+  style={{ marginBottom: "1rem" }}
+>
+  {translations[language].exportCsv}
+</NeonButton>
+
+<NeonButton
+  onClick={() => {
+    if (window.confirm(translations[language].deleteConfirm)) {
+      alert(translations[language].accountDeleted);
+    }
+  }}
+  style={{ backgroundColor: neonColors.neonRed, borderColor: neonColors.neonRed }}
+>
+  {translations[language].deleteAccount}
+</NeonButton>
+
+<p style={{ marginTop: "1rem", fontSize: "0.8rem" }}>
+  <a href="/privacy-policy" style={{ color: neonColors.neonBlue }}>
+    {translations[language].privacyPolicy}
+  </a>
+</p>
+</section>
+
 
           {/* LANGUAGE SETTINGS */}
           <section
@@ -605,20 +849,26 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>LANGUAGE SETTINGS</h2>
-            <select
-              value={language}
-              onChange={handleLanguageChange}
-              style={inputStyle(neonColors)}
-            >
-              {languages.map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-          </section>
+            <h2 style={{ color: neonColors.neonBlue }}>
+  {translations[language].languageSettings}
+</h2>
 
+<select
+  value={language}
+  onChange={handleLanguageChange}
+  style={inputStyle(neonColors)}
+>
+  {languages.map((lang) => (
+    <option key={lang} value={lang}>
+      {translations[language][lang]} {/* ✅ show translated language name */}
+    </option>
+  ))}
+</select>
+<p style={{ marginTop: "1rem", color: "yellow" }}>
+  Current language: {language}
+</p>
+
+</section>
           {/* APP VERSION */}
           <footer
             style={{

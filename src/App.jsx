@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import SidebarMenu from './components/SidebarMenu';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BrainDataProvider } from './contexts/BrainDataContext'; // ✅ Import BrainDataProvider
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 
 // Import pages
@@ -195,6 +196,19 @@ export default function App() {
           <AppContent />
         </Router>
       </BrainDataProvider>
+    </AuthProvider>
+  );
+}
+export default function App() {
+  return (
+    <AuthProvider>
+      <LanguageProvider>      {/* <-- ADD THIS */}
+        <BrainDataProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </BrainDataProvider>
+      </LanguageProvider>     {/* <-- CLOSE HERE */}
     </AuthProvider>
   );
 }
