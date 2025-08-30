@@ -21,7 +21,8 @@ const PORT = process.env.PORT || 5000;  // ✅ Ensure backend runs on 5000 for y
 
 const allowedOrigins = [
   'http://localhost:5173',               // Vite dev server
-  'http://localhost:3000',               // optional
+  'http://localhost:3000',              // optional
+  'http://192.168.1.117:5173',
   'https://ftsa-ai.com',                 // production domain
   'https://ftsa-ai-0-v1.netlify.app'    // your Netlify frontend
 ];
