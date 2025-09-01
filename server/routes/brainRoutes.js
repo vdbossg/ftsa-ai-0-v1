@@ -54,11 +54,12 @@ router.post("/cfa-sync", async (req, res) => {
       { headers: { "x-api-key": OCB_BANK_KEY } }
     );
 
-    if (!ocbRes || !ocbRes.balance) {
-      return res.status(400).json({ success: false, error: "OCB CFA account not found" });
-    }
+    if (!ocbRes || !ocbRes.account || ocbRes.account.balance === undefined) {
+  return res.status(400).json({ success: false, error: "OCB CFA account not found" });
+}
 
-    const ocbBalance = ocbRes.balance;
+const ocbBalance = ocbRes.account.balance;
+
 
     // ✅ Save to FTSA database
     const CFA = require("../models/CFA");

@@ -1,347 +1,593 @@
 // src/pages/AffiliatesPage.jsx
-import React, { useContext, useState, useEffect } from "react";
-import axios from "axios";
-import { AuthContext } from "../contexts/AuthContext";
+import React, { useEffect, useMemo, useState } from "react";
 import NeonButton from "../components/NeonButton";
-import StatusBadge from "../components/StatusBadge";
+import Modal from "../components/Modal";
 import LoadingSpinner from "../components/LoadingSpinner";
+import StatusBadge from "../components/StatusBadge";
+import { useAuth } from "../contexts/AuthContext";
 
-import "../styles/AffiliatesPage.css"; // you will create styling per your neon theme & orbitron font
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "/api";
 
-const AffiliatesPage = () => {
-  const { user, isAuthenticated } = useContext(AuthContext);
+const neon = {
+  blue: "#00FFFF",
+  green: "#00FF00",
+  red: "#FF3B30",
+  amber: "#FFC107",
+};
+
+const pad3 = (n) => String(Number(n || 0)).padStart(3, "0");
+
+export default function AffiliatesPage() {
+  const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [affiliateData, setAffiliateData] = useState(null);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMethod, setWithdrawMethod] = useState("paypal");
-  const [accountDetails, setAccountDetails] = useState("");
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
 
-  // Redirect if not authenticated (pseudo code, integrate your routing logic)
-  useEffect(() => {
-    if (!isAuthenticated) {
-      window.location.href = "/login";
-    }
-  }, [isAuthenticated]);
+  const [affiliate, setAffiliate] = useState(null);
+  const [stats, setStats] = useState(null);
 
-  // ✅ Fix 1: define fetchAffiliateData once
-  const fetchAffiliateData = async () => {
+  // modals
+  const [showRegister, setShowRegister] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+
+  // registration form
+  const [regForm, setRegForm] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    country: "",
+    idType: "id",
+    idNumber: "",
+    username: "",
+    docFront: null,
+    docBack: null,
+    agree: false,
+  });
+
+  // withdrawal form
+  const [method, setMethod] = useState("");
+  const [payout, setPayout] = useState({
+    mpesaNumber: "",
+    paypalEmail: "",
+    bankIban: "",
+    bankSwift: "",
+    cardNumber: "",
+    cardCvv: "",
+    cardExpiry: "",
+  });
+
+  // helpers
+  const authHeaders = useMemo(() => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }, []);
+
+  const ticketWithExtension = useMemo(() => {
+    if (!affiliate?.ticketBase) return "";
+    // extension equals number of NEW subscribers since last withdrawal
+    // backend should send affiliate.newSubscribersCount; fallback to 0
+    const ext = pad3(affiliate?.newSubscribersCount || 0);
+    return `${affiliate.ticketBase}=${ext}`;
+  }, [affiliate]);
+
+  const nextWithdrawalDate = useMemo(() => {
+    // biweekly rule: lastWithdrawalAt + 14 days
+    const last = affiliate?.lastWithdrawalAt ? new Date(affiliate.lastWithdrawalAt) : null;
+    if (!last) return null;
+    const next = new Date(last.getTime() + 14 * 24 * 60 * 60 * 1000);
+    return next;
+  }, [affiliate]);
+
+  const canWithdraw = useMemo(() => {
+    if (!affiliate) return false;
+    const today = new Date();
+    const afterWindow = !nextWithdrawalDate || today >= nextWithdrawalDate;
+    const hasBalance = Number(affiliate.withdrawableBalance || 0) > 0;
+    return afterWindow && hasBalance && affiliate.status === "active";
+  }, [affiliate, nextWithdrawalDate]);
+
+  // fetch affiliate & stats
+  const fetchEverything = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/affiliate/${user.id}`
+      if (!isAuthenticated || !user?.id) return;
+
+      // affiliate profile
+      const aRes = await fetch(`${API_BASE}/affiliate/${user.id}`, {
+        headers: { "Content-Type": "application/json", ...authHeaders },
+      });
+      if (!aRes.ok) throw new Error("Failed to load affiliate profile");
+      const aData = await aRes.json();
+      setAffiliate(aData);
+
+      // stats for cards (downloaders, subs, new dls, new subs, balances)
+      // backend recommended endpoint; if not present, fall back to fields on affiliate
+      let sData = null;
+      try {
+        const sRes = await fetch(`${API_BASE}/affiliate/${user.id}/stats`, {
+          headers: { "Content-Type": "application/json", ...authHeaders },
+        });
+        if (sRes.ok) sData = await sRes.json();
+      } catch {}
+      setStats(
+        sData || {
+          downloaders: aData?.downloaders || 0,
+          totalSubscriptions: aData?.totalSubscriptions || 0,
+          newDownloaders: aData?.newDownloaders || 0,
+          newSubscribers: aData?.newSubscribersCount || 0,
+          balance: aData?.withdrawableBalance || 0,
+        }
       );
-      setAffiliateData(res.data);
-    } catch (err) {
-      console.error("Failed to fetch affiliate data", err);
-      alert("Failed to load affiliate data. Please try again later.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to load affiliate data.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.id) {
-      fetchAffiliateData();
+    if (isAuthenticated) fetchEverything();
+  }, [isAuthenticated]); // eslint-disable-line
+
+  // registration submit
+  const submitRegistration = async (e) => {
+    e?.preventDefault?.();
+    if (!regForm.agree) {
+      alert("You must agree to the terms to proceed.");
+      return;
     }
-  }, [user]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (user?.id) fetchAffiliateData();
-    }, 30000); // every 30s
-    return () => clearInterval(interval);
-  }, [user]);
-
-  const handleAffiliateRegister = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = {
-      fullName: form[0].value,
-      username: form[1].value,
-      email: form[2].value,
-      password: form[3].value,
-      confirmPassword: form[4].value,
-      country: form[5].value,
-      phone: form[6].value,
-    };
-
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/affiliate/register`,
-        formData
-      );
-      setAffiliateData(res.data);
-      alert("Affiliate registration successful!");
-    } catch (err) {
-      console.error("Affiliate registration failed", err);
-      alert(
-        err.response?.data?.message ||
-          "Registration failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
+    if (!regForm.firstName || !regForm.lastName || !regForm.phone || !regForm.email || !regForm.country || !regForm.idNumber || !regForm.username) {
+      alert("Please fill all required fields.");
+      return;
     }
-  };
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(affiliateData.referralLink).then(() => {
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    });
-  };
-
-  const handleWithdrawSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!withdrawAmount || withdrawAmount <= 0) {
-      alert("Please enter a valid withdrawal amount.");
+    if (!regForm.docFront || !regForm.docBack) {
+      alert("Please upload front and back document images.");
       return;
     }
 
+    const fd = new FormData();
+    fd.append("firstName", regForm.firstName);
+    fd.append("middleName", regForm.middleName);
+    fd.append("lastName", regForm.lastName);
+    fd.append("phone", regForm.phone);
+    fd.append("email", regForm.email);
+    fd.append("country", regForm.country);
+    fd.append("idType", regForm.idType);
+    fd.append("idNumber", regForm.idNumber);
+    fd.append("username", regForm.username);
+    fd.append("docFront", regForm.docFront);
+    fd.append("docBack", regForm.docBack);
+
     try {
-      setLoading(true);
-      // ✅ Fix 2: use affiliateData._id and include accountDetails
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/cfa/request-withdrawal`,
-        {
-          affiliateId: affiliateData._id,
-          amount: withdrawAmount,
-          method: withdrawMethod,
-          accountDetails,
-        }
-      );
-
-      alert(res.data.message || "Withdrawal request submitted successfully.");
-
-      const updated = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/affiliate/${user.id}`
-      );
-      setAffiliateData(updated.data);
-
-      setWithdrawAmount("");
-      setAccountDetails("");
-    } catch (err) {
-      console.error("Withdrawal failed", err);
-      alert(
-        err.response?.data?.message || "Withdrawal failed. Please try again."
-      );
+      setSaving(true);
+      const res = await fetch(`${API_BASE}/affiliate/register`, {
+        method: "POST",
+        headers: { ...authHeaders },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Registration failed");
+      setAffiliate(data);
+      alert("Thanks for submitting. You’ll receive an approval email shortly.");
+      setShowRegister(false);
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "Registration failed.");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  // withdraw submit (no amount field; backend computes from new subscribers)
+  const submitWithdraw = async (e) => {
+    e?.preventDefault?.();
+    if (!method) {
+      alert("Choose a payment method.");
+      return;
+    }
 
-  if (!affiliateData)
+    // Build accountDetails by method
+    let accountDetails = {};
+    switch (method) {
+      case "mpesa":
+        if (!payout.mpesaNumber) return alert("Enter your M-PESA number.");
+        accountDetails = { mpesaNumber: payout.mpesaNumber };
+        break;
+      case "paypal":
+        if (!payout.paypalEmail) return alert("Enter your PayPal email.");
+        accountDetails = { paypalEmail: payout.paypalEmail };
+        break;
+      case "bank":
+        if (!payout.bankIban || !payout.bankSwift)
+          return alert("Enter your Bank IBAN and SWIFT.");
+        accountDetails = { bankIban: payout.bankIban, bankSwift: payout.bankSwift };
+        break;
+      case "card":
+        if (!payout.cardNumber || !payout.cardCvv || !payout.cardExpiry)
+          return alert("Enter full card details.");
+        accountDetails = {
+          cardNumber: payout.cardNumber,
+          cardCvv: payout.cardCvv,
+          cardExpiry: payout.cardExpiry,
+        };
+        break;
+      default:
+        return alert("Unsupported method.");
+    }
+
+    try {
+      setWithdrawing(true);
+      const res = await fetch(`${API_BASE}/cfa/request-withdrawal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+        body: JSON.stringify({
+          affiliateId: affiliate._id,
+          method,
+          accountDetails,
+          // no amount here – backend computes based on new subscribers × commission
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Withdrawal request failed.");
+      alert(data?.message || "Withdrawal request submitted.");
+
+      // refresh
+      await fetchEverything();
+      setShowWithdraw(false);
+      setMethod("");
+      setPayout({
+        mpesaNumber: "",
+        paypalEmail: "",
+        bankIban: "",
+        bankSwift: "",
+        cardNumber: "",
+        cardCvv: "",
+        cardExpiry: "",
+      });
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "Withdrawal request failed.");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  if (!isAuthenticated) {
     return (
-      <div className="error-message neon-red">
-        Failed to load affiliate data.
+      <div style={{ color: neon.red, padding: "2rem", fontFamily: "'Orbitron', sans-serif" }}>
+        Please log in to access Affiliates.
       </div>
     );
+  }
+
+  if (loading) return <LoadingSpinner />;
+
+  const status =
+    affiliate?.status === "active"
+      ? "online"
+      : affiliate?.status === "pending"
+      ? "warning"
+      : "offline";
 
   return (
     <div
-      className="affiliates-page"
       style={{
-        backgroundColor: "#000000",
-        color: "#00FFFF",
-        fontFamily: "Orbitron, sans-serif",
         minHeight: "100vh",
-        padding: "2rem",
+        background: "#000",
+        color: neon.blue,
+        fontFamily: "'Orbitron', sans-serif",
+        padding: "1.25rem",
       }}
     >
-      <header className="appbar">
-        <h1>FTSA AI</h1>
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h1 style={{ margin: 0, textShadow: `0 0 10px ${neon.blue}` }}>FTSA AI • Affiliate Center</h1>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <StatusBadge
+            status={status}
+            label={
+              affiliate?.status === "active"
+                ? "Active"
+                : affiliate?.status === "pending"
+                ? "Pending approval"
+                : "Not registered"
+            }
+          />
+          <NeonButton onClick={fetchEverything}>Refresh</NeonButton>
+        </div>
       </header>
 
-      <h2>Welcome to FTSA AI Affiliates</h2>
-      <p>
-        Join <br />
-        • Lifetime commissions <br />
-        • High payouts <br />
-        • Track your Performance <br />
-        • Instant withdraw when balance available
-      </p>
-
-      {!affiliateData?.isRegistered && (
-        <section className="affiliate-registration neon-glow-border">
-          <h3>Affiliate Registration</h3>
-          <form onSubmit={handleAffiliateRegister}>
-            <input type="text" placeholder="Full Name" required />
-            <input type="text" placeholder="Username" required />
-            <input type="email" placeholder="Email" required />
-            <input type="password" placeholder="Password" required />
-            <input type="password" placeholder="Confirm Password" required />
-            <input type="text" placeholder="Country" required />
-            <input
-              type="tel"
-              placeholder="Phone Number (+123)(7********)"
-              required
-            />
-            <label>
-              <input type="checkbox" required /> I agree to the Affiliates Terms
-              & Conditions
-            </label>
-            <NeonButton type="submit">Register</NeonButton>
-          </form>
-        </section>
-      )}
-
+      {/* Ticket */}
       <section
-        className="affiliates-dashboard neon-glow-border"
-        style={{ marginTop: "2rem" }}
+        style={{
+          border: `2px solid ${neon.blue}`,
+          borderRadius: 12,
+          padding: 16,
+          boxShadow: `0 0 10px ${neon.blue}`,
+          marginBottom: 16,
+          background: "#0b0b0b",
+        }}
       >
-        <h3>Your Affiliate Dashboard</h3>
-        <div>Total commission: ${affiliateData.totalCommission.toFixed(2)}</div>
-        <div>Available balance: ${affiliateData.availableBalance.toFixed(2)}</div>
-        <div>Total Referrals: {affiliateData.totalReferrals}</div>
-        <div>Subscriptions: {affiliateData.subscriptions}</div>
+        <h3 style={{ marginTop: 0 }}>Your Ticket</h3>
+        {affiliate?.ticketBase ? (
+          <div style={{ fontSize: 18, color: neon.green }}>
+            {ticketWithExtension}
+          </div>
+        ) : (
+          <div style={{ color: neon.red }}>No ticket yet.</div>
+        )}
+        <div style={{ marginTop: 8, fontSize: 13, color: "#9ee" }}>
+          The extension (=xxx) auto-increments with new subscribers from your link.
+        </div>
       </section>
 
-      {affiliateData?.isRegistered && (
-        <section
-          className="referral-link neon-glow-border"
-          style={{ marginTop: "2rem" }}
-        >
-          <h3>Your Referral Link</h3>
-          <input
-            type="text"
-            readOnly
-            value={affiliateData.referralLink || ""}
-            style={{
-              width: "80%",
-              color: "#00FFFF",
-              backgroundColor: "#000",
-              border: "1px solid #00FFFF",
-              borderRadius: "4px",
-              padding: "0.5rem",
-            }}
-            onFocus={(e) => e.target.select()}
-          />
-          <NeonButton onClick={handleCopyLink}>
-            {copySuccess ? "Copied!" : "Copy Link"}
-          </NeonButton>
-        </section>
-      )}
-
+      {/* Cards */}
       <section
-        className="referral-performance neon-glow-border"
-        style={{ marginTop: "2rem" }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 12,
+          marginBottom: 16,
+        }}
       >
-        <h3>Referral Performance</h3>
-        <table
-          style={{ width: "100%", color: "#00FFFF", borderCollapse: "collapse" }}
-        >
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Name/Email</th>
-              <th>Date</th>
-              <th>Plan</th>
-              <th>Commission ($)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* ✅ Fix 3: use referredUsers instead of referrals */}
-            {affiliateData.referredUsers?.map((refUser, index) => (
-              <tr
-                key={refUser._id || index}
-                style={{ borderBottom: "1px solid #00FFFF" }}
-              >
-                <td>{index + 1}</td>
-                <td>{refUser.email}</td>
-                <td>{new Date(refUser.createdAt).toLocaleDateString()}</td>
-                <td>{refUser.subscription?.plan || "—"}</td>
-                <td>{refUser.commissionEarned?.toFixed(2) || "0.00"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Card title="Downloaders" value={stats?.downloaders ?? 0} />
+        <Card title="Total Subscriptions" value={stats?.totalSubscriptions ?? 0} />
+        <Card title="New Downloaders" value={stats?.newDownloaders ?? 0} />
+        <Card title="New Subscribers" value={stats?.newSubscribers ?? 0} />
+        <Card
+          title="Balance (USD)"
+          value={(stats?.balance ?? affiliate?.withdrawableBalance ?? 0).toFixed(2)}
+        />
       </section>
 
-      {affiliateData?.isRegistered && (
-        <section
-          className="withdrawal-panel neon-glow-border"
-          style={{ marginTop: "2rem" }}
-        >
-          <h3>Withdrawal Panel</h3>
-          <div>
-            Available balance: ${affiliateData.availableBalance.toFixed(2)}
-          </div>
-          <div>
-            Withdrawable Amount: ${affiliateData.availableBalance.toFixed(2)}
-          </div>
+      {/* Withdraw policy */}
+      <section
+        style={{
+          border: `2px solid ${neon.blue}`,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 16,
+          background: "#0b0b0b",
+        }}
+      >
+        <h3 style={{ marginTop: 0 }}>Withdrawal Policy (Biweekly)</h3>
+        <ul style={{ marginTop: 8, lineHeight: 1.5 }}>
+          <li>Withdrawals are available every 14 days.</li>
+          <li>You are paid only for new subscribers since your last withdrawal.</li>
+          <li>The payout amount is calculated automatically.</li>
+        </ul>
+        <div style={{ marginTop: 8, fontSize: 14 }}>
+          Last withdrawal:{" "}
+          <span style={{ color: neon.green }}>
+            {affiliate?.lastWithdrawalAt ? new Date(affiliate.lastWithdrawalAt).toLocaleString() : "—"}
+          </span>
+          {"  "} • Next available:{" "}
+          <span style={{ color: neon.green }}>
+            {nextWithdrawalDate ? nextWithdrawalDate.toLocaleString() : "Now"}
+          </span>
+        </div>
+      </section>
 
-          <form onSubmit={handleWithdrawSubmit}>
-            <input
-              type="number"
-              min="1"
-              max={affiliateData.availableBalance}
-              placeholder="Withdrawal amount"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              required
-            />
-
-            <select
-              value={withdrawMethod}
-              onChange={(e) => setWithdrawMethod(e.target.value)}
-              required
-            >
-              <option value="paypal">PayPal</option>
-              <option value="webmoney">WebMoney</option>
-              {/* ✅ Fix 4: correct Skrill spelling */}
-              <option value="skrill">Skrill</option>
-              <option value="bankTransfer">Bank Transfer</option>
-            </select>
-
-            <input
-              type="text"
-              placeholder="Account details"
-              value={accountDetails}
-              onChange={(e) => setAccountDetails(e.target.value)}
-              required
-            />
-
-            <NeonButton type="submit">
-              {loading ? "Processing..." : "Submit Withdrawal"}
-            </NeonButton>
-          </form>
-
-          <p
-            style={{
-              marginTop: "1rem",
-              fontSize: "0.9rem",
-              color: "#FF4500",
-            }}
+      {/* Actions */}
+      <section style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {!affiliate?.ticketBase && (
+          <NeonButton onClick={() => setShowRegister(true)}>Register as Affiliate</NeonButton>
+        )}
+        {affiliate?.status === "pending" && (
+          <div style={{ color: neon.amber }}>Your registration is awaiting approval.</div>
+        )}
+        {affiliate?.status === "active" && (
+          <NeonButton
+            onClick={() => setShowWithdraw(true)}
+            disabled={!canWithdraw}
+            title={!canWithdraw ? "Either window not open or balance is 0" : ""}
           >
-            Note: You will receive a confirmation email. Verify to complete
-            withdrawal.
-          </p>
-        </section>
-      )}
-
-      <section
-        className="rules-conditions neon-glow-border"
-        style={{ marginTop: "2rem" }}
-      >
-        <h3>Rules & Conditions</h3>
-        <p>
-          NOTE: COMMISSION IS ONLY EARNED WHEN <br />
-          ° User signs up through your referral link <br />
-          ° AND purchases a paid subscription plan
-        </p>
+            Request Withdrawal
+          </NeonButton>
+        )}
       </section>
 
-      <footer
-        style={{ marginTop: "3rem", textAlign: "center", color: "#00FFFF" }}
-      >
-        FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
-      </footer>
+      {/* Registration Modal */}
+      {showRegister && (
+        <Modal title="Affiliate Registration" onClose={() => setShowRegister(false)}>
+          <form onSubmit={submitRegistration} style={{ display: "grid", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              <Input label="First name" required value={regForm.firstName} onChange={(v) => setRegForm({ ...regForm, firstName: v })} />
+              <Input label="Middle name" value={regForm.middleName} onChange={(v) => setRegForm({ ...regForm, middleName: v })} />
+              <Input label="Last name" required value={regForm.lastName} onChange={(v) => setRegForm({ ...regForm, lastName: v })} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Input label="Phone (+254...)" required value={regForm.phone} onChange={(v) => setRegForm({ ...regForm, phone: v })} />
+              <Input label="Email" type="email" required value={regForm.email} onChange={(v) => setRegForm({ ...regForm, email: v })} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              <Input label="Country" required value={regForm.country} onChange={(v) => setRegForm({ ...regForm, country: v })} />
+              <Select
+                label="ID Type"
+                value={regForm.idType}
+                onChange={(v) => setRegForm({ ...regForm, idType: v })}
+                options={[
+                  { value: "id", label: "National ID" },
+                  { value: "passport", label: "Passport" },
+                  { value: "dl", label: "Driver License" },
+                ]}
+              />
+              <Input label="Document Number" required value={regForm.idNumber} onChange={(v) => setRegForm({ ...regForm, idNumber: v })} />
+            </div>
+
+            <Input label="Username" required value={regForm.username} onChange={(v) => setRegForm({ ...regForm, username: v })} />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <FileInput label="Doc Front (image)" required onChange={(file) => setRegForm({ ...regForm, docFront: file })} />
+              <FileInput label="Doc Back (image)" required onChange={(file) => setRegForm({ ...regForm, docBack: file })} />
+            </div>
+
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={regForm.agree}
+                onChange={(e) => setRegForm({ ...regForm, agree: e.target.checked })}
+              />
+              I agree to the Affiliate Terms & Conditions
+            </label>
+
+            <NeonButton type="submit" disabled={saving}>{saving ? "Submitting..." : "Submit"}</NeonButton>
+          </form>
+        </Modal>
+      )}
+
+      {/* Withdraw Modal */}
+      {showWithdraw && (
+        <Modal title="Request Withdrawal" onClose={() => setShowWithdraw(false)}>
+          <form onSubmit={submitWithdraw} style={{ display: "grid", gap: 10 }}>
+            <div style={{ marginBottom: 6, color: neon.green }}>
+              Withdrawable balance: ${(affiliate?.withdrawableBalance || 0).toFixed(2)}
+            </div>
+
+            <Select
+              label="Payment Method"
+              value={method}
+              onChange={setMethod}
+              options={[
+                { value: "", label: "Select method..." },
+                { value: "mpesa", label: "M-PESA" },
+                { value: "paypal", label: "PayPal" },
+                { value: "bank", label: "Bank Transfer" },
+                { value: "card", label: "Visa / Card" },
+              ]}
+              required
+            />
+
+            {method === "mpesa" && (
+              <Input label="M-PESA Number" required value={payout.mpesaNumber} onChange={(v) => setPayout({ ...payout, mpesaNumber: v })} />
+            )}
+            {method === "paypal" && (
+              <Input label="PayPal Email" type="email" required value={payout.paypalEmail} onChange={(v) => setPayout({ ...payout, paypalEmail: v })} />
+            )}
+            {method === "bank" && (
+              <>
+                <Input label="Bank IBAN" required value={payout.bankIban} onChange={(v) => setPayout({ ...payout, bankIban: v })} />
+                <Input label="Bank SWIFT" required value={payout.bankSwift} onChange={(v) => setPayout({ ...payout, bankSwift: v })} />
+              </>
+            )}
+            {method === "card" && (
+              <>
+                <Input label="Card Number" required value={payout.cardNumber} onChange={(v) => setPayout({ ...payout, cardNumber: v })} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <Input label="CVV" required value={payout.cardCvv} onChange={(v) => setPayout({ ...payout, cardCvv: v })} />
+                  <Input label="Expiry (MM/YY)" required value={payout.cardExpiry} onChange={(v) => setPayout({ ...payout, cardExpiry: v })} />
+                </div>
+              </>
+            )}
+
+            <NeonButton type="submit" disabled={withdrawing || !canWithdraw}>
+              {withdrawing ? "Submitting..." : "Submit Withdrawal"}
+            </NeonButton>
+            {!canWithdraw && (
+              <div style={{ fontSize: 12, color: neon.red }}>
+                You can request withdrawal only when the window is open and your balance is greater than 0.
+              </div>
+            )}
+          </form>
+        </Modal>
+      )}
     </div>
   );
-};
+}
 
-export default AffiliatesPage;
+/* ---------- Small UI helpers ---------- */
+
+function Card({ title, value }) {
+  return (
+    <div
+      style={{
+        border: `2px solid ${neon.blue}`,
+        borderRadius: 12,
+        padding: 16,
+        background: "#0b0b0b",
+        boxShadow: `0 0 10px ${neon.blue}`,
+      }}
+    >
+      <div style={{ fontSize: 13, opacity: 0.85 }}>{title}</div>
+      <div style={{ fontSize: 24, color: neon.green, marginTop: 6 }}>{value}</div>
+    </div>
+  );
+}
+
+function Input({ label, value, onChange, type = "text", required }) {
+  return (
+    <label style={{ display: "grid", gap: 6 }}>
+      <span style={{ fontSize: 12 }}>{label}{required ? " *" : ""}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        style={{
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: `1px solid ${neon.blue}`,
+          background: "#000",
+          color: neon.blue,
+          outline: "none",
+        }}
+      />
+    </label>
+  );
+}
+
+function Select({ label, value, onChange, options, required }) {
+  return (
+    <label style={{ display: "grid", gap: 6 }}>
+      <span style={{ fontSize: 12 }}>{label}{required ? " *" : ""}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        style={{
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: `1px solid ${neon.blue}`,
+          background: "#000",
+          color: neon.blue,
+          outline: "none",
+        }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value} style={{ color: "#000" }}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function FileInput({ label, onChange, required }) {
+  return (
+    <label style={{ display: "grid", gap: 6 }}>
+      <span style={{ fontSize: 12 }}>{label}{required ? " *" : ""}</span>
+      <input
+        type="file"
+        accept="image/*"
+        required={required}
+        onChange={(e) => onChange(e.target.files?.[0] || null)}
+        style={{
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: `1px solid ${neon.blue}`,
+          background: "#000",
+          color: neon.blue,
+          outline: "none",
+        }}
+      />
+    </label>
+  );
+}
