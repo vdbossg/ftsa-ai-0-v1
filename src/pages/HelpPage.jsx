@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
-import HelpModal from "../components/HelpModal"; // New modal
-import { fetchFAQs, fetchSupportChannels } from "../api/supportApi";
+import Modal from "../components/Modal"; // Your reusable modal component
+import { fetchFAQs, fetchSupportChannels, createTicket } from "../api/supportApi"; // Backend API calls
 
 import "../styles/HelpPage.css";
 
@@ -14,12 +14,22 @@ const HelpPage = () => {
   const [faqs, setFaqs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredFaqs, setFilteredFaqs] = useState([]);
+
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
-  const [ticketType, setTicketType] = useState("");
+  const [ticketType, setTicketType] = useState(""); // WhatsApp / SMS / Email
+  const [ticketForm, setTicketForm] = useState({
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    category: "",
+    message: "",
+  });
+  const [sendingTicket, setSendingTicket] = useState(false);
+  const [ticketNumber, setTicketNumber] = useState(null);
   const [supportChannels, setSupportChannels] = useState({});
+
   const [contactInfo, setContactInfo] = useState({ email: "", phone: "" });
 
-  // Fetch FAQs and support info
+  // Fetch FAQs and support info from backend
   useEffect(() => {
     async function fetchData() {
       try {
@@ -55,25 +65,45 @@ const HelpPage = () => {
     }
   }, [searchTerm, faqs]);
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setTicketForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   const openTicketModal = (type) => {
     if (!isAuthenticated) return (window.location.href = "/login");
     setTicketType(type);
     setTicketModalOpen(true);
+    setTicketForm((prev) => ({
+      ...prev,
+      fullName: user?.fullName || "",
+      email: user?.email || "",
+      category: "",
+      message: "",
+    }));
+    setTicketNumber(null);
+  };
+
+  const handleSendTicket = async (e) => {
+    e.preventDefault();
+    if (!ticketForm.category || !ticketForm.message) return;
+
+    try {
+      setSendingTicket(true);
+      const ticket = await createTicket({ ...ticketForm, type: ticketType });
+      setTicketNumber(ticket.number); // Display ticket number in modal
+    } catch (err) {
+      console.error("Failed to send ticket:", err);
+      alert("Failed to send ticket. Please try again.");
+    } finally {
+      setSendingTicket(false);
+    }
   };
 
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div
-      className="help-page"
-      style={{
-        fontFamily: "Orbitron, sans-serif",
-        backgroundColor: "#000",
-        color: "#00FFFF",
-        minHeight: "100vh",
-        padding: "2rem",
-      }}
-    >
+    <div className="help-page" style={{ fontFamily: "Orbitron, sans-serif", backgroundColor: "#000", color: "#00FFFF", minHeight: "100vh", padding: "2rem" }}>
       <header className="appbar" style={{ marginBottom: "2rem" }}>
         <h1>FTSA AI</h1>
         <h2>Need Help?</h2>
@@ -82,29 +112,10 @@ const HelpPage = () => {
       {/* Quick Help Panel */}
       <section className="quick-help" style={{ marginBottom: "2rem" }}>
         <h3>Quick Help</h3>
-        <ul
-          style={{
-            listStyle: "none",
-            paddingLeft: 0,
-            display: "flex",
-            gap: "1rem",
-          }}
-        >
-          <li>
-            <a href="#faq" style={{ color: "#00FFFF" }}>
-              FAQ
-            </a>
-          </li>
-          <li>
-            <a href="#contact-support" style={{ color: "#00FFFF" }}>
-              Contact Support
-            </a>
-          </li>
-          <li>
-            <a href="#video-tutorials" style={{ color: "#00FFFF" }}>
-              Video Tutorials
-            </a>
-          </li>
+        <ul style={{ listStyle: "none", paddingLeft: 0, display: "flex", gap: "1rem" }}>
+          <li><a href="#faq" style={{ color: "#00FFFF" }}>FAQ</a></li>
+          <li><a href="#contact-support" style={{ color: "#00FFFF" }}>Contact Support</a></li>
+          <li><a href="#video-tutorials" style={{ color: "#00FFFF" }}>Video Tutorials</a></li>
         </ul>
       </section>
 
@@ -129,18 +140,8 @@ const HelpPage = () => {
         />
         {filteredFaqs.length === 0 && <p>No FAQs found.</p>}
         {filteredFaqs.map((faq) => (
-          <details
-            key={faq._id || faq.id}
-            style={{
-              marginBottom: "1rem",
-              padding: "1rem",
-              border: "1px solid #00FFFF",
-              borderRadius: "8px",
-            }}
-          >
-            <summary style={{ cursor: "pointer", fontWeight: "bold" }}>
-              {faq.question}
-            </summary>
+          <details key={faq._id || faq.id} style={{ marginBottom: "1rem", padding: "1rem", border: "1px solid #00FFFF", borderRadius: "8px" }}>
+            <summary style={{ cursor: "pointer", fontWeight: "bold" }}>{faq.question}</summary>
             <p style={{ marginTop: "0.5rem" }}>{faq.answer}</p>
           </details>
         ))}
@@ -151,46 +152,43 @@ const HelpPage = () => {
         <h3>Contact Support</h3>
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
           {supportChannels.whatsapp && (
-            <button
-              onClick={() => openTicketModal("WhatsApp")}
-              style={channelButtonStyle}
-            >
-              WhatsApp
-            </button>
+            <button onClick={() => openTicketModal("WhatsApp")} style={channelButtonStyle}>WhatsApp</button>
           )}
           {supportChannels.sms && (
-            <button
-              onClick={() => openTicketModal("SMS")}
-              style={channelButtonStyle}
-            >
-              SMS
-            </button>
+            <button onClick={() => openTicketModal("SMS")} style={channelButtonStyle}>SMS</button>
           )}
           {supportChannels.email && (
-            <button
-              onClick={() => openTicketModal("Email")}
-              style={channelButtonStyle}
-            >
-              Email
-            </button>
+            <button onClick={() => openTicketModal("Email")} style={channelButtonStyle}>Email</button>
           )}
         </div>
       </section>
 
       {/* Ticket Modal */}
       {ticketModalOpen && (
-        <HelpModal
-          onClose={() => setTicketModalOpen(false)}
-          type={ticketType}
-          user={user}
-        />
+        <Modal onClose={() => setTicketModalOpen(false)}>
+          <h3>Create Ticket ({ticketType})</h3>
+          {ticketNumber ? (
+            <p>Your ticket has been queued. Ticket Number: <strong>{ticketNumber}</strong></p>
+          ) : (
+            <form onSubmit={handleSendTicket} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <input type="text" name="fullName" placeholder="Full Name" value={ticketForm.fullName} onChange={handleInputChange} required disabled={!!user?.fullName} style={modalInputStyle}/>
+              <input type="email" name="email" placeholder="Email" value={ticketForm.email} onChange={handleInputChange} required disabled={!!user?.email} style={modalInputStyle}/>
+              <select name="category" value={ticketForm.category} onChange={handleInputChange} required style={modalInputStyle}>
+                <option value="">Select Category</option>
+                {supportChannels.categories?.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+              <textarea name="message" placeholder="Message" value={ticketForm.message} onChange={handleInputChange} required rows={4} style={modalInputStyle}/>
+              <button type="submit" disabled={sendingTicket} style={channelButtonStyle}>{sendingTicket ? "Sending..." : "Send Ticket"}</button>
+            </form>
+          )}
+        </Modal>
       )}
 
       {/* Footer */}
       <footer style={{ marginTop: "3rem", textAlign: "center" }}>
-        <p>
-          Email: {contactInfo.email} | Phone: {contactInfo.phone}
-        </p>
+        <p>Email: {contactInfo.email} | Phone: {contactInfo.phone}</p>
         <p style={{ marginTop: "1rem" }}>FTSA AI © 2025</p>
       </footer>
     </div>
@@ -206,4 +204,14 @@ const channelButtonStyle = {
   cursor: "pointer",
 };
 
+const modalInputStyle = {
+  padding: "0.5rem",
+  borderRadius: "6px",
+  border: "1px solid #00FFFF",
+  backgroundColor: "#000",
+  color: "#00FFFF",
+  outline: "none",
+};
+
 export default HelpPage;
+
