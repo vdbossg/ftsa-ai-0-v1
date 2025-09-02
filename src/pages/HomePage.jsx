@@ -1,216 +1,157 @@
-// src/pages/HelpPage.jsx
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext";
+// src/pages/HomePage.jsx
+import React, { useEffect, useState } from "react";
+import NeonButton from "../components/NeonButton";
+import StatusBadge from "../components/StatusBadge";
 import LoadingSpinner from "../components/LoadingSpinner";
-import Modal from "../components/Modal"; // Your reusable modal component
-import { fetchFAQs, fetchSupportChannels, createTicket } from "../api/supportApi"; // Backend API calls
+import { useAuth } from "../contexts/AuthContext";
+import APIControl from "../brain/APIControl";
 
-import "../styles/HelpPage.css";
-
-const HelpPage = () => {
-  const { isAuthenticated, user } = useContext(AuthContext);
-
+const HomePage = () => {
+  const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [faqs, setFaqs] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredFaqs, setFilteredFaqs] = useState([]);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
-  const [ticketModalOpen, setTicketModalOpen] = useState(false);
-  const [ticketType, setTicketType] = useState(""); // WhatsApp / SMS / Email
-  const [ticketForm, setTicketForm] = useState({
-    fullName: user?.fullName || "",
-    email: user?.email || "",
-    category: "",
-    message: "",
-  });
-  const [sendingTicket, setSendingTicket] = useState(false);
-  const [ticketNumber, setTicketNumber] = useState(null);
-  const [supportChannels, setSupportChannels] = useState({});
-
-  const [contactInfo, setContactInfo] = useState({ email: "", phone: "" });
-
-  // Fetch FAQs and support info from backend
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const [faqData, channelData] = await Promise.all([
-          fetchFAQs(),
-          fetchSupportChannels(),
-        ]);
-        setFaqs(faqData);
-        setFilteredFaqs(faqData);
-        setSupportChannels(channelData.channels);
-        setContactInfo(channelData.contactInfo);
-      } catch (err) {
-        console.error("Error fetching help data:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+    let isMounted = true;
+    if (!isAuthenticated) return;
 
-  // Filter FAQs
-  useEffect(() => {
-    if (!searchTerm) setFilteredFaqs(faqs);
-    else {
-      setFilteredFaqs(
-        faqs.filter(
-          (faq) =>
-            faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-  }, [searchTerm, faqs]);
+    setLoading(true);
+    setError(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setTicketForm((prev) => ({ ...prev, [name]: value }));
-  };
+    APIControl.fetchUserInfo()
+      .then((res) => {
+        if (isMounted) {
+          setData(res);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err?.message || "Failed to load data");
+          setLoading(false);
+        }
+      });
 
-  const openTicketModal = (type) => {
-    if (!isAuthenticated) return (window.location.href = "/login");
-    setTicketType(type);
-    setTicketModalOpen(true);
-    setTicketForm((prev) => ({
-      ...prev,
-      fullName: user?.fullName || "",
-      email: user?.email || "",
-      category: "",
-      message: "",
-    }));
-    setTicketNumber(null);
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
 
-  const handleSendTicket = async (e) => {
-    e.preventDefault();
-    if (!ticketForm.category || !ticketForm.message) return;
-
-    try {
-      setSendingTicket(true);
-      const ticket = await createTicket({ ...ticketForm, type: ticketType });
-      setTicketNumber(ticket.number); // Display ticket number in modal
-    } catch (err) {
-      console.error("Failed to send ticket:", err);
-      alert("Failed to send ticket. Please try again.");
-    } finally {
-      setSendingTicket(false);
-    }
-  };
+  if (!isAuthenticated) {
+    return (
+      <div style={styles.notAuth}>
+        Please log in to view the homepage.
+      </div>
+    );
+  }
 
   if (loading) return <LoadingSpinner />;
+  if (error) return <StatusBadge status="error" label={error} />;
 
   return (
-    <div className="help-page" style={{ fontFamily: "Orbitron, sans-serif", backgroundColor: "#000", color: "#00FFFF", minHeight: "100vh", padding: "2rem" }}>
-      <header className="appbar" style={{ marginBottom: "2rem" }}>
-        <h1>FTSA AI</h1>
-        <h2>Need Help?</h2>
+    <div style={styles.page}>
+      <header style={styles.header}>
+        <h1 style={styles.title}>
+          Welcome back, {user?.name || user?.email || "—"}
+        </h1>
+        <StatusBadge status="online" label="FTSA AI Brain Online" />
       </header>
 
-      {/* Quick Help Panel */}
-      <section className="quick-help" style={{ marginBottom: "2rem" }}>
-        <h3>Quick Help</h3>
-        <ul style={{ listStyle: "none", paddingLeft: 0, display: "flex", gap: "1rem" }}>
-          <li><a href="#faq" style={{ color: "#00FFFF" }}>FAQ</a></li>
-          <li><a href="#contact-support" style={{ color: "#00FFFF" }}>Contact Support</a></li>
-          <li><a href="#video-tutorials" style={{ color: "#00FFFF" }}>Video Tutorials</a></li>
-        </ul>
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Account Overview</h2>
+        <div style={styles.card}>
+          <p>
+            Balance:{" "}
+            {data?.accountBalance != null ? `$${data.accountBalance}` : "—"}
+          </p>
+          <p>
+            Open Positions:{" "}
+            {data?.openPositions != null ? data.openPositions : "—"}
+          </p>
+          <p>
+            Profit/Loss:{" "}
+            {data?.profitLoss != null ? `$${data.profitLoss}` : "—"}
+          </p>
+          <NeonButton>Go to Dashboard</NeonButton>
+        </div>
       </section>
 
-      {/* FAQ Section */}
-      <section id="faq" style={{ marginBottom: "2rem" }}>
-        <h3>Frequently Asked Questions</h3>
-        <input
-          type="search"
-          placeholder="Search FAQs..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "0.5rem",
-            marginBottom: "1rem",
-            border: "1px solid #00FFFF",
-            borderRadius: "6px",
-            backgroundColor: "#000",
-            color: "#00FFFF",
-            outline: "none",
-          }}
-        />
-        {filteredFaqs.length === 0 && <p>No FAQs found.</p>}
-        {filteredFaqs.map((faq) => (
-          <details key={faq._id || faq.id} style={{ marginBottom: "1rem", padding: "1rem", border: "1px solid #00FFFF", borderRadius: "8px" }}>
-            <summary style={{ cursor: "pointer", fontWeight: "bold" }}>{faq.question}</summary>
-            <p style={{ marginTop: "0.5rem" }}>{faq.answer}</p>
-          </details>
-        ))}
-      </section>
-
-      {/* Contact Support */}
-      <section id="contact-support" style={{ marginBottom: "2rem" }}>
-        <h3>Contact Support</h3>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          {supportChannels.whatsapp && (
-            <button onClick={() => openTicketModal("WhatsApp")} style={channelButtonStyle}>WhatsApp</button>
-          )}
-          {supportChannels.sms && (
-            <button onClick={() => openTicketModal("SMS")} style={channelButtonStyle}>SMS</button>
-          )}
-          {supportChannels.email && (
-            <button onClick={() => openTicketModal("Email")} style={channelButtonStyle}>Email</button>
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Global Market News</h2>
+        <div style={styles.card}>
+          {data?.marketNews?.length ? (
+            data.marketNews.map((news, idx) => (
+              <p key={idx} style={styles.newsItem}>
+                {news}
+              </p>
+            ))
+          ) : (
+            <p style={styles.newsItem}>No market news available</p>
           )}
         </div>
       </section>
 
-      {/* Ticket Modal */}
-      {ticketModalOpen && (
-        <Modal onClose={() => setTicketModalOpen(false)}>
-          <h3>Create Ticket ({ticketType})</h3>
-          {ticketNumber ? (
-            <p>Your ticket has been queued. Ticket Number: <strong>{ticketNumber}</strong></p>
-          ) : (
-            <form onSubmit={handleSendTicket} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <input type="text" name="fullName" placeholder="Full Name" value={ticketForm.fullName} onChange={handleInputChange} required disabled={!!user?.fullName} style={modalInputStyle}/>
-              <input type="email" name="email" placeholder="Email" value={ticketForm.email} onChange={handleInputChange} required disabled={!!user?.email} style={modalInputStyle}/>
-              <select name="category" value={ticketForm.category} onChange={handleInputChange} required style={modalInputStyle}>
-                <option value="">Select Category</option>
-                {supportChannels.categories?.map(cat => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
-                ))}
-              </select>
-              <textarea name="message" placeholder="Message" value={ticketForm.message} onChange={handleInputChange} required rows={4} style={modalInputStyle}/>
-              <button type="submit" disabled={sendingTicket} style={channelButtonStyle}>{sendingTicket ? "Sending..." : "Send Ticket"}</button>
-            </form>
-          )}
-        </Modal>
-      )}
-
-      {/* Footer */}
-      <footer style={{ marginTop: "3rem", textAlign: "center" }}>
-        <p>Email: {contactInfo.email} | Phone: {contactInfo.phone}</p>
-        <p style={{ marginTop: "1rem" }}>FTSA AI © 2025</p>
+      <footer style={styles.footer}>
+        <p style={styles.footerText}>
+          FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
+        </p>
       </footer>
     </div>
   );
 };
 
-const channelButtonStyle = {
-  padding: "0.5rem 1rem",
-  backgroundColor: "#00FFFF",
-  color: "#000",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
+const styles = {
+  page: {
+    backgroundColor: "#000000",
+    color: "#00FFFF",
+    fontFamily: "'Orbitron', sans-serif",
+    height: "100%",
+    overflowY: "auto",
+    padding: "1rem",
+  },
+  header: {
+    borderBottom: "2px solid #00FFFF",
+    paddingBottom: "1rem",
+    marginBottom: "1rem",
+  },
+  title: {
+    fontSize: "2rem",
+    margin: 0,
+  },
+  section: {
+    marginBottom: "2rem",
+  },
+  sectionTitle: {
+    color: "#00FFFF",
+    textShadow: "0 0 10px #00FFFF",
+    fontSize: "1.5rem",
+    marginBottom: "0.5rem",
+  },
+  card: {
+    backgroundColor: "#111111",
+    border: "2px solid #00FFFF",
+    borderRadius: "10px",
+    padding: "1rem",
+    boxShadow: "0 0 10px #00FFFF",
+  },
+  newsItem: {
+    marginBottom: "0.5rem",
+  },
+  footer: {
+    borderTop: "2px solid #00FFFF",
+    paddingTop: "1rem",
+    textAlign: "center",
+  },
+  footerText: {
+    fontSize: "0.9rem",
+    color: "#00FF00",
+  },
+  notAuth: {
+    color: "#FF0000",
+    padding: "2rem",
+    fontFamily: "'Orbitron', sans-serif",
+  },
 };
 
-const modalInputStyle = {
-  padding: "0.5rem",
-  borderRadius: "6px",
-  border: "1px solid #00FFFF",
-  backgroundColor: "#000",
-  color: "#00FFFF",
-  outline: "none",
-};
-
-export default HelpPage;
+export default HomePage;
