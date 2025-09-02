@@ -151,16 +151,11 @@ const HelpPage = () => {
       <section id="contact-support" style={{ marginBottom: "2rem" }}>
         <h3>Contact Support</h3>
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          {supportChannels.whatsapp && (
-            <button onClick={() => openTicketModal("WhatsApp")} style={channelButtonStyle}>WhatsApp</button>
-          )}
-          {supportChannels.sms && (
-            <button onClick={() => openTicketModal("SMS")} style={channelButtonStyle}>SMS</button>
-          )}
-          {supportChannels.email && (
-            <button onClick={() => openTicketModal("Email")} style={channelButtonStyle}>Email</button>
-          )}
-        </div>
+  <button onClick={() => openTicketModal("WhatsApp")} style={channelButtonStyle}>WhatsApp</button>
+  <button onClick={() => openTicketModal("SMS")} style={channelButtonStyle}>SMS</button>
+  <button onClick={() => openTicketModal("Email")} style={channelButtonStyle}>Email</button>
+</div>
+
       </section>
 
       {/* Ticket Modal */}
