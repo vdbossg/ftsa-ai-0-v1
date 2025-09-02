@@ -1,21 +1,43 @@
-// server/models/Affiliate.js
 const mongoose = require("mongoose");
 
 const AffiliateSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Linked user
-    code: { type: String, unique: true, required: true }, // referral code (e.g. "KELVIN123")
+    // Link to the User who owns this affiliate account
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
-    // Earnings
-    pendingCommission: { type: Number, default: 0 }, // earned but not yet withdrawn
-    paidCommission: { type: Number, default: 0 },    // lifetime paid out
-    totalCommission: { type: Number, default: 0 },   // lifetime earned (paid + pending)
+    // Referral code (unique to each affiliate)
+    code: { type: String, unique: true, required: true },
 
-    // Optional: track who was referred
+    // Ticket system (acts as a unique payout identifier)
+    ticketNumber: { type: String, unique: true }, // e.g. "#001/username/+254/email@gmail.com"
+    extension: { type: Number, default: 0 }, // increments with each new subscriber
+
+    // Affiliate profile details
+    firstName: String,
+    middleName: String,
+    lastName: String,
+    phone: String,
+    email: String,
+    country: String,
+    idType: { type: String, enum: ["ID", "Passport", "DL"] },
+    idNumber: String,
+    idFront: String, // image path or URL
+    idBack: String,
+
+    // Earnings & balances
+    withdrawableBalance: { type: Number, default: 0 }, // funds available for withdrawal
+    pendingCommission: { type: Number, default: 0 },   // locked, awaiting admin approval
+    paidCommission: { type: Number, default: 0 },      // total successfully withdrawn
+    totalCommission: { type: Number, default: 0 },     // lifetime earned (withdrawable + pending + paid)
+
+    // Track referred users
     referredUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    // Withdrawal requests
-    pendingWithdrawal: { type: Number, default: 0 },
+    // Withdrawals
+    lastWithdrawalAt: { type: Date },
+
+    // Status of affiliate account
+    status: { type: String, enum: ["pending", "active", "declined"], default: "pending" }
   },
   { timestamps: true }
 );

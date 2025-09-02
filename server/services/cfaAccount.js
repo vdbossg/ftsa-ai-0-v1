@@ -1,28 +1,25 @@
 // CFA Account Service - Central FTSA-AI Account
 // Handles all money flow between users, affiliates, and admin
-// Now extended to sync with OCB Bank API and Affiliate commissions
+// Synced with OCB Bank API
 
-const db = require("../models"); // Sequelize or Mongoose
-const axios = require("axios");  // For calling OCB Bank backend API
+const axios = require("axios");
 const User = require("../models/User");
 const Affiliate = require("../models/Affiliate");
+const Transaction = require("../models/Transaction"); // ✅ You need a Transaction mongoose model
 
 class CFAAccount {
   constructor() {
-    // could be loaded from DB or environment
     this.accountId = "CFA_ACCOUNT";
-    this.ocbBaseUrl = process.env.OCB_BANK_URL || "http://localhost:5001/api"; 
-    this.ocbApiKey = process.env.OCB_BANK_KEY || "secure-api-key"; 
-
-    // Commission rate (10% for example)
-    this.commissionRate = 0.1;
+    this.ocbBaseUrl = process.env.OCB_BANK_URL || "http://localhost:5001/api";
+    this.ocbApiKey = process.env.OCB_BANK_KEY || "secure-api-key";
+    this.commissionRate = 0.1; // 10%
   }
 
-  // helper: push transaction to OCB Bank
+  // ✅ Push transaction to OCB Bank
   async pushToOCB(payload) {
     try {
       const res = await axios.post(`${this.ocbBaseUrl}/transactions/sync`, payload, {
-        headers: { "x-api-key": this.ocbApiKey }
+        headers: { "x-api-key": this.ocbApiKey },
       });
       return res.data;
     } catch (err) {
@@ -31,9 +28,9 @@ class CFAAccount {
     }
   }
 
-  // Record a deposit from user subscription
+  // ✅ Record a deposit from user subscription
   async deposit(userId, amount, method) {
-    const transaction = await db.Transaction.create({
+    const transaction = await Transaction.create({
       accountId: this.accountId,
       type: "deposit",
       userId,
@@ -42,7 +39,6 @@ class CFAAccount {
       status: "completed",
     });
 
-    // Mirror into OCB Bank
     await this.pushToOCB({
       accountId: this.accountId,
       type: "deposit",
@@ -52,7 +48,7 @@ class CFAAccount {
       source: "FTSA_AI",
     });
 
-    // ✅ Check if user is referred by an affiliate
+    // Commission logic
     const user = await User.findById(userId);
     if (user && user.referredBy) {
       const affiliate = await Affiliate.findById(user.referredBy);
@@ -61,7 +57,8 @@ class CFAAccount {
 
         affiliate.pendingCommission += commission;
         affiliate.totalCommission += commission;
-        affiliate.referredUsers.addToSet(user._id); // avoid duplicates
+        affiliate.extension += 1;
+        affiliate.referredUsers.addToSet(user._id);
         await affiliate.save();
 
         console.log(`💰 Affiliate ${affiliate.code} earned commission: ${commission}`);
@@ -71,9 +68,9 @@ class CFAAccount {
     return transaction;
   }
 
-  // Reserve funds for affiliate withdrawal
+  // ✅ Reserve funds for affiliate withdrawal
   async reserveForAffiliate(affiliateId, amount) {
-    const reserve = await db.Transaction.create({
+    const reserve = await Transaction.create({
       accountId: this.accountId,
       type: "reserve",
       affiliateId,
@@ -92,18 +89,17 @@ class CFAAccount {
     return reserve;
   }
 
-  // Release payout to affiliate
+  // ✅ Release payout after admin approval
   async releaseAffiliatePayout(affiliateId, amount) {
     const affiliate = await Affiliate.findById(affiliateId);
     if (!affiliate) throw new Error("Affiliate not found");
 
-    // Adjust balances
     affiliate.pendingCommission -= amount;
     affiliate.paidCommission += amount;
     affiliate.pendingWithdrawal = 0;
     await affiliate.save();
 
-    const payout = await db.Transaction.create({
+    const payout = await Transaction.create({
       accountId: this.accountId,
       type: "payout",
       affiliateId,
@@ -122,9 +118,9 @@ class CFAAccount {
     return payout;
   }
 
-  // Admin withdraw remaining funds
+  // ✅ Admin withdraw remaining funds
   async adminWithdraw(amount) {
-    const adminTx = await db.Transaction.create({
+    const adminTx = await Transaction.create({
       accountId: this.accountId,
       type: "adminWithdraw",
       amount,
@@ -141,14 +137,34 @@ class CFAAccount {
     return adminTx;
   }
 
-  // Get CFA account balance
+  // ✅ Get CFA account balance
   async getBalance() {
-    const deposits = await db.Transaction.sum("amount", { where: { accountId: this.accountId, type: "deposit" } });
-    const reserved = await db.Transaction.sum("amount", { where: { accountId: this.accountId, type: "reserve" } });
-    const payouts = await db.Transaction.sum("amount", { where: { accountId: this.accountId, type: "payout" } });
-    const adminWithdrawals = await db.Transaction.sum("amount", { where: { accountId: this.accountId, type: "adminWithdraw" } });
+    const deposits = await Transaction.aggregate([
+      { $match: { accountId: this.accountId, type: "deposit" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
 
-    return (deposits || 0) - (reserved || 0) - (payouts || 0) - (adminWithdrawals || 0);
+    const reserved = await Transaction.aggregate([
+      { $match: { accountId: this.accountId, type: "reserve" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const payouts = await Transaction.aggregate([
+      { $match: { accountId: this.accountId, type: "payout" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const adminWithdrawals = await Transaction.aggregate([
+      { $match: { accountId: this.accountId, type: "adminWithdraw" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    return (
+      (deposits[0]?.total || 0) -
+      (reserved[0]?.total || 0) -
+      (payouts[0]?.total || 0) -
+      (adminWithdrawals[0]?.total || 0)
+    );
   }
 }
 
