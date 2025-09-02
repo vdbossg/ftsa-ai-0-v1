@@ -1,4 +1,5 @@
-// server/server.js
+/// server.js (top of the file)
+require('dotenv').config({ path: '../.env' });  // ✅ points to project root .env
 require('dotenv').config();  // ✅ Load environment variables from server/.env
 const express = require('express');
 const cors = require('cors');

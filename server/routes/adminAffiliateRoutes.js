@@ -1,15 +1,14 @@
-import express from "express";
-import {
+const express = require("express");
+const router = express.Router();
+const {
   approveAffiliate,
   declineAffiliate,
   approveWithdrawal,
-} from "../controllers/adminAffiliateController.js";
+} = require("../controllers/adminAffiliateController"); // no .js in CommonJS
 
-const router = express.Router();
-
-// ✅ Admin actions
+// Admin actions
 router.put("/:affiliateId/approve", approveAffiliate);
 router.put("/:affiliateId/decline", declineAffiliate);
 router.put("/:affiliateId/withdrawal/approve", approveWithdrawal);
 
-export default router;
+module.exports = router; // ✅ CommonJS export

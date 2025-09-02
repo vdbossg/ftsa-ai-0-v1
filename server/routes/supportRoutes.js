@@ -9,11 +9,11 @@ const generateTicketNumber = () => {
   return `TICKET-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 };
 
-// GET all tickets (for admin panel)
+// GET all tickets
 router.get("/tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find()
-      .populate("user", "name email") // ensures ticket.user.name/email exist
+      .populate("user", "name email")
       .sort({ createdAt: -1 });
     res.json(tickets);
   } catch (err) {
@@ -22,12 +22,11 @@ router.get("/tickets", async (req, res) => {
   }
 });
 
-// POST create new ticket (from user app)
+// POST create new ticket
 router.post("/tickets", async (req, res) => {
   try {
     const { userId, type, category, message, subject } = req.body;
 
-    // Validate userId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
@@ -35,9 +34,8 @@ router.post("/tickets", async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Create ticket
     const ticket = new Ticket({
-      ticketNumber: generateTicketNumber(), // backend generates unique number
+      ticketNumber: generateTicketNumber(),
       user: userId,
       userName: user.name,
       userEmail: user.email,
@@ -57,7 +55,7 @@ router.post("/tickets", async (req, res) => {
   }
 });
 
-// POST reply to a ticket (admin or user)
+// POST reply to a ticket
 router.post("/tickets/:id/reply", async (req, res) => {
   try {
     const { message, sender } = req.body;
@@ -81,7 +79,7 @@ router.post("/tickets/:id/reply", async (req, res) => {
   }
 });
 
-// PATCH update ticket status (open, pending, resolved)
+// PATCH update ticket status
 router.patch("/tickets/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
@@ -106,4 +104,5 @@ router.patch("/tickets/:id/status", async (req, res) => {
   }
 });
 
-export default router;
+// ✅ Export router using CommonJS
+module.exports = router;
