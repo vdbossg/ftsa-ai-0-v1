@@ -191,17 +191,6 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrainDataProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </BrainDataProvider>
-    </AuthProvider>
-  );
-}
-export default function App() {
-  return (
-    <AuthProvider>
       <LanguageProvider>      {/* <-- ADD THIS */}
         <BrainDataProvider>
           <Router>
