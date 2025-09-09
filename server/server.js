@@ -15,7 +15,7 @@ const connectDB = require('./config/db');
 const adminAffiliateRoutes = require('./routes/adminAffiliateRoutes');  // ✅ add this
 const supportRoutes = require("./routes/supportRoutes");
 const tradesRouter = require("./routes/trades");
-const newsRouter = require("./routes/news");
+
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const autoTradeRoutes = require('./routes/autoTradeRoutes');
 const strengthRoutes = require('./routes/strengthRoutes');
@@ -89,7 +89,7 @@ app.use('/api/equity', require('./routes/equityRoutes'));
 // FTSA AI Brain Main Routes
 app.use('/api/brain', require('./routes/brainRoutes'));
 app.use("/api/trades", tradesRouter);
-app.use("/api/news", newsRouter);
+app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/admin/affiliates', adminAffiliateRoutes);
 console.log('✅ /api/admin/affiliates routes mounted');
 
