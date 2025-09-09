@@ -100,53 +100,45 @@ const HomePage = () => {
           </div>
         </section>
       )}
-
       {/* Market News */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Global Market News</h2>
-        <div style={styles.card}>
-          {data?.marketNews?.length ? (
-  <table style={styles.newsTable}>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Currency</th>
-        <th>Event</th>
-        <th>Impact</th>
-        <th>Actual</th>
-        <th>Previous</th>
-        <th>Forecast</th>
-      </tr>
-    </thead>
-    <tbody>
-      {data.marketNews.map((news, idx) => (
-        <tr key={idx}>
-          <td>{news.date}</td>
-          <td>{news.time}</td>
-          <td>{news.currency}</td>
-          <td>{news.event}</td>
-          <td>
-            {news.impact === "high" && "🟥 High"}
-            {news.impact === "medium" && "🟧 Medium"}
-            {news.impact === "low" && "🟨 Low"}
-            {news.impact === "holiday" && "⬛ Holiday"}
-          </td>
-          <td>{news.actual ?? "—"}</td>
-          <td>{news.previous ?? "—"}</td>
-          <td>{news.forecast ?? "—"}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-) : (
-  <p style={styles.newsItem}>No market news available</p>
-)}
-
-        </div>
-      </section>
-
-      <footer style={styles.footer}>
+<section style={styles.section}>
+  <h2 style={styles.sectionTitle}>Global Market News</h2>
+  <div style={styles.card}>
+    {data?.marketNews?.length ? (
+      <table style={styles.newsTable}>
+        <thead>
+          <tr>
+            {["Date","Time","Currency","Event","Impact","Actual","Previous","Forecast"].map((h, idx) => (
+              <th key={idx} style={styles.newsTableThTd}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.marketNews.map((news, idx) => (
+            <tr key={idx}>
+              <td style={styles.newsTableThTd}>{news.date}</td>
+              <td style={styles.newsTableThTd}>{news.time}</td>
+              <td style={styles.newsTableThTd}>{news.currency}</td>
+              <td style={styles.newsTableThTd}>{news.event}</td>
+              <td style={styles.newsTableThTd}>
+                {news.impact === "high" && "🟥 High"}
+                {news.impact === "medium" && "🟧 Medium"}
+                {news.impact === "low" && "🟨 Low"}
+                {news.impact === "holiday" && "⬛ Holiday"}
+              </td>
+              <td style={styles.newsTableThTd}>{news.actual ?? "—"}</td>
+              <td style={styles.newsTableThTd}>{news.previous ?? "—"}</td>
+              <td style={styles.newsTableThTd}>{news.forecast ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p style={styles.newsItem}>No market news available</p>
+    )}
+  </div>
+</section>
+ <footer style={styles.footer}>
         <p style={styles.footerText}>
           FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
         </p>
