@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/info', (req, res) => {
+// ✅ now it's /profile, not /info
+router.get('/profile', (req, res) => {
   res.json({
-    name: 'John Doe',
-    email: 'john@example.com'
+    success: true,
+    data: {
+      name: 'John Doe',
+      email: 'john@example.com'
+    }
   });
 });
 

@@ -106,14 +106,43 @@ const HomePage = () => {
         <h2 style={styles.sectionTitle}>Global Market News</h2>
         <div style={styles.card}>
           {data?.marketNews?.length ? (
-            data.marketNews.map((news, idx) => (
-              <p key={idx} style={styles.newsItem}>
-                {news}
-              </p>
-            ))
-          ) : (
-            <p style={styles.newsItem}>No market news available</p>
-          )}
+  <table style={styles.newsTable}>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Currency</th>
+        <th>Event</th>
+        <th>Impact</th>
+        <th>Actual</th>
+        <th>Previous</th>
+        <th>Forecast</th>
+      </tr>
+    </thead>
+    <tbody>
+      {data.marketNews.map((news, idx) => (
+        <tr key={idx}>
+          <td>{news.date}</td>
+          <td>{news.time}</td>
+          <td>{news.currency}</td>
+          <td>{news.event}</td>
+          <td>
+            {news.impact === "high" && "🟥 High"}
+            {news.impact === "medium" && "🟧 Medium"}
+            {news.impact === "low" && "🟨 Low"}
+            {news.impact === "holiday" && "⬛ Holiday"}
+          </td>
+          <td>{news.actual ?? "—"}</td>
+          <td>{news.previous ?? "—"}</td>
+          <td>{news.forecast ?? "—"}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+) : (
+  <p style={styles.newsItem}>No market news available</p>
+)}
+
         </div>
       </section>
 
@@ -177,6 +206,19 @@ const styles = {
     padding: "2rem",
     fontFamily: "'Orbitron', sans-serif",
   },
+  newsTable: {
+  width: "100%",
+  borderCollapse: "collapse",
+  marginTop: "1rem",
+  color: "#00FFFF",
+  fontSize: "0.9rem",
+},
+newsTableThTd: {
+  border: "1px solid #00FFFF",
+  padding: "0.5rem",
+  textAlign: "center",
+},
+
 };
 
 export default HomePage;
