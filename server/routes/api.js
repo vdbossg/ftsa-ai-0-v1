@@ -82,5 +82,46 @@ router.delete('/binance/:id', (req, res) => {
   const deleted = binanceAccounts.splice(index, 1);
   res.json({ success: true, data: deleted[0] });
 });
+/* ===== User Info (Homepage Overview) ===== */
+router.get('/user/info', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: {
+        // Account balance = sum of all account balances
+        accountBalance: [
+          ...mtAccounts,
+          ...propFirmAccounts,
+          ...binanceAccounts,
+        ].reduce((sum, acc) => sum + (acc.balance || 0), 0),
+
+        // Open positions = total across all accounts
+        openPositions: [
+          ...mtAccounts,
+          ...propFirmAccounts,
+          ...binanceAccounts,
+        ].reduce((sum, acc) => sum + (acc.openPositions || 0), 0),
+
+        // Profit/Loss = sum across all accounts
+        profitLoss: [
+          ...mtAccounts,
+          ...propFirmAccounts,
+          ...binanceAccounts,
+        ].reduce((sum, acc) => sum + (acc.profitLoss || 0), 0),
+
+        // Pass full prop firm accounts for frontend display
+        propFirmAccounts,
+
+        // Market news placeholder (replace with real feed later if needed)
+        marketNews: [
+          "US Inflation report released today...",
+          "EUR/USD volatility expected this week...",
+        ],
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 module.exports = router;

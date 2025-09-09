@@ -22,7 +22,11 @@ const HomePage = () => {
     APIControl.fetchUserInfo()
       .then((res) => {
         if (isMounted) {
-          setData(res);
+          if (res.success) {
+            setData(res.data); // ✅ only set the actual user data
+          } else {
+            setError(res.error || "Failed to load data");
+          }
           setLoading(false);
         }
       })
@@ -58,6 +62,7 @@ const HomePage = () => {
         <StatusBadge status="online" label="FTSA AI Brain Online" />
       </header>
 
+      {/* Account Overview */}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Account Overview</h2>
         <div style={styles.card}>
@@ -77,6 +82,26 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Prop Firm Accounts */}
+      {data?.propFirmAccounts && (
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Prop Firm Accounts</h2>
+          <div style={styles.card}>
+            {data.propFirmAccounts.length > 0 ? (
+              data.propFirmAccounts.map((acc, idx) => (
+                <div key={idx} style={{ marginBottom: "0.5rem" }}>
+                  <strong>{acc.broker}</strong> ({acc.type?.toUpperCase()}) –{" "}
+                  Balance: ${acc.balance}
+                </div>
+              ))
+            ) : (
+              <p>No prop firm accounts connected.</p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Market News */}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Global Market News</h2>
         <div style={styles.card}>
