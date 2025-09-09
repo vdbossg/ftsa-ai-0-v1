@@ -1,35 +1,38 @@
 // server/services/strengthService.js
-// ✅ Calculates and ranks forex pair strengths
 
-// Example thresholds — adjust as needed
+// ✅ All major & minor Forex pairs
+const ALL_PAIRS = [
+  "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+  "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
+  "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
+  "AUDJPY","AUDNZD","AUDCAD","AUDCHF",
+  "NZDJPY","NZDCHF","NZDCAD",
+  "CADJPY","CADCHF",
+  "CHFJPY"
+];
+
+// In-memory strengths
+let pairStrengths = ALL_PAIRS.map(symbol => ({
+  symbol,
+  percent: Math.floor(Math.random() * 100) // initial dummy %, can be updated later
+}));
+
 const getColorByPercent = (percent) => {
   if (percent >= 70) return "🟩"; // Strong
   if (percent >= 40) return "🟧"; // Medium
   return "🟥"; // Weak
 };
 
-// In-memory store for now (can move to DB later)
-let pairStrengths = [
-  { symbol: "GBPUSD", percent: 15 },
-  { symbol: "CHFJPY", percent: 62 },
-  { symbol: "NZDUSD", percent: 86 },
-];
-
-// ✅ Get ranked pairs with colors
+// ✅ Return ranked pairs with color
 exports.getRankedPairs = async () => {
   const ranked = [...pairStrengths].sort((a, b) => b.percent - a.percent);
-  return ranked.map(p => ({
-    ...p,
-    color: getColorByPercent(p.percent)
-  }));
-};
-// ✅ Get all symbols currently tracked
-exports.getAllSymbols = async () => {
-  return pairStrengths.map(p => p.symbol);
+  return ranked.map(p => ({ ...p, color: getColorByPercent(p.percent) }));
 };
 
+// ✅ Return all symbols
+exports.getAllSymbols = async () => ALL_PAIRS;
 
-// ✅ Update strength values (from TradingView webhook)
+// ✅ Update single pair strength
 exports.updatePairStrength = async (symbol, percent) => {
   const idx = pairStrengths.findIndex(p => p.symbol === symbol);
   if (idx >= 0) {
@@ -39,10 +42,15 @@ exports.updatePairStrength = async (symbol, percent) => {
   }
 };
 
-// ✅ Get strongest pair at the moment
+// ✅ Get strongest pair
 exports.getStrongestPair = async () => {
-  if (pairStrengths.length === 0) return null;
-  const ranked = [...pairStrengths].sort((a, b) => b.percent - a.percent);
-  const top = ranked[0];
+  if (!pairStrengths.length) return null;
+  const top = [...pairStrengths].sort((a, b) => b.percent - a.percent)[0];
   return { ...top, color: getColorByPercent(top.percent) };
+};
+
+// ✅ Push live strength to WS clients (server.js will call this)
+exports.pushLiveStrength = async (broadcastFn) => {
+  const ranked = await exports.getRankedPairs();
+  if (broadcastFn) broadcastFn("marketStrength", ranked);
 };

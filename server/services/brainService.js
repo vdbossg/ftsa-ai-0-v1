@@ -1,6 +1,6 @@
-// server/services/brainService.js
 require('dotenv').config();
 const WebSocket = require("ws");
+const chochService = require('./chochService');
 
 let wss; // WebSocket server from server.js
 const allPairs = [
@@ -15,54 +15,64 @@ const allPairs = [
 const DERIV_API_TOKEN = process.env.DERIV_API_TOKEN;
 const DERIV_APP_ID = process.env.DERIV_APP_ID || 1089;
 
+const candlesStore = {}; // latest candles per pair
+let derivWS;
+
+// ---------------------------
 // WebSocket connection to Deriv
-const derivWS = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${DERIV_APP_ID}`);
+// ---------------------------
+function connectDerivWS() {
+  derivWS = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${DERIV_APP_ID}`);
 
-const candlesStore = {}; // store latest candles per pair
+  derivWS.on('open', () => {
+    console.log("💡 Connected to Deriv WS");
+    derivWS.send(JSON.stringify({ authorize: DERIV_API_TOKEN }));
 
-derivWS.on('open', () => {
-  console.log("💡 Connected to Deriv WS");
-  derivWS.send(JSON.stringify({ authorize: DERIV_API_TOKEN }));
-
-  // Subscribe all pairs to 15m and 4h candles
-  allPairs.forEach(pair => {
-    subscribePair(pair, 900);    // 15m candles
-    subscribePair(pair, 14400);  // 4h candles
+    allPairs.forEach(pair => {
+      subscribePair(pair, 900);    // 15m candles
+      subscribePair(pair, 14400);  // 4h candles
+    });
   });
-});
 
-derivWS.on('message', (msg) => {
-  const data = JSON.parse(msg);
-  if (data.msg_type === "history") {
-    const symbol = data.echo_req.ticks_history.replace("frx", "");
-    const gran = data.echo_req.granularity;
-    if (!candlesStore[symbol]) candlesStore[symbol] = {};
-    candlesStore[symbol][gran] = data.history.candles;
-  }
-});
+  derivWS.on('message', (msg) => {
+    const data = JSON.parse(msg);
+    if (data.msg_type === "history") {
+      const symbol = data.echo_req.ticks_history.replace("frx", "");
+      const gran = data.echo_req.granularity;
+      if (!candlesStore[symbol]) candlesStore[symbol] = {};
+      candlesStore[symbol][gran] = data.history.candles;
+    }
+  });
 
-derivWS.on('close', () => {
-  console.log("⚠️ Deriv WS closed. Reconnecting in 5s...");
-  setTimeout(() => connectDerivWS(), 5000);
-});
+  derivWS.on('close', () => {
+    console.log("⚠️ Deriv WS closed. Reconnecting in 5s...");
+    setTimeout(connectDerivWS, 5000);
+  });
+
+  derivWS.on('error', (err) => {
+    console.error("Deriv WS error:", err.message);
+    derivWS.close();
+  });
+}
 
 function subscribePair(pair, granularity) {
   derivWS.send(JSON.stringify({
     ticks_history: "frx" + pair,
     end: "latest",
     count: 100,
-    granularity: granularity,
+    granularity,
     style: "candles",
     echo_req: { ticks_history: "frx" + pair, granularity }
   }));
 }
 
-// Set WebSocket server
+// ---------------------------
+// Brain WebSocket helpers
+// ---------------------------
 function setWebSocketServer(server) {
   wss = server;
 }
 
-// Broadcast to all connected WS clients
 function broadcastBrainData(type, payload) {
   if (!wss) return;
   wss.clients.forEach(client => {
@@ -72,9 +82,11 @@ function broadcastBrainData(type, payload) {
   });
 }
 
-// HTF (4H) trend
+// ---------------------------
+// HTF trend and LTF CHoCH
+// ---------------------------
 async function fetchHTFDirection(pair) {
-  const candles = candlesStore[pair]?.[14400]; // 4h candles
+  const candles = candlesStore[pair]?.[14400]; // 4h
   if (!candles || candles.length < 2) return null;
 
   const lastClose = parseFloat(candles[candles.length - 1].close);
@@ -82,29 +94,44 @@ async function fetchHTFDirection(pair) {
 
   return lastClose > prevClose ? "BULL" : "BEAR";
 }
-
-// LTF (15m) CHoCH
 async function fetchLTFChoch(pair) {
-  const candles = candlesStore[pair]?.[900]; // 15m candles
-  if (!candles || candles.length < 3) return { valid: false };
+  const candles = candlesStore[pair]?.[900]; // 15m
+  if (!candles || candles.length < 2) return { side: null, valid: false };
 
   const highs = candles.map(c => parseFloat(c.high));
   const lows = candles.map(c => parseFloat(c.low));
-  const prevHigh = Math.max(...highs.slice(0, highs.length - 2));
-  const prevLow = Math.min(...lows.slice(0, lows.length - 2));
+
+  // Compare only with previous candle
+  const prevHigh = highs[candles.length - 2];
+  const prevLow = lows[candles.length - 2];
   const lastClose = parseFloat(candles[candles.length - 1].close);
 
+  // Normal breakout
   if (lastClose > prevHigh) return { side: "BUY", valid: true };
   if (lastClose < prevLow) return { side: "SELL", valid: true };
+
+  // Fallback: use HTF trend if no breakout
+  const htf = await fetchHTFDirection(pair);
+  if (htf === "BULL") return { side: "BUY", valid: false };
+  if (htf === "BEAR") return { side: "SELL", valid: false };
+
+  // Only null if HTF is unavailable
   return { side: null, valid: false };
 }
 
+
+
+// ---------------------------
 // Determine top pair
+// ---------------------------
 function determineTopPair(marketStrength) {
+  if (!marketStrength.length) return null;
   return marketStrength.reduce((top, p) => (p.strength > (top?.strength || 0) ? p : top), null)?.pair;
 }
 
+// ---------------------------
 // Main brain update
+// ---------------------------
 async function updateBrainData() {
   const marketStrength = [];
   const chochData = {};
@@ -115,8 +142,8 @@ async function updateBrainData() {
       if (!htf) continue;
 
       const ltf = await fetchLTFChoch(pair);
-      if (!ltf.valid) continue;
 
+      // Compute strength
       let strength = 50;
       if (htf === "BULL" && ltf.side === "BUY") strength = 80;
       else if (htf === "BEAR" && ltf.side === "SELL") strength = 80;
@@ -132,6 +159,9 @@ async function updateBrainData() {
       });
 
       chochData[pair] = ltf;
+
+      if (ltf.valid) await chochService.storeLTF(pair, ltf.side, ltf.valid);
+
     } catch (err) {
       console.error(`Failed to process ${pair}:`, err.message);
     }
@@ -146,8 +176,16 @@ async function updateBrainData() {
   return { marketStrength, chochData, topPair };
 }
 
+// ---------------------------
 // Start continuous brain loop
+// ---------------------------
 async function startBrainLoop(intervalMs = 5000) {
+  try {
+    await updateBrainData();
+  } catch (err) {
+    console.error("Brain initial update error:", err);
+  }
+
   setInterval(async () => {
     try {
       await updateBrainData();
@@ -156,5 +194,11 @@ async function startBrainLoop(intervalMs = 5000) {
     }
   }, intervalMs);
 }
+
+// ---------------------------
+// Start everything
+// ---------------------------
+connectDerivWS();   // Connect WS first
+startBrainLoop(5000); // Start brain loop
 
 module.exports = { setWebSocketServer, updateBrainData, startBrainLoop };
