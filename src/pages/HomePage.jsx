@@ -19,23 +19,27 @@ const HomePage = () => {
     setLoading(true);
     setError(null);
 
-    APIControl.fetchUserInfo()
-      .then((res) => {
-        if (isMounted) {
-          if (res.success) {
-            setData(res.data); // ✅ only set the actual user data
-          } else {
-            setError(res.error || "Failed to load data");
-          }
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setError(err?.message || "Failed to load data");
-          setLoading(false);
-        }
-      });
+    Promise.all([
+  APIControl.fetchUserInfo(),
+  fetch("/api/news/today").then(res => res.json())
+])
+  .then(([userRes, newsRes]) => {
+    if (!isMounted) return;
+
+    if (userRes.success) {
+      const userData = { ...userRes.data, marketNews: newsRes || [] };
+      setData(userData);
+    } else {
+      setError(userRes.error || "Failed to load data");
+    }
+    setLoading(false);
+  })
+  .catch(err => {
+    if (isMounted) {
+      setError(err?.message || "Failed to load data");
+      setLoading(false);
+    }
+  }); 
 
     return () => {
       isMounted = false;
@@ -120,12 +124,7 @@ const HomePage = () => {
               <td style={styles.newsTableThTd}>{news.time}</td>
               <td style={styles.newsTableThTd}>{news.currency}</td>
               <td style={styles.newsTableThTd}>{news.event}</td>
-              <td style={styles.newsTableThTd}>
-                {news.impact === "high" && "🟥 High"}
-                {news.impact === "medium" && "🟧 Medium"}
-                {news.impact === "low" && "🟨 Low"}
-                {news.impact === "holiday" && "⬛ Holiday"}
-              </td>
+              <td style={styles.newsTableThTd}>{news.impact}</td>
               <td style={styles.newsTableThTd}>{news.actual ?? "—"}</td>
               <td style={styles.newsTableThTd}>{news.previous ?? "—"}</td>
               <td style={styles.newsTableThTd}>{news.forecast ?? "—"}</td>
