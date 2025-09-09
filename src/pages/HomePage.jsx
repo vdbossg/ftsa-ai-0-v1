@@ -21,7 +21,8 @@ const HomePage = () => {
 
     Promise.all([
   APIControl.fetchUserInfo(),
-  fetch("/api/news/today").then(res => res.json())
+  fetch("http://localhost:5000/api/news/today")
+.then(res => res.json())
 ])
   .then(([userRes, newsRes]) => {
     if (!isMounted) return;
