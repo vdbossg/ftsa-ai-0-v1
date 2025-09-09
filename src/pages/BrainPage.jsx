@@ -6,6 +6,7 @@ import APIControl from "../brain/APIControl"; // for fetching brain data, market
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
 
+  const [topPair, setTopPair] = useState(null);
   const [marketStrength, setMarketStrength] = useState([]);
   const [chochData, setChochData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -16,20 +17,14 @@ export default function BrainPage() {
   dailyTP: 2,   // daily take profit %
   dailySL: 1,   // daily stop loss %
 });
-
-// List of all major and minor currency pairs
-const allPairs = [
-  "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "NZDUSD", "USDCAD",
-  "EURGBP", "EURJPY", "EURCHF", "EURAUD", "EURNZD",
-  "GBPJPY", "GBPCHF", "GBPAUD", "GBPNZD",
-  "AUDJPY", "AUDNZD", "AUDCHF",
-  "CADJPY", "CADCHF",
-  "CHFJPY", "NZDJPY", "NZDCHF"
-];
-
-
-
-  const loadBrainData = async () => {
+const saveSettings = async (newSettings) => {
+  try {
+    await APIControl.saveSettings(newSettings); // backend endpoint
+  } catch (err) {
+    console.error("Failed to save settings", err);
+  }
+};
+ const loadBrainData = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -46,6 +41,7 @@ const strengthJson = strengthResp.data;
         }))
       );
 
+      
       // Fetch CHoCH direction
       const chochResp = await APIControl.fetchChochData();
 if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
@@ -60,33 +56,79 @@ const chochJson = chochResp.data;
       setLoading(false);
     }
   };
+useEffect(() => {
+  let ws;
 
- useEffect(() => {
+  const initializeWebSocket = () => {
+    ws = new WebSocket("ws://localhost:5000/brain"); // <-- replace with your actual WS URL
+
+    ws.onopen = () => console.log("Brain WebSocket connected");
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "MARKET_STRENGTH") setMarketStrength(data.payload);
+      if (data.type === "CHOCH_DATA") setChochData(data.payload);
+      if (data.type === "TOP_PAIR") setTopPair(data.payload);
+    };
+
+    ws.onclose = () => console.log("Brain WebSocket disconnected");
+    ws.onerror = (err) => console.error("WebSocket error", err);
+  };
+
+  initializeWebSocket();
+
+  return () => {
+    if (ws) ws.close();
+  };
+}, []);
+useEffect(() => {
   const initialize = async () => {
-    // 1️⃣ Load saved settings from backend
     try {
+      // Load saved settings
       const resp = await APIControl.fetchSettingsData();
       if (resp.success && resp.data?.tradingSettings) {
         const s = resp.data.tradingSettings;
         setSettings({
           pairs: s.pairs || [],
           risk: s.risk || 1,
-          dailyTP: s.dailyTarget || 2,      // map backend field to frontend
-          dailySL: s.dailyStopLoss || 1,    // map backend field to frontend
+          dailyTP: s.dailyTarget || 2,
+          dailySL: s.dailyStopLoss || 1,
         });
       }
-    } catch (err) {
-      console.error("Failed to load saved settings", err);
-    }
 
-    // 2️⃣ Load brain data
-    loadBrainData();
-    const interval = setInterval(loadBrainData, 15000);
-    return () => clearInterval(interval);
+      // Load initial brain data once
+      await loadBrainData();
+    } catch (err) {
+      console.error("Failed to initialize settings or brain data", err);
+    }
   };
 
   initialize();
 }, []);
+
+
+// List of all major and minor currency pairs
+const allPairs = [
+  "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "NZDUSD", "USDCAD",
+  "EURGBP", "EURJPY", "EURCHF", "EURAUD", "EURNZD",
+  "GBPJPY", "GBPCHF", "GBPAUD", "GBPNZD",
+  "AUDJPY", "AUDNZD", "AUDCHF",
+  "CADJPY", "CADCHF",
+  "CHFJPY", "NZDJPY", "NZDCHF"
+];
+
+
+useEffect(() => {
+  if (autoTradeStatus && topPair) {
+    // send topPair + current settings to backend for trade execution
+    APIControl.executeTrade({
+      pair: topPair,
+      risk: settings.risk,
+      dailyTP: settings.dailyTP,
+      dailySL: settings.dailySL,
+    }).catch((err) => console.error("Trade execution failed", err));
+  }
+}, [autoTradeStatus, topPair, settings]);
 
 
   return (
@@ -126,13 +168,21 @@ const chochJson = chochResp.data;
           <tbody>
             {marketStrength?.length > 0 ? (
               marketStrength.map((row, idx) => (
-                <tr key={idx}>
-                  <td>{row.pair}</td>
-                  <td>{row.strength}</td>
-                  <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
-                    {row.trend}
-                  </td>
-                </tr>
+           
+              <tr
+  key={idx}
+  style={{
+    backgroundColor: row.pair === topPair ? "#002255" : "transparent", // highlight top pair
+    fontWeight: row.pair === topPair ? "bold" : "normal",
+  }}
+>
+  <td>{row.pair}</td>
+  <td>{row.strength}</td>
+  <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+    {row.trend}
+  </td>
+</tr>
+
               ))
             ) : (
               <tr>
@@ -165,11 +215,18 @@ const chochJson = chochResp.data;
           <tbody>
             {Object.keys(chochData).length > 0 ? (
               Object.entries(chochData).map(([symbol, data], idx) => (
-                <tr key={idx}>
-                  <td>{symbol}</td>
-                  <td>{data.side || "-"}</td>
-                  <td>{data.valid ? "✅" : "❌"}</td>
-                </tr>
+                <tr
+  key={idx}
+  style={{
+    backgroundColor: symbol === topPair ? "#002255" : "transparent",
+    fontWeight: symbol === topPair ? "bold" : "normal",
+  }}
+>
+  <td>{symbol}</td>
+  <td>{data.side || "-"}</td>
+  <td>{data.valid ? "✅" : "❌"}</td>
+</tr>
+
               ))
             ) : (
               <tr>
@@ -204,55 +261,79 @@ const chochJson = chochResp.data;
           const newPairs = e.target.checked
             ? [...settings.pairs, e.target.value]
             : settings.pairs.filter((p) => p !== e.target.value);
-          setSettings({ ...settings, pairs: newPairs });
+          setSettings(prev => {
+  const updated = { ...prev, pairs: newPairs };
+  saveSettings(updated);
+  return updated;
+});
         }}
       />
       {pair}
     </label>
   ))}
 </div>
+{/* Risk % */}
+<div style={{ marginBottom: "1rem" }}>
+  <p>Risk %:</p>
+  <select
+    value={settings.risk}
+    onChange={(e) => {
+  const newRisk = parseFloat(e.target.value);
+  setSettings(prev => {
+    const updated = { ...prev, risk: newRisk };
+    saveSettings(updated);
+    return updated;
+  });
+}}
 
+  >
+    <option value={0.5}>0.5%</option>
+    <option value={1}>1%</option>
+    <option value={1.5}>1.5%</option>
+    <option value={2}>2%</option>
+  </select>
+</div>
 
-  {/* Risk % */}
-  <div style={{ marginBottom: "1rem" }}>
-    <p>Risk %:</p>
-    <select
-      value={settings.risk}
-      onChange={(e) => setSettings({ ...settings, risk: parseFloat(e.target.value) })}
-    >
-      <option value={0.5}>0.5%</option>
-      <option value={1}>1%</option>
-      <option value={1.5}>1.5%</option>
-      <option value={2}>2%</option>
-    </select>
-  </div>
+{/* Daily TP % */}
+<div style={{ marginBottom: "1rem" }}>
+  <p>Daily Take Profit %:</p>
+  <select
+    value={settings.dailyTP}
+    onChange={(e) => {
+  const newTP = parseFloat(e.target.value);
+  setSettings(prev => {
+    const updated = { ...prev, dailyTP: newTP };
+    saveSettings(updated);
+    return updated;
+  });
+}}
+  >
+    <option value={2}>2%</option>
+    <option value={3}>3%</option>
+    <option value={4}>4%</option>
+    <option value={5}>5%</option>
+  </select>
+</div>
 
-  {/* Daily TP % */}
-  <div style={{ marginBottom: "1rem" }}>
-    <p>Daily Take Profit %:</p>
-    <select
-      value={settings.dailyTP}
-      onChange={(e) => setSettings({ ...settings, dailyTP: parseFloat(e.target.value) })}
-    >
-      <option value={2}>2%</option>
-      <option value={3}>3%</option>
-      <option value={4}>4%</option>
-      <option value={5}>5%</option>
-    </select>
-  </div>
-
-  {/* Daily SL % */}
-  <div style={{ marginBottom: "1rem" }}>
-    <p>Daily Stop Loss %:</p>
-    <select
-      value={settings.dailySL}
-      onChange={(e) => setSettings({ ...settings, dailySL: parseFloat(e.target.value) })}
-    >
-      <option value={0.5}>0.5%</option>
-      <option value={1}>1%</option>
-      <option value={2}>2%</option>
-    </select>
-  </div>
+{/* Daily SL % */}
+<div style={{ marginBottom: "1rem" }}>
+  <p>Daily Stop Loss %:</p>
+  <select
+    value={settings.dailySL}
+    onChange={(e) => {
+  const newSL = parseFloat(e.target.value);
+  setSettings(prev => {
+    const updated = { ...prev, dailySL: newSL };
+    saveSettings(updated);
+    return updated;
+  });
+}}
+  >
+    <option value={0.5}>0.5%</option>
+    <option value={1}>1%</option>
+    <option value={2}>2%</option>
+  </select>
+</div>
 </section>
 
       {/* Auto Trade Control */}

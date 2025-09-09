@@ -544,6 +544,25 @@ async fetchDashboardData() {
     return { success: false, error: "Failed to save settings" };
   }
 },
+async toggleAutoTrade(start) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/auto-trade`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ start }),
+    });
+
+    if (!response.ok) return { success: false, error: "Failed to toggle auto-trade" };
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: "Failed to toggle auto-trade" };
+  }
+},
 
 };
 

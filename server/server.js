@@ -14,6 +14,12 @@ const cfaRoutes = require('./routes/cfaRoutes');
 const connectDB = require('./config/db');
 const adminAffiliateRoutes = require('./routes/adminAffiliateRoutes');  // ✅ add this
 const supportRoutes = require("./routes/supportRoutes");
+const tradesRouter = require("./routes/trades");
+const newsRouter = require("./routes/news");
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const autoTradeRoutes = require('./routes/autoTradeRoutes');
+const strengthRoutes = require('./routes/strengthRoutes');
+
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
 
@@ -70,6 +76,11 @@ app.use('/api/mpesa', mpesaRoutes);  // ← add this line
 console.log('✅ /api/mpesa routes mounted'); 
 app.use("/api/support", supportRoutes);
 
+
+app.use('/dashboard', dashboardRoutes);           // GET /dashboard
+app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
+app.use('/api/brain/strength', strengthRoutes);   // GET /api/brain/strength
+
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/bias', require('./routes/biasRoutes'));
@@ -77,7 +88,8 @@ app.use('/api/choch', require('./routes/chochRoutes'));
 app.use('/api/equity', require('./routes/equityRoutes'));
 // FTSA AI Brain Main Routes
 app.use('/api/brain', require('./routes/brainRoutes'));
-
+app.use("/api/trades", tradesRouter);
+app.use("/api/news", newsRouter);
 app.use('/api/admin/affiliates', adminAffiliateRoutes);
 console.log('✅ /api/admin/affiliates routes mounted');
 
@@ -93,8 +105,46 @@ app.get('/', (req, res) => {
 app.get('/status', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
 });
+const http = require('http');
+const WebSocket = require('ws');
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server listening on port ${PORT}`);
+// Replace app.listen(...) with:
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server, path: '/brain' });
+// server.js (below your wss declaration)
+const broadcastBrainData = (type, payload) => {
+  // Send to all connected clients
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type, payload }));
+    }
+  });
+};
+
+wss.on('connection', (ws) => {
+  console.log('💡 Client connected to Brain WS');
+
+  // Listen for messages from frontend if needed
+  ws.on('message', async (message) => {
+    // Optional: handle incoming messages (like settings updates)
+    console.log('Received from client:', message.toString());
+  });
+
+  ws.on('close', () => {
+    console.log('💡 Client disconnected from Brain WS');
+  });
+});
+const { setWebSocketServer, updateBrainData } = require('./services/brainService');
+
+// connect WS server to brain service
+setWebSocketServer(wss);
+
+// update brain data every 5 seconds
+setInterval(() => {
+  updateBrainData().catch(err => console.error("Brain update failed:", err));
+}, 5000);
+
+// Start server (both Express + WS)
+server.listen(PORT, () => {
+  console.log(`🚀 Server listening on port ${PORT} with WS support`);
 });
