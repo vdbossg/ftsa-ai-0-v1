@@ -1,54 +1,64 @@
 // server/services/newsService.js
-const axios = require('axios');
-require('dotenv').config();
+const axios = require("axios");
 
-const NEWS_API_URL = 'https://newsapi.org/v2/top-headlines';
-const NEWS_API_KEY = process.env.NEWS_API_KEY;
+const API_KEY = process.env.TRADING_ECONOMICS_API_KEY;
+const BASE_URL = "https://api.tradingeconomics.com/calendar";
 
-const determineImpact = (title) => {
-  const highKeywords = ['Fed', 'ECB', 'NFP', 'Interest Rate', 'Inflation', 'Central Bank'];
-  const lowKeywords = ['minor', 'report', 'update'];
-  const holidayKeywords = ['holiday', 'bank holiday'];
-
-  const lowerTitle = title.toLowerCase();
-
-  if (highKeywords.some(word => lowerTitle.includes(word.toLowerCase()))) return 'High🟥';
-  if (holidayKeywords.some(word => lowerTitle.includes(word.toLowerCase()))) return 'Holiday⬛';
-  if (lowKeywords.some(word => lowerTitle.includes(word.toLowerCase()))) return 'Low🟨';
-
-  return 'Medium🟧'; // default
+// Helper function to determine the impact level
+const determineImpact = (importance) => {
+  switch (importance) {
+    case 3:
+      return "High🟥";
+    case 2:
+      return "Medium🟧";
+    case 1:
+      return "Low🟨";
+    default:
+      return "Medium🟧"; // Default to Medium if not specified
+  }
 };
 
-exports.getLatestNews = async () => {
+// Helper function to determine the currency
+const determineCurrency = (countryCode) => {
+  const currencyMap = {
+    USA: "USD",
+    EUR: "EUR",
+    GBR: "GBP",
+    // Add more country codes and their corresponding currencies as needed
+  };
+  return currencyMap[countryCode] || "-";
+};
+
+// Fetch the latest economic calendar events
+exports.getLatestEconomicEvents = async () => {
   try {
-    const { data } = await axios.get(NEWS_API_URL, {
+    const { data } = await axios.get(BASE_URL, {
       params: {
-        category: 'business',
-        language: 'en',
-        pageSize: 20,
-        apiKey: NEWS_API_KEY,
+        c: API_KEY,
+        f: "json",
+        // Add any additional parameters as needed
       },
     });
 
-    if (!data.articles || data.articles.length === 0) return [];
+    if (!data || !Array.isArray(data)) {
+      throw new Error("Invalid data format received from API");
+    }
 
-    const news = data.articles.map(article => {
-      const [date, time] = article.publishedAt.split('T');
-      return {
-        date,
-        time: time.replace('Z', ''),
-        currency: '-', // optional: parse from title if needed
-        event: article.title,
-        impact: determineImpact(article.title),
-        actual: '-',
-        previous: '-',
-        forecast: '-',
-      };
-    });
+    // Map the API response to the desired format
+    const events = data.map((event) => ({
+      date: event.date,
+      time: event.time,
+      currency: determineCurrency(event.countryCode),
+      event: event.title,
+      impact: determineImpact(event.importance),
+      actual: event.actualValue || "-",
+      previous: event.previousValue || "-",
+      forecast: event.forecastValue || "-",
+    }));
 
-    return news;
+    return events;
   } catch (error) {
-    console.error('❌ Error fetching news from API:', error.message);
+    console.error("Error fetching economic events:", error.message);
     return [];
   }
 };
