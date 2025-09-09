@@ -6,6 +6,7 @@ import { AuthContext } from '/src/contexts/AuthContext.jsx';
 import APIControl from "../brain/APIControl";
 import "../styles/DashboardPage.css";
 
+
 const DashboardPage = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,7 @@ const DashboardPage = () => {
       try {
         setLoading(true);
         const response = await APIControl.fetchDashboardData();
+        console.log("Dashboard Data:", response); // ✅ Debug line
         if (response.success) {
           setDashboardData(response.data);
           setError(null);

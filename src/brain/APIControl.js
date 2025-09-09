@@ -411,25 +411,51 @@ async refreshBinance(token) {
   /**
    * Fetch all dashboard data at once
    */
-  async fetchDashboardData() {
-    try {
-      const userInfo = await this.fetchUserInfo();
-      const trades = await this.fetchTrades();
-      const news = await this.fetchNews();
+async fetchDashboardData() {
+  try {
+    // Fetch all necessary data in parallel
+    const [
+      userInfoRes,
+      tradesRes,
+      newsRes,
+      mtAccountsRes,
+      propAccountsRes,
+      marketStrengthRes,
+      brainDashboardRes
+    ] = await Promise.all([
+      this.fetchUserInfo(),
+      this.fetchTrades(),
+      this.fetchNews(),
+      this.fetchMTAccountsData(),
+      this.fetchPropFirmAccountsData(),
+      this.fetchMarketStrength(),
+      this.fetchBrainDashboard()
+    ]);
 
-      return {
-        success: true,
-        data: {
-          userInfo: userInfo.data,
-          trades: trades.data,
-          news: news.data,
-        },
-      };
-    } catch (error) {
-      return { success: false, error: "Failed to fetch dashboard data" };
-    }
-  },
+    // Combine MT + PropFirm accounts
+    const accounts = [
+      ...(mtAccountsRes.data || []),
+      ...(propAccountsRes.data || [])
+    ];
 
+    return {
+      success: true,
+      data: {
+        userInfo: userInfoRes.data || {},
+        trades: tradesRes.data || [],
+        news: newsRes.data || [],
+        accounts,
+        tradeAlerts: brainDashboardRes.data.tradeAlerts || [],
+        reminders: brainDashboardRes.data.reminders || [],
+        marketStrength: marketStrengthRes.data || [],
+        autoTradeStatus: brainDashboardRes.data.autoTradeStatus || "Unknown"
+      }
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    return { success: false, error: "Failed to fetch dashboard data" };
+  }
+},  
   /**
    * Fetch all status page data at once
    */
