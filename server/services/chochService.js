@@ -1,44 +1,67 @@
 // server/services/chochService.js
+const mongoose = require('mongoose');
 
-// In-memory storage for now (can replace with DB later)
-const ltfChochData = {};  // { symbol: { side, valid, updatedAt } }
+// -------------------- MongoDB Schema --------------------
+const ltfChochSchema = new mongoose.Schema({
+  symbol: { type: String, required: true, unique: true },
+  side: { type: String, enum: ['BUY', 'SELL'], default: null },
+  valid: { type: Boolean, default: false },
+  magnitudePct: { type: Number, default: 0 },
+  updatedAt: { type: Date, default: Date.now }
+});
 
-// ✅ Store Lower Timeframe CHoCH data
-exports.storeLTF = async (symbol, side, valid) => {
-  ltfChochData[symbol] = {
-    side,
-    valid,
-    updatedAt: new Date().toISOString()
-  };
-  console.log(`📦 LTF CHoCH stored: ${symbol} - ${side} - valid=${valid}`);
-};
+const LTFChoch = mongoose.model('LTFChoch', ltfChochSchema);
 
-// ✅ Retrieve Lower Timeframe CHoCH data
-exports.getLTF = async (symbol) => {
-  return ltfChochData[symbol] || { side: null, valid: false };
-};
+// -------------------- Connect MongoDB --------------------
+async function connectMongo(uri) {
+  if (!uri) throw new Error("MongoDB URI required for CHoCH service");
+  await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  console.log("✅ MongoDB connected for CHoCH service");
+}
 
-// ✅ Optional: Retrieve all stored CHoCH data
-exports.getAll = async () => {
-  return ltfChochData;
-};
-// ✅ Get current CHoCH direction for all symbols
-exports.getDirection = async () => {
-  const result = {};
-  for (const symbol in ltfChochData) {
-    result[symbol] = {
-      side: ltfChochData[symbol].side,
-      valid: ltfChochData[symbol].valid,
-      updatedAt: ltfChochData[symbol].updatedAt
-    };
-  }
-  return result;
-};
+// -------------------- Store Lower Timeframe CHoCH --------------------
+async function storeLTF(symbol, side, valid, magnitudePct = 0) {
+  if (!symbol) throw new Error("Symbol required to store LTF CHoCH");
 
+  const now = new Date();
+  const update = { side, valid, magnitudePct, updatedAt: now };
+  const opts = { upsert: true, new: true, setDefaultsOnInsert: true };
 
-// ✅ Determine valid CHoCH signal for a trade
-exports.isValidTradeSignal = async (symbol, expectedSide) => {
-  const data = ltfChochData[symbol];
-  if (!data) return false;
-  return data.valid && data.side === expectedSide;
+  const doc = await LTFChoch.findOneAndUpdate({ symbol }, update, opts);
+  console.log(`📦 LTF CHoCH stored: ${symbol} - ${side} - valid=${valid} - mag=${magnitudePct}`);
+  return doc;
+}
+
+// -------------------- Retrieve Lower Timeframe CHoCH --------------------
+async function getLTF(symbol) {
+  const doc = await LTFChoch.findOne({ symbol });
+  if (!doc) return { side: null, valid: false, magnitudePct: 0 };
+  return { side: doc.side, valid: doc.valid, magnitudePct: doc.magnitudePct, updatedAt: doc.updatedAt };
+}
+
+// -------------------- Retrieve all CHoCH --------------------
+async function getAll() {
+  const docs = await LTFChoch.find({});
+  return docs.map(d => ({
+    symbol: d.symbol,
+    side: d.side,
+    valid: d.valid,
+    magnitudePct: d.magnitudePct,
+    updatedAt: d.updatedAt
+  }));
+}
+
+// -------------------- Check valid trade signal --------------------
+async function isValidTradeSignal(symbol, expectedSide) {
+  const ltf = await getLTF(symbol);
+  return ltf.valid && ltf.side === expectedSide;
+}
+
+// -------------------- Exports --------------------
+module.exports = {
+  connectMongo,
+  storeLTF,
+  getLTF,
+  getAll,
+  isValidTradeSignal
 };

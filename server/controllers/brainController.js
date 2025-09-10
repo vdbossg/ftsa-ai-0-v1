@@ -1,5 +1,5 @@
 // server/controllers/brainController.js
-const strengthService = require("../services/strengthService");
+const brainService = require("../services/brainService");
 const commandService = require("../services/commandService");
 const newsService = require("../services/newsService");
 const chochService = require("../services/chochService");
@@ -10,11 +10,11 @@ let tvSignals = [];
 // 📊 Get currency strength ranking
 exports.getStrength = async (req, res) => {
   try {
-    const data = await strengthService.getRankedPairs();
-    res.json(data);
+    const data = await brainService.getRankedPairs();
+    res.json({ success: true, data });
   } catch (err) {
     console.error("❌ Error fetching strength:", err);
-    res.status(500).json({ error: "Failed to fetch strength data" });
+    res.status(500).json({ success: false, error: "Failed to fetch strength data" });
   }
 };
 
@@ -34,7 +34,7 @@ exports.receiveTradingViewSignal = async (req, res) => {
 
   // 2️⃣ Update pair strength if valid
   if (symbol && typeof percent === "number") {
-    await strengthService.updatePairStrength(symbol, percent);
+    await brainService.updatePairStrength(symbol, percent);
   }
 
   // 3️⃣ Update LTF CHoCH if timeframe is low (example: 15m)
@@ -95,7 +95,7 @@ exports.getLatestNews = async (req, res) => {
 // 🔀 Get CHoCH direction for all symbols
 exports.getChochDirection = async (req, res) => {
   try {
-    const symbols = await strengthService.getAllSymbols();
+    const symbols = await brainService.getAllSymbols();
     const chochData = {};
 
     for (let symbol of symbols) {
@@ -109,14 +109,14 @@ exports.getChochDirection = async (req, res) => {
   }
 };
 
-// 📈 Get current strongest pair
+// 📈 Get current strongest pair (≥ threshold)
 exports.getStrongestPair = async (req, res) => {
   try {
-    const pair = await strengthService.getStrongestPair();
-    res.json(pair);
+    const pair = await brainService.getStrongestPair();
+    res.json({ success: true, data: pair });
   } catch (err) {
     console.error("❌ Error fetching strongest pair:", err);
-    res.status(500).json({ error: "Failed to fetch strongest pair" });
+    res.status(500).json({ success: false, error: "Failed to fetch strongest pair" });
   }
 };
 
@@ -124,7 +124,7 @@ exports.getStrongestPair = async (req, res) => {
 exports.getDashboardData = async (req, res) => {
   try {
     const news = await newsService.fetchLatest();
-    const symbols = await strengthService.getAllSymbols();
+    const symbols = await brainService.getAllSymbols();
     const chochData = {};
 
     for (let symbol of symbols) {

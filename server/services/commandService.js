@@ -1,4 +1,4 @@
-const strengthService = require("./strengthService");
+const { getRankedPairs, getStrongestPair } = require("./brainService");
 const chochService = require("./chochService");
 
 // In-memory store for commands per account (can move to DB later)

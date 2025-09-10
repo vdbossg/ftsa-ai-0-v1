@@ -1,26 +1,33 @@
-const express = require('express');
+// server/routes/strengthRoutes.js
+const express = require("express");
 const router = express.Router();
-const strengthService = require('../services/strengthService');
+const { updateBrainData } = require("../services/brainService");
 
-// Get all ranked Forex pair strengths
-router.get('/', async (req, res) => {
+// GET /api/brain/strength
+router.get("/", async (req, res) => {
   try {
-    const rankedPairs = await strengthService.getRankedPairs();
-    res.json({ success: true, data: rankedPairs });
-  } catch (err) {
-    console.error("Error fetching market strength:", err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch market strength" });
-  }
-});
+    const brainData = await updateBrainData();
 
-// Get the strongest pair
-router.get('/strongest', async (req, res) => {
-  try {
-    const strongest = await strengthService.getStrongestPair();
-    res.json({ success: true, data: strongest });
+    console.log("📊 BrainData (marketStrength):", brainData?.marketStrength?.length, "pairs");
+
+    if (brainData && brainData.marketStrength && brainData.marketStrength.length > 0) {
+      return res.json({
+        success: true,
+        data: brainData.marketStrength,
+      });
+    } else {
+      console.warn("⚠️ Market strength unavailable or empty");
+      return res.status(500).json({
+        success: false,
+        error: "Market strength unavailable",
+      });
+    }
   } catch (err) {
-    console.error("Error fetching strongest pair:", err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch strongest pair" });
+    console.error("❌ Error fetching market strength:", err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
   }
 });
 

@@ -15,10 +15,15 @@ const connectDB = require('./config/db');
 const adminAffiliateRoutes = require('./routes/adminAffiliateRoutes');  // ✅ add this
 const supportRoutes = require("./routes/supportRoutes");
 const tradesRouter = require("./routes/trades");
-const strengthService = require('./services/strengthService');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const autoTradeRoutes = require('./routes/autoTradeRoutes');
 const strengthRoutes = require('./routes/strengthRoutes');
+const { startPairWatcher, setWebSocketServer: pairWatcherWS } = require("./services/pairWatcherService");
+const { setWebSocketServer: brainWS, updateBrainData } = require('./services/brainService');
+
+const chochService = require('./services/chochService');
+
+
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -37,6 +42,7 @@ const allowedOrigins = [
 ];
 
 
+chochService.connectMongo(process.env.MONGO_URI);
 
 // ✅ Enable CORS
 app.use(cors({
@@ -134,11 +140,17 @@ wss.on('connection', (ws) => {
     console.log('💡 Client disconnected from Brain WS');
   });
 });
-const { setWebSocketServer, updateBrainData } = require('./services/brainService');
 
-// connect WS server to brain service
-setWebSocketServer(wss);
 
+const { setWebSocketServer: strongestPairWS, startWatcher } = require('./services/strongestPairWatcher');
+
+
+strongestPairWS(wss); // connect WS server
+startWatcher(5000);    // check every 5 seconds
+
+// Connect WS to brainService and pairWatcherService
+brainWS(wss);
+pairWatcherWS(wss);
 // update brain data every 5 seconds
 setInterval(() => {
   updateBrainData().catch(err => console.error("Brain update failed:", err));
@@ -146,7 +158,7 @@ setInterval(() => {
 // Push live market strength every 5s
 setInterval(async () => {
   try {
-    await strengthService.pushLiveStrength();  // uses brainService.broadcastBrainData internally
+    await updateBrainData();  // uses brainService.broadcastBrainData internally
   } catch (err) {
     console.error('Error pushing live strength:', err.message);
   }

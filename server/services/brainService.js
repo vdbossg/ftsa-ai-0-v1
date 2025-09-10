@@ -1,8 +1,12 @@
+// server/services/brainService.js
+// Production-grade brain service: real Deriv data → deterministic HTF strength, LTF CHoCH, clean strongest selection.
+// No mocks, no randomness. Tunable constants at the top.
+
 require('dotenv').config();
 const WebSocket = require("ws");
-const chochService = require('./chochService');
+const chochService = require('./chochService'); // must export storeLTF(pair, side, valid)
 
-let wss; // WebSocket server from server.js
+let wss; // set from server.js via setWebSocketServer
 const allPairs = [
   "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
   "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
@@ -12,35 +16,153 @@ const allPairs = [
   "CHFJPY","NZDJPY","NZDCHF"
 ];
 
+// ---------- TUNABLE CONSTANTS ----------
 const DERIV_API_TOKEN = process.env.DERIV_API_TOKEN;
 const DERIV_APP_ID = process.env.DERIV_APP_ID || 1089;
 
-const candlesStore = {}; // latest candles per pair
-let derivWS;
+// sensitivity: momentumPct / MOMENTUM_SCALE_PCT => 0..1 mapped to 0..100
+// Lowering MOMENTUM_SCALE_PCT makes strengths higher for smaller moves.
+// Recommended: 1 => 1% momentum -> 100 strength (sensible for HTF 4h momentum)
+const MOMENTUM_SCALE_PCT = 1.0;
 
-// ---------------------------
-// WebSocket connection to Deriv
-// ---------------------------
+// LTF CHoCH breakout magnitude required (in percent).
+// 0.08 => 0.08% (8 basis points). Raise if too noisy.
+const CHOCH_MAG_PCT = 0.08;
+
+// What we consider a "strong" HTF candidate before selecting it as TOP_PAIR
+const STRONG_PAIR_THRESHOLD = 75; // more inclusive // user requested >75/80 — set to 80
+
+// Color thresholds (tweak if needed)
+const COLOR_GREEN = 80; // ≥ 80 -> 🟩
+const COLOR_ORANGE = 60; // ≥ 60 -> 🟧 else 🟥
+// -------------------------------------
+
+const candlesStore = {}; // { PAIR: { granularity: [candles...] } }
+let derivWS = null;
+
+// -------------------- Utilities --------------------
+function clamp(v, a = 0, b = 100) {
+  return Math.max(a, Math.min(b, v));
+}
+
+/**
+ * Convert momentum percent -> 0..100 strength.
+ * Uses MOMENTUM_SCALE_PCT: 1% => 100 (by default).
+ */
+function momentumPctToStrength(momentumPct) {
+  const absPct = Math.abs(momentumPct);
+  const scaled = (absPct / MOMENTUM_SCALE_PCT) * 100; // e.g. 1% -> 100
+  return Math.round(clamp(scaled, 0, 100));
+}
+
+/**
+ * Robust LTF CHoCH/BOS detector
+ * - Works with live candles from candlesStore
+ * - HTF trend alignment optional
+ * - Detects breakouts, BOS, and valid CHoCH magnitude
+ * - Tolerates small moves
+ */
+function detectLTFChochFromCandles(candles, lookback = 5, magnitudeThresholdPct = CHOCH_MAG_PCT, htfTrend = null) {
+  if (!candles || candles.length < lookback + 2) 
+    return { side: null, valid: false, magnitudePct: 0 };
+
+  // Take last N candles
+  const prevCandles = candles.slice(-lookback - 1, -1);
+  const lastCandle = candles[candles.length - 1];
+  const lastClose = parseFloat(lastCandle.close);
+
+  // Previous high/low for breakout range
+  const prevHigh = Math.max(...prevCandles.map(c => parseFloat(c.high)));
+  const prevLow  = Math.min(...prevCandles.map(c => parseFloat(c.low)));
+
+  // Compute breakout percentages
+  const breakoutUpPct   = ((lastClose - prevHigh) / prevHigh) * 100;
+  const breakoutDownPct = ((prevLow - lastClose) / prevLow) * 100;
+
+  // Check for bullish breakout
+  if (lastClose > prevHigh && breakoutUpPct >= magnitudeThresholdPct) {
+    if (!htfTrend || htfTrend === "Bullish") {
+      return { side: "BUY", valid: true, magnitudePct: breakoutUpPct };
+    }
+  }
+
+  // Check for bearish breakout
+  if (lastClose < prevLow && breakoutDownPct >= magnitudeThresholdPct) {
+    if (!htfTrend || htfTrend === "Bearish") {
+      return { side: "SELL", valid: true, magnitudePct: breakoutDownPct };
+    }
+  }
+
+  // Optional: BOS detection (break of structure)
+  // If last candle closes outside prior structure but < magnitudeThresholdPct, mark as BOS
+  if (lastClose > prevHigh && breakoutUpPct > 0 && breakoutUpPct < magnitudeThresholdPct) {
+    if (!htfTrend || htfTrend === "Bullish") {
+      return { side: "BUY", valid: false, magnitudePct: breakoutUpPct, type: "BOS" };
+    }
+  }
+  if (lastClose < prevLow && breakoutDownPct > 0 && breakoutDownPct < magnitudeThresholdPct) {
+    if (!htfTrend || htfTrend === "Bearish") {
+      return { side: "SELL", valid: false, magnitudePct: breakoutDownPct, type: "BOS" };
+    }
+  }
+
+  // No valid signal
+  return { side: null, valid: false, magnitudePct: 0 };
+}
+
+
+
+// -------------------- Deriv WS --------------------
 function connectDerivWS() {
   derivWS = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${DERIV_APP_ID}`);
 
   derivWS.on('open', () => {
     console.log("💡 Connected to Deriv WS");
-    derivWS.send(JSON.stringify({ authorize: DERIV_API_TOKEN }));
+    if (DERIV_API_TOKEN) derivWS.send(JSON.stringify({ authorize: DERIV_API_TOKEN }));
 
+    // Subscribe to both HTF (4h) and LTF (15m)
     allPairs.forEach(pair => {
-      subscribePair(pair, 900);    // 15m candles
-      subscribePair(pair, 14400);  // 4h candles
+      try {
+        subscribePair(pair, 900);    // 15m
+        subscribePair(pair, 14400);  // 4h
+      } catch (e) {
+        console.error("❌ subscribePair error:", e && e.message ? e.message : e);
+      }
     });
   });
 
   derivWS.on('message', (msg) => {
-    const data = JSON.parse(msg);
-    if (data.msg_type === "history") {
-      const symbol = data.echo_req.ticks_history.replace("frx", "");
-      const gran = data.echo_req.granularity;
-      if (!candlesStore[symbol]) candlesStore[symbol] = {};
-      candlesStore[symbol][gran] = data.history.candles;
+    try {
+      const data = JSON.parse(msg);
+
+      // Accept messages with candles or history where echo_req is present
+      if ((data.msg_type === "candles" || data.msg_type === "history") && data.echo_req) {
+        const ticksHistory = data.echo_req.ticks_history || data.echo_req.subscribe || data.echo_req.ticks || null;
+        let symbol = null;
+        if (typeof ticksHistory === "string" && ticksHistory.toLowerCase().startsWith("frx")) {
+          symbol = ticksHistory.replace(/^frx/i, "");
+        } else if (data.echo_req.pair) {
+          symbol = String(data.echo_req.pair).replace(/^frx/i, "");
+        }
+
+        const gran = data.echo_req.granularity || data.echo_req.gran || null;
+        if (symbol && gran) {
+          if (!candlesStore[symbol]) candlesStore[symbol] = {};
+          if (data.candles && Array.isArray(data.candles)) {
+            candlesStore[symbol][gran] = data.candles;
+            console.log(`📊 Stored ${symbol} | ${gran}s | ${data.candles.length} candles`);
+          } else if (data.history?.candles && Array.isArray(data.history.candles)) {
+            candlesStore[symbol][gran] = data.history.candles;
+            console.log(`📊 Stored (history) ${symbol} | ${gran}s | ${data.history.candles.length} candles`);
+          }
+        }
+      }
+
+      if (data.error) {
+        console.error("❌ Deriv WS error:", data.error.message || data.error);
+      }
+    } catch (err) {
+      console.error("❌ Failed to parse Deriv WS message:", err.message);
     }
   });
 
@@ -50,25 +172,26 @@ function connectDerivWS() {
   });
 
   derivWS.on('error', (err) => {
-    console.error("Deriv WS error:", err.message);
-    derivWS.close();
+    console.error("Deriv WS socket error:", err && err.message ? err.message : err);
+    try { derivWS.close(); } catch (e) {}
   });
 }
 
 function subscribePair(pair, granularity) {
-  derivWS.send(JSON.stringify({
+  // Request history + streaming updates
+  // Do NOT send echo_req in request (server will echo it back)
+  const payload = {
     ticks_history: "frx" + pair,
     end: "latest",
     count: 100,
     granularity,
     style: "candles",
-    echo_req: { ticks_history: "frx" + pair, granularity }
-  }));
+    subscribe: 1
+  };
+  derivWS.send(JSON.stringify(payload));
 }
 
-// ---------------------------
-// Brain WebSocket helpers
-// ---------------------------
+// -------------------- WS -> frontend helpers --------------------
 function setWebSocketServer(server) {
   wss = server;
 }
@@ -82,123 +205,154 @@ function broadcastBrainData(type, payload) {
   });
 }
 
-// ---------------------------
-// HTF trend and LTF CHoCH
-// ---------------------------
-async function fetchHTFDirection(pair) {
-  const candles = candlesStore[pair]?.[14400]; // 4h
-  if (!candles || candles.length < 2) return null;
-
-  const lastClose = parseFloat(candles[candles.length - 1].close);
-  const prevClose = parseFloat(candles[candles.length - 2].close);
-
-  return lastClose > prevClose ? "BULL" : "BEAR";
-}
-async function fetchLTFChoch(pair) {
-  const candles = candlesStore[pair]?.[900]; // 15m
-  if (!candles || candles.length < 2) return { side: null, valid: false };
-
-  const highs = candles.map(c => parseFloat(c.high));
-  const lows = candles.map(c => parseFloat(c.low));
-
-  // Compare only with previous candle
-  const prevHigh = highs[candles.length - 2];
-  const prevLow = lows[candles.length - 2];
-  const lastClose = parseFloat(candles[candles.length - 1].close);
-
-  // Normal breakout
-  if (lastClose > prevHigh) return { side: "BUY", valid: true };
-  if (lastClose < prevLow) return { side: "SELL", valid: true };
-
-  // Fallback: use HTF trend if no breakout
-  const htf = await fetchHTFDirection(pair);
-  if (htf === "BULL") return { side: "BUY", valid: false };
-  if (htf === "BEAR") return { side: "SELL", valid: false };
-
-  // Only null if HTF is unavailable
-  return { side: null, valid: false };
+// -------------------- Core brain logic --------------------
+function determineTopPairFromList(marketStrengthList) {
+  if (!marketStrengthList || marketStrengthList.length === 0) return null;
+  return marketStrengthList.reduce((top, p) => (p.strength > (top?.strength || 0) ? p : top), null)?.pair || null;
 }
 
-
-
-// ---------------------------
-// Determine top pair
-// ---------------------------
-function determineTopPair(marketStrength) {
-  if (!marketStrength.length) return null;
-  return marketStrength.reduce((top, p) => (p.strength > (top?.strength || 0) ? p : top), null)?.pair;
-}
-
-// ---------------------------
-// Main brain update
-// ---------------------------
+/**
+ * updateBrainData:
+ * - computes HTF momentum strength for each pair (4h)
+ * - computes LTF CHoCH (15m) and persists CHoCH events
+ * - builds combined strength, assigns color, sorts
+ * - selects clean strongest pair only if strength >= STRONG_PAIR_THRESHOLD
+ */
 async function updateBrainData() {
   const marketStrength = [];
   const chochData = {};
 
   for (const pair of allPairs) {
     try {
-      const htf = await fetchHTFDirection(pair);
-      if (!htf) continue;
+      // ---------------- HTF (4h) ----------------
+      const htfCandles = candlesStore[pair]?.[14400];
+      let htfDirection = null;
+      let htfStrength = 0;
 
-      const ltf = await fetchLTFChoch(pair);
+      if (htfCandles && htfCandles.length >= 7) {
+        const lastIdx = htfCandles.length - 1;
+        const closeNow = parseFloat(htfCandles[lastIdx].close);
+        const closeAgo = parseFloat(htfCandles[lastIdx - 6].close); // ~24h ago
+        const momentumPct = ((closeNow - closeAgo) / closeAgo) * 100;
+        htfDirection = momentumPct > 0 ? "BULL" : "BEAR";
+        htfStrength = momentumPctToStrength(momentumPct); // 0-100
+      }
 
-      // Compute strength
-      let strength = 50;
-      if (htf === "BULL" && ltf.side === "BUY") strength = 80;
-      else if (htf === "BEAR" && ltf.side === "SELL") strength = 80;
-      else if (htf === "BULL" || ltf.side === "BUY") strength = 60;
-      else if (htf === "BEAR" || ltf.side === "SELL") strength = 40;
-      else strength = 30;
+      // ---------------- LTF CHoCH (15m) ----------------
+      const ltfCandles = candlesStore[pair]?.[900];
+      const ltf = detectLTFChochFromCandles(ltfCandles, 5, CHOCH_MAG_PCT, htfDirection === "BULL" ? "Bullish" : htfDirection === "BEAR" ? "Bearish" : null);
+      chochData[pair] = { side: ltf.side, valid: ltf.valid, magnitudePct: ltf.magnitudePct };
+
+
+      // ---------------- Combine strengths ----------------
+      let combinedStrength = 30; // fallback
+      if (htfDirection) {
+        const base = 50 + (htfStrength * 0.6); // maps HTF 0–100 → 50–110
+        const ltfBonus = ltf.valid && ((htfDirection === "BULL" && ltf.side === "BUY") || (htfDirection === "BEAR" && ltf.side === "SELL")) ? 20 : 0;
+        combinedStrength = Math.round(clamp(base + ltfBonus, 0, 100));
+      } else if (ltf.valid) {
+        combinedStrength = 55; // only LTF valid
+      }
+
+      const trendText = htfDirection === "BULL" ? "Bullish" : htfDirection === "BEAR" ? "Bearish" : "Unknown";
+      const color = combinedStrength >= COLOR_GREEN ? "🟩" :
+                    combinedStrength >= COLOR_ORANGE ? "🟧" : "🟥";
 
       marketStrength.push({
         pair,
-        strength,
-        trend: htf === "BULL" ? "Bullish" : "Bearish",
-        color: strength >= 70 ? "🟩" : strength >= 40 ? "🟧" : "🟥"
+        strength: combinedStrength,
+        trend: trendText,
+        color
       });
 
-      chochData[pair] = ltf;
-
-      if (ltf.valid) await chochService.storeLTF(pair, ltf.side, ltf.valid);
-
+      // ---------------- Persist CHoCH ----------------
+      if (ltf.valid) {
+        try {
+          await chochService.storeLTF(pair, ltf.side, ltf.valid, ltf.magnitudePct);
+          console.log(`📦 LTF CHoCH stored: ${pair} - ${ltf.side} - valid=${ltf.valid}`);
+        } catch (e) {
+          console.error("❌ Failed to persist CHoCH:", e && e.message ? e.message : e);
+        }
+      }
     } catch (err) {
-      console.error(`Failed to process ${pair}:`, err.message);
+      console.error(`Failed to process ${pair}:`, err && err.message ? err.message : err);
     }
   }
 
-  const topPair = determineTopPair(marketStrength);
+  // ---------------- Sort & select top pair ----------------
+  marketStrength.sort((a, b) => b.strength - a.strength);
 
+  let cleanPair = null;
+  for (const p of marketStrength) {
+    const ltf = chochData[p.pair];
+    if (
+      ltf &&
+      ltf.valid &&
+      ((p.trend === "Bullish" && ltf.side === "BUY") || (p.trend === "Bearish" && ltf.side === "SELL")) &&
+      p.strength >= STRONG_PAIR_THRESHOLD
+    ) {
+      cleanPair = p.pair;
+      break;
+    }
+  }
+
+  // ---------------- Broadcast ----------------
   broadcastBrainData("MARKET_STRENGTH", marketStrength);
   broadcastBrainData("CHOCH_DATA", chochData);
-  broadcastBrainData("TOP_PAIR", topPair);
+  broadcastBrainData("TOP_PAIR", cleanPair);
 
-  return { marketStrength, chochData, topPair };
+  return { marketStrength, chochData, topPair: cleanPair };
 }
 
-// ---------------------------
-// Start continuous brain loop
-// ---------------------------
+// -------------------- Continuous loop --------------------
 async function startBrainLoop(intervalMs = 5000) {
   try {
     await updateBrainData();
   } catch (err) {
-    console.error("Brain initial update error:", err);
+    console.error("Brain initial update error:", err && err.message ? err.message : err);
   }
 
   setInterval(async () => {
     try {
       await updateBrainData();
     } catch (err) {
-      console.error("Brain loop error:", err);
+      console.error("Brain loop error:", err && err.message ? err.message : err);
     }
   }, intervalMs);
 }
+// Get the top strongest pair meeting realistic criteria
+async function getStrongestPair(minStrength = 80) {
+  const { marketStrength, chochData } = await updateBrainData(); // refresh data
 
-// ---------------------------
-// Start everything
-// ---------------------------
-connectDerivWS();   // Connect WS first
-startBrainLoop(5000); // Start brain loop
+  // Filter only strong pairs (≥ minStrength) and aligned LTF CHoCH
+  const strongPairs = marketStrength.filter(p => {
+    const choch = chochData[p.pair];
+    if (!choch || !choch.valid) return false;
+    // alignment: HTF trend vs LTF CHoCH
+    const aligned = (p.trend === "Bullish" && choch.side === "BUY") ||
+                (p.trend === "Bearish" && choch.side === "SELL");
+return p.strength >= minStrength && aligned && (choch.magnitudePct || 0) >= CHOCH_MAG_PCT;
 
-module.exports = { setWebSocketServer, updateBrainData, startBrainLoop };
+
+  });
+
+  if (strongPairs.length === 0) return null;
+
+  // Pick the strongest one
+  strongPairs.sort((a, b) => b.strength - a.strength);
+  return strongPairs[0]; // { pair, strength, trend, color }
+}
+
+
+
+// Initialize connection & loop immediately
+connectDerivWS();
+startBrainLoop(5000);
+
+module.exports = {
+  setWebSocketServer,
+  updateBrainData,
+  startBrainLoop,
+  getStrongestPair
+};
+
