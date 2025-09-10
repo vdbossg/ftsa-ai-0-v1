@@ -248,30 +248,6 @@ useEffect(() => {
   }}
 >
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>EA Settings</h2>
-
-  <div style={{ marginBottom: "1rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-  <p style={{ width: "100%" }}>Select Pairs:</p>
-  {allPairs.map((pair) => (
-    <label key={pair} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-      <input
-        type="checkbox"
-        value={pair}
-        checked={settings.pairs.includes(pair)}
-        onChange={(e) => {
-          const newPairs = e.target.checked
-            ? [...settings.pairs, e.target.value]
-            : settings.pairs.filter((p) => p !== e.target.value);
-          setSettings(prev => {
-  const updated = { ...prev, pairs: newPairs };
-  saveSettings(updated);
-  return updated;
-});
-        }}
-      />
-      {pair}
-    </label>
-  ))}
-</div>
 {/* Risk % */}
 <div style={{ marginBottom: "1rem" }}>
   <p>Risk %:</p>
@@ -353,40 +329,47 @@ useEffect(() => {
         </div>
         <p>Status: {autoTradeStatus || "Unknown"}</p>
       </section>
-
-      {/* Chats with FTSA AI + Voice Chat */}
-      <section
-        style={{
-          border: "1px solid #00FFFF",
-          padding: "1rem",
-          borderRadius: "12px",
-          boxShadow: "0 0 10px #00FFFF",
-        }}
-      >
-        <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Chats with FTSA AI</h2>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-          }}
-        >
-          <textarea
-            placeholder="Type your message..."
+{/* Top 3 Pairs */}
+<section
+  style={{
+    marginBottom: "2rem",
+    border: "1px solid #00FFFF",
+    padding: "1rem",
+    borderRadius: "12px",
+    boxShadow: "0 0 10px #00FFFF",
+  }}
+>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Top 3 Pairs</h2>
+  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <thead>
+      <tr>
+        <th>Selected Pair</th>
+        <th>Strength %</th>
+        <th>Trend</th>
+      </tr>
+    </thead>
+    <tbody>
+      {marketStrength
+        .sort((a, b) => b.strength - a.strength)
+        .slice(0, 3)
+        .map((row, idx) => (
+          <tr
+            key={idx}
             style={{
-              backgroundColor: "#000000",
-              color: "#00FFFF",
-              border: "1px solid #00FFFF",
-              borderRadius: "8px",
-              padding: "0.5rem",
-              fontFamily: "Orbitron",
-              boxShadow: "0 0 5px #00FFFF",
+              backgroundColor: row.pair === topPair ? "#002255" : "transparent",
+              fontWeight: row.pair === topPair ? "bold" : "normal",
             }}
-          />
-          <NeonButton>Send</NeonButton>
-          <NeonButton>Voice Chat</NeonButton>
-        </div>
-      </section>
+          >
+            <td>{row.pair}</td>
+            <td>{row.strength}</td>
+            <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+              {row.trend}
+            </td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+</section>      
     </div>
   );
 }
