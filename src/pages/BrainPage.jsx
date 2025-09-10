@@ -6,6 +6,7 @@ import APIControl from "../brain/APIControl"; // for fetching brain data, market
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
 
+  const [tradeHistory, setTradeHistory] = useState([]);
   const [topPair, setTopPair] = useState(null);
   const [marketStrength, setMarketStrength] = useState([]);
   const [chochData, setChochData] = useState({});
@@ -24,38 +25,38 @@ const saveSettings = async (newSettings) => {
     console.error("Failed to save settings", err);
   }
 };
- const loadBrainData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Fetch market strength
-      const strengthResp = await APIControl.fetchMarketStrength();
-if (!strengthResp.success) throw new Error("Failed to fetch market strength");
-const strengthJson = strengthResp.data;
-      setMarketStrength(
-        strengthJson.map((p) => ({
-          pair: p.symbol,
-          strength: p.percent,
-          trend: p.percent >= 50 ? "Bullish" : "Bearish",
-          color: p.color,
-        }))
-      );
+const loadBrainData = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    // Fetch market strength
+    const strengthResp = await APIControl.fetchMarketStrength();
+    if (!strengthResp.success) throw new Error("Failed to fetch market strength");
+    const strengthJson = strengthResp.data;
 
-      
-      // Fetch CHoCH direction
-      const chochResp = await APIControl.fetchChochData();
-if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
-const chochJson = chochResp.data;
-      // Send current settings to brain API
+    setMarketStrength(
+      strengthJson.map((p) => ({
+        pair: p.symbol,
+        strength: p.percent,
+        trend: p.percent >= 50 ? "Bullish" : "Bearish",
+        color: p.color,
+      }))
+    );
 
-      setChochData(chochJson);
-    } catch (err) {
-      setError("Failed to load brain data");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Fetch CHoCH direction
+    const chochResp = await APIControl.fetchChochData();
+    if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
+    const chochJson = chochResp.data;
+
+    setChochData(chochJson);
+  } catch (err) {
+    setError("Failed to load brain data");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 useEffect(() => {
   let ws;
 
@@ -81,6 +82,15 @@ useEffect(() => {
     if (ws) ws.close();
   };
 }, []);
+// Auto-refresh brain data every 5 seconds
+useEffect(() => {
+  const interval = setInterval(() => {
+    loadBrainData();
+  }, 5000); // 5000ms = 5 seconds
+
+  return () => clearInterval(interval); // cleanup on unmount
+}, []);
+
 useEffect(() => {
   const initialize = async () => {
     try {
@@ -120,15 +130,38 @@ const allPairs = [
 
 useEffect(() => {
   if (autoTradeStatus && topPair) {
-    // send topPair + current settings to backend for trade execution
-    APIControl.executeTrade({
-      pair: topPair,
-      risk: settings.risk,
-      dailyTP: settings.dailyTP,
-      dailySL: settings.dailySL,
-    }).catch((err) => console.error("Trade execution failed", err));
+    // Check if a trade has already happened today
+    const today = new Date().toISOString().split("T")[0];
+    const alreadyTraded = tradeHistory.some(
+      (t) => t.date === today
+    );
+
+    if (!alreadyTraded) {
+      // send topPair + current settings to backend for trade execution
+      APIControl.executeTrade({
+        pair: topPair,
+        risk: settings.risk,
+        dailyTP: settings.dailyTP,
+        dailySL: settings.dailySL,
+      }).then(() => {
+        
+        // Add this trade to tradeHistory
+        const now = new Date();
+        setTradeHistory((prev) => [
+          {
+            time: now.toLocaleTimeString(),
+            date: now.toISOString().split("T")[0],
+            pair: topPair,
+            strength: marketStrength.find((p) => p.pair === topPair)?.strength || 0,
+            trend: marketStrength.find((p) => p.pair === topPair)?.trend || "-",
+            tradeActivated: true,
+          },
+          ...prev
+        ]);
+      }).catch((err) => console.error("Trade execution failed", err));
+    }
   }
-}, [autoTradeStatus, topPair, settings]);
+}, [autoTradeStatus, topPair, settings, marketStrength, tradeHistory]);
 
 
   return (
@@ -145,6 +178,52 @@ useEffect(() => {
 
       {loading && <p style={{ color: "#00FFFF" }}>Loading AI brain data...</p>}
       {error && <p style={{ color: "#FF0000" }}>{error}</p>}
+
+      {/* Strongest Pair / Trade History Table */}
+<section
+  style={{
+    marginBottom: "2rem",
+    border: "1px solid #00FFFF",
+    padding: "1rem",
+    borderRadius: "12px",
+    boxShadow: "0 0 10px #00FFFF",
+  }}
+>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trade History / Strongest Pair</h2>
+  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Date</th>
+        <th>Pair</th>
+        <th>Strength</th>
+        <th>Trend</th>
+        <th>Trade Activated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {tradeHistory.length > 0 ? (
+        tradeHistory.map((t, idx) => (
+          <tr key={idx} style={{ backgroundColor: t.tradeActivated ? "#002255" : "transparent" }}>
+            <td>{t.time}</td>
+            <td>{t.date}</td>
+            <td>{t.pair}</td>
+            <td>{t.strength}</td>
+            <td style={{ color: t.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+              {t.trend}
+            </td>
+            <td>{t.tradeActivated ? "✅" : "❌"}</td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan={6}>No trades yet</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</section>
+
 
       {/* Market Strength Table */}
       <section

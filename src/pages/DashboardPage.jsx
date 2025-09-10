@@ -33,6 +33,9 @@ const DashboardPage = () => {
         } else {
           setError("Failed to load dashboard data.");
         }
+
+
+        
       } catch (err) {
         setError("Failed to load dashboard data.");
         console.error(err);

@@ -19,6 +19,8 @@ const HomePage = () => {
     setLoading(true);
     setError(null);
 
+
+    
     Promise.all([
   APIControl.fetchUserInfo(),
   fetch("http://localhost:5000/api/news/today")
