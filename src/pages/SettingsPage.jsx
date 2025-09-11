@@ -44,7 +44,17 @@ export const translations = {
     saveSettings: "Save Settings",
     pleaseLogin: "Please login to access settings.",
     on: "ON",
-    off: "OFF"
+    off: "OFF",
+    appUpdate: "App Updates",
+  tradesUpdate: "Trades Updates",
+  newsHeadlines: "News Headlines",
+  marketOffers: "Market Offers",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+    exportCsv: "Export data as CSV",
+exportingCsv: "Exporting CSV...",
+deleteConfirm: "Are you sure you want to delete your account?",
+accountDeleted: "Account deleted successfully!"
+
   },
 
   SWAHILI: {
@@ -81,7 +91,17 @@ export const translations = {
     saveSettings: "Hifadhi Mpangilio",
     pleaseLogin: "Tafadhali ingia ili kupata mpangilio.",
     on: "WAKO",
-    off: "ZIMEZIMWA"
+    off: "ZIMEZIMWA",
+    appUpdate: "Mabadiliko ya App",
+  tradesUpdate: "Mabadiliko ya Biashara",
+  newsHeadlines: "Vichwa vya Habari",
+  marketOffers: "Ofa za Soko",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+    exportCsv: "Hamisha data kama CSV",
+exportingCsv: "Kina hamisha CSV...",
+deleteConfirm: "Una uhakika unataka kufuta akaunti yako?",
+accountDeleted: "Akaunti imefutwa kwa mafanikio!"
+
   },
 
   SPANISH: {
@@ -118,7 +138,17 @@ export const translations = {
     saveSettings: "Guardar Configuración",
     pleaseLogin: "Por favor inicia sesión para acceder a la configuración.",
     on: "ENCENDIDO",
-    off: "APAGADO"
+    off: "APAGADO",
+    appUpdate: "Actualizaciones de la App",
+  tradesUpdate: "Actualizaciones de Trades",
+  newsHeadlines: "Titulares de Noticias",
+  marketOffers: "Ofertas del Mercado",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+    exportCsv: "Exportar datos como CSV",
+exportingCsv: "Exportando CSV...",
+deleteConfirm: "¿Está seguro de que desea eliminar su cuenta?",
+accountDeleted: "¡Cuenta eliminada con éxito!"
+
   },
 
   CHINESE: {
@@ -155,7 +185,17 @@ export const translations = {
     saveSettings: "保存设置",
     pleaseLogin: "请登录以访问设置。",
     on: "开启",
-    off: "关闭"
+    off: "关闭",
+    appUpdate: "应用更新",
+  tradesUpdate: "交易更新",
+  newsHeadlines: "新闻头条",
+  marketOffers: "市场优惠",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+    exportCsv: "导出数据为 CSV",
+exportingCsv: "正在导出 CSV...",
+deleteConfirm: "您确定要删除您的账户吗？",
+accountDeleted: "账户已成功删除！"
+
   },
 
   ARABIC: {
@@ -192,7 +232,17 @@ export const translations = {
     saveSettings: "حفظ الإعدادات",
     pleaseLogin: "الرجاء تسجيل الدخول للوصول إلى الإعدادات.",
     on: "تشغيل",
-    off: "إيقاف"
+    off: "إيقاف",
+    appUpdate: "تحديثات التطبيق",
+  tradesUpdate: "تحديثات التداول",
+  newsHeadlines: "عناوين الأخبار",
+  marketOffers: "عروض السوق",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+    exportCsv: "تصدير البيانات كملف CSV",
+exportingCsv: "جارٍ تصدير CSV...",
+deleteConfirm: "هل أنت متأكد أنك تريد حذف حسابك؟",
+accountDeleted: "تم حذف الحساب بنجاح!"
+
   },
 
   INDIA: {
@@ -229,8 +279,66 @@ export const translations = {
     saveSettings: "सेटिंग्स सहेजें",
     pleaseLogin: "सेटिंग्स तक पहुँचने के लिए कृपया लॉगिन करें।",
     on: "चालू",
-    off: "बंद"
-  }
+    off: "बंद",
+     appUpdate: "ऐप अपडेट्स",
+  tradesUpdate: "ट्रेड अपडेट्स",
+  newsHeadlines: "समाचार शीर्षक",
+  marketOffers: "मार्केट ऑफ़र्स",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+    exportCsv: "CSV के रूप में डेटा निर्यात करें",
+exportingCsv: "CSV निर्यात कर रहा है...",
+deleteConfirm: "क्या आप वाकई अपना खाता हटाना चाहते हैं?",
+accountDeleted: "खाता सफलतापूर्वक हटाया गया!"
+
+  },
+
+  FRENCH: {
+  profileSettings: "PARAMÈTRES DU PROFIL",
+  profitPhoto: "URL de la photo de profit",
+  firstName: "Prénom",
+  middleName: "Deuxième prénom",
+  sirName: "Nom de famille",
+  phoneNumber: "Numéro de téléphone",
+  email: "Email",
+  county: "Comté",
+  securitySettings: "PARAMÈTRES DE SÉCURITÉ",
+  oldPassword: "Ancien mot de passe",
+  newPassword: "Nouveau mot de passe",
+  confirmNewPassword: "Confirmer le nouveau mot de passe",
+  twoFactorAuth: "Authentification à deux facteurs",
+  notificationPreferences: "PRÉFÉRENCES DE NOTIFICATION",
+  themeCustomization: "PERSONNALISATION DU THÈME",
+  darkMode: "Mode sombre",
+  neonAccentColor: "Couleur néon",
+  eaSettings: "PARAMÈTRES EA",
+  tradingPairs: "Paires de trading (séparées par des virgules)",
+  riskPerTrade: "Risque par trade (%)",
+  dailyTP: "Take Profit quotidien (%)",
+  dailySL: "Stop Loss quotidien (%)",
+  apiIntegrations: "API & INTÉGRATIONS",
+  connected: "CONNECTÉ 🟩",
+  notConnected: "NON CONNECTÉ 🟥",
+  dataPrivacy: "DONNÉES & CONFIDENTIALITÉ",
+  exportData: "Exporter les données en CSV",
+  deleteAccount: "Supprimer le compte",
+  privacyPolicy: "Politique de confidentialité",
+  languageSettings: "PARAMÈTRES DE LANGUE",
+  saveSettings: "Enregistrer les paramètres",
+  pleaseLogin: "Veuillez vous connecter pour accéder aux paramètres.",
+  on: "ACTIVÉ",
+  off: "DÉSACTIVÉ",
+  appUpdate: "Mises à jour de l'application",
+  tradesUpdate: "Mises à jour des transactions",
+  newsHeadlines: "Titres d'actualités",
+  marketOffers: "Offres du marché",
+  tradingPairsExample: "EURUSD, GBPUSD, USDJPY",
+  exportCsv: "Exporter les données en CSV",
+exportingCsv: "Exportation du CSV...",
+deleteConfirm: "Êtes-vous sûr de vouloir supprimer votre compte ?",
+accountDeleted: "Compte supprimé avec succès !"
+
+}
+
 };
 
 const neonColors = {
@@ -301,6 +409,9 @@ export default function SettingsPage() {
   });
 
   const { language, setLanguage } = useLanguage();
+  
+const t = translations[language ?? "ENGLISH"] || translations.ENGLISH;
+
 
 
 
@@ -357,8 +468,10 @@ setEaSettings(data.eaSettings ?? {
           textAlign: "center",
         }}
       >
-        Please login to access settings.
-      </div>
+        
+  {t.pleaseLogin}
+</div>
+
     );
   }
 
@@ -433,7 +546,7 @@ setEaSettings(data.eaSettings ?? {
           textAlign: "center",
         }}
       >
-        FTSA AI - SETTINGS
+        FTSA AI - {t.profileSettings} 
       </header>
 
       {loading && <LoadingSpinner size={48} color={neonColors.neonBlue} />}
@@ -455,84 +568,89 @@ setEaSettings(data.eaSettings ?? {
               boxShadow: `0 0 15px ${neonColors.neonBlue}`,
             }}
           >
-            <h2 style={{ color: neonColors.neonGreen }}>
-  {translations[language].profileSettings}
+       <h2 style={{ color: neonColors.neonGreen }}>
+  {t.profileSettings}
 </h2>
 <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
   <label style={{ flex: "1 1 200px" }}>
-    {translations[language].profitPhoto}:
+    {t.profitPhoto}:
     <input
       type="text"
       name="profitPhoto"
       value={profile.profitPhoto}
       onChange={handleProfileChange}
       style={inputStyle(neonColors)}
-      placeholder={translations[language].profitPhoto}
+      placeholder={t.profitPhoto}
     />
   </label>
-
-              <label style={{ flex: "1 1 150px" }}>
-                First Name:
-                <input
-                  type="text"
-                  name="firstName"
-                  value={profile.firstName}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label style={{ flex: "1 1 150px" }}>
-                Middle Name:
-                <input
-                  type="text"
-                  name="middleName"
-                  value={profile.middleName}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label style={{ flex: "1 1 150px" }}>
-                Sir Name:
-                <input
-                  type="text"
-                  name="sirName"
-                  value={profile.sirName}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label style={{ flex: "1 1 150px" }}>
-                Phone Number:
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  value={profile.phoneNumber}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label style={{ flex: "1 1 200px" }}>
-                Email:
-                <input
-                  type="email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label style={{ flex: "1 1 150px" }}>
-                County:
-                <input
-                  type="text"
-                  name="county"
-                  value={profile.county}
-                  onChange={handleProfileChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-            </div>
-          </section>
+  <label style={{ flex: "1 1 150px" }}>
+    {t.firstName}:
+    <input
+      type="text"
+      name="firstName"
+      value={profile.firstName}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={t.firstName}
+    />
+  </label>
+  <label style={{ flex: "1 1 150px" }}>
+    {t.middleName}:
+    <input
+      type="text"
+      name="middleName"
+      value={profile.middleName}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={t.middleName}
+    />
+  </label>
+  <label style={{ flex: "1 1 150px" }}>
+    {t.sirName}:
+    <input
+      type="text"
+      name="sirName"
+      value={profile.sirName}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={t.sirName}
+    />
+  </label>
+  <label style={{ flex: "1 1 150px" }}>
+    {t.phoneNumber}:
+    <input
+      type="tel"
+      name="phoneNumber"
+      value={profile.phoneNumber}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={t.phoneNumber}
+    />
+  </label>
+  <label style={{ flex: "1 1 200px" }}>
+    {t.email}:
+    <input
+      type="email"
+      name="email"
+      value={profile.email}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={t.email}
+    />
+  </label>
+  <label style={{ flex: "1 1 150px" }}>
+    {t.county}:
+    <input
+      type="text"
+      name="county"
+      value={profile.county}
+      onChange={handleProfileChange}
+      style={inputStyle(neonColors)}
+      placeholder={t.county}
+    />
+  </label>
+</div>
+</section>
 
           {/* SECURITY SETTINGS */}
           <section
@@ -545,11 +663,11 @@ setEaSettings(data.eaSettings ?? {
             }}
           >
             <h2 style={{ color: neonColors.neonOrange }}>
-  {translations[language].securitySettings}
+  {t.securitySettings}
 </h2>
 <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: 400 }}>
   <label>
-    {translations[language].oldPassword}:
+    {t.oldPassword}:
     <input
       type="password"
       name="oldPassword"
@@ -558,44 +676,41 @@ setEaSettings(data.eaSettings ?? {
       style={inputStyle(neonColors)}
     />
   </label>
-
-              <label>
-                New Password:
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={security.newPassword}
-                  onChange={handleSecurityChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label>
-                Confirm New Password:
-                <input
-                  type="password"
-                  name="confirmNewPassword"
-                  value={security.confirmNewPassword}
-                  onChange={handleSecurityChange}
-                  style={inputStyle(neonColors)}
-                />
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                Two-Factor Authentication:
-                <NeonButton
-                  onClick={handleToggleTwoFactor}
-                  style={{
-                    border: `2px solid ${
-                      security.twoFactorEnabled ? neonColors.neonGreen : neonColors.neonRed
-                    }`,
-                    backgroundColor: security.twoFactorEnabled ? "#002200" : "transparent",
-                    minWidth: 80,
-                  }}
-                >
-                  {security.twoFactorEnabled ? "ON" : "OFF"}
-                </NeonButton>
-              </label>
-            </div>
-          </section>
+  <label>
+    {t.newPassword}:
+    <input
+      type="password"
+      name="newPassword"
+      value={security.newPassword}
+      onChange={handleSecurityChange}
+      style={inputStyle(neonColors)}
+    />
+  </label>
+  <label>
+    {t.confirmNewPassword}:
+    <input
+      type="password"
+      name="confirmNewPassword"
+      value={security.confirmNewPassword}
+      onChange={handleSecurityChange}
+      style={inputStyle(neonColors)}
+    />
+  </label>
+  <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+    {t.twoFactorAuth}:
+    <NeonButton
+      onClick={handleToggleTwoFactor}
+      style={{
+        border: `2px solid ${security.twoFactorEnabled ? neonColors.neonGreen : neonColors.neonRed}`,
+        backgroundColor: security.twoFactorEnabled ? "#002200" : "transparent",
+        minWidth: 80,
+      }}
+    >
+      {security.twoFactorEnabled ? t.on : t.off}
+    </NeonButton>
+  </label>
+</div>
+        </section>
 
           {/* NOTIFICATION PREFERENCES */}
           <section
@@ -608,17 +723,15 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>
-  {translations[language].notificationPreferences}
+   <h2 style={{ color: neonColors.neonBlue }}>
+  {t.notificationPreferences}
 </h2>
 {Object.entries(notifications || {}).map(([key, val]) => (
   <label
     key={key}
     style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
   >
-    {translations[language][key] || key
-      .replace(/([A-Z])/g, " $1")
-      .replace(/^./, (str) => str.toUpperCase())}
+    {t[key] || key.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase())}
     <NeonButton
       onClick={() => handleToggleNotifications(key)}
       style={{
@@ -627,10 +740,11 @@ setEaSettings(data.eaSettings ?? {
         minWidth: 80,
       }}
     >
-      {val ? translations[language].on : translations[language].off}
+      {val ? t.on : t.off}
     </NeonButton>
   </label>
 ))}
+
           </section>
 
           {/* THEME CUSTOMIZATION */}
@@ -644,13 +758,12 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>
-  {translations[language].themeCustomization}
+           <h2 style={{ color: neonColors.neonBlue }}>
+  {t.themeCustomization}
 </h2>
-<label
-  style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}
->
-  {translations[language].darkMode}:
+
+<label style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+  {t.darkMode}:
   <NeonButton
     onClick={handleToggleThemeMode}
     style={{
@@ -659,31 +772,29 @@ setEaSettings(data.eaSettings ?? {
       minWidth: 80,
     }}
   >
-    {theme.darkMode ? translations[language].on : translations[language].off}
+    {theme.darkMode ? t.on : t.off}
   </NeonButton>
 </label>
-            <div>
-              Neon Accent Color:
-              <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                {accentColors.map((color) => (
-                  <NeonButton
-                    key={color}
-                    onClick={() => handleAccentColorChange(color)}
-                    style={{
-                      border: `2px solid ${
-                        theme.neonAccentColor === color
-                          ? neonColors.neonGreen
-                          : neonColors.neonBlue
-                      }`,
-                      backgroundColor: "transparent",
-                      minWidth: 80,
-                    }}
-                  >
-                    {color}
-                  </NeonButton>
-                ))}
-              </div>
-            </div>
+
+<div>
+  {t.neonAccentColor}:
+  <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
+    {accentColors.map((color) => (
+      <NeonButton
+        key={color}
+        onClick={() => handleAccentColorChange(color)}
+        style={{
+          border: `2px solid ${theme.neonAccentColor === color ? neonColors.neonGreen : neonColors.neonBlue}`,
+          backgroundColor: "transparent",
+          minWidth: 80,
+        }}
+      >
+        {color}
+      </NeonButton>
+    ))}
+  </div>
+</div>
+
           </section>
           {/* EA SETTINGS */}
 <section
@@ -697,67 +808,65 @@ setEaSettings(data.eaSettings ?? {
   }}
 >
 <h2 style={{ color: neonColors.neonOrange }}>
-  {translations[language].eaSettings}
+  {t.eaSettings}
 </h2>
 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
   <label>
-    {translations[language].tradingPairs}:
+    {t.tradingPairs}:
     <input
-      type="text"
-      value={eaSettings.pairs.join(",")}
+  type="text"
+  value={eaSettings.pairs.join(",")}
+  onChange={(e) =>
+    setEaSettings((prev) => ({
+      ...prev,
+      pairs: e.target.value.split(",").map((p) => p.trim()),
+    }))
+  }
+  style={inputStyle(neonColors)}
+  placeholder={t.tradingPairsExample}
+/>
+  </label>
+  <label>
+    {t.riskPerTrade}:
+    <input
+      type="number"
+      value={eaSettings.risk}
       onChange={(e) =>
-        setEaSettings((prev) => ({
-          ...prev,
-          pairs: e.target.value.split(",").map((p) => p.trim()),
-        }))
+        setEaSettings((prev) => ({ ...prev, risk: parseFloat(e.target.value) }))
       }
       style={inputStyle(neonColors)}
-      placeholder="EURUSD, GBPUSD, USDJPY"
+      min={0.1}
+      max={100}
+      step={0.1}
     />
   </label>
-    <label>
-      Risk per Trade (%):
-      <input
-        type="number"
-        value={eaSettings.risk}
-        onChange={(e) =>
-          setEaSettings((prev) => ({ ...prev, risk: parseFloat(e.target.value) }))
-        }
-        style={inputStyle(neonColors)}
-        min={0.1}
-        max={100}
-        step={0.1}
-      />
-    </label>
-
-    <label>
-      Daily Take Profit (%):
-      <input
-        type="number"
-        value={eaSettings.dailyTP}
-        onChange={(e) =>
-          setEaSettings((prev) => ({ ...prev, dailyTP: parseFloat(e.target.value) }))
-        }
-        style={inputStyle(neonColors)}
-        min={0}
-        step={0.1}
-      />
-    </label>
-
-    <label>
-      Daily Stop Loss (%):
-      <input
-        type="number"
-        value={eaSettings.dailySL}
-        onChange={(e) =>
-          setEaSettings((prev) => ({ ...prev, dailySL: parseFloat(e.target.value) }))
-        }
-        style={inputStyle(neonColors)}
-        min={0}
-        step={0.1}
-      />
-    </label>
-  </div>
+  <label>
+    {t.dailyTP}:
+    <input
+      type="number"
+      value={eaSettings.dailyTP}
+      onChange={(e) =>
+        setEaSettings((prev) => ({ ...prev, dailyTP: parseFloat(e.target.value) }))
+      }
+      style={inputStyle(neonColors)}
+      min={0}
+      step={0.1}
+    />
+  </label>
+  <label>
+    {t.dailySL}:
+    <input
+      type="number"
+      value={eaSettings.dailySL}
+      onChange={(e) =>
+        setEaSettings((prev) => ({ ...prev, dailySL: parseFloat(e.target.value) }))
+      }
+      style={inputStyle(neonColors)}
+      min={0}
+      step={0.1}
+    />
+  </label>
+</div>
 </section>
 
 
@@ -772,8 +881,8 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonBlue }}>
-  {translations[language].apiIntegrations}
+        <h2 style={{ color: neonColors.neonBlue }}>
+  {t.apiIntegrations}
 </h2>
 {Object.entries(apiIntegrations || {}).map(([key, val]) => (
   <label
@@ -789,12 +898,11 @@ setEaSettings(data.eaSettings ?? {
         minWidth: 80,
       }}
     >
-      {val
-        ? translations[language].connected
-        : translations[language].notConnected}
+      {val ? t.connected : t.notConnected}
     </NeonButton>
   </label>
 ))}
+
           </section>
 
           {/* DATA & PRIVACY */}
@@ -808,33 +916,31 @@ setEaSettings(data.eaSettings ?? {
               maxWidth: 400,
             }}
           >
-            <h2 style={{ color: neonColors.neonRed }}>
-  {translations[language].dataPrivacy}
+      <h2 style={{ color: neonColors.neonRed }}>
+  {t.dataPrivacy}
 </h2>
 
-<NeonButton
-  onClick={() => alert(translations[language].exportingCsv)}
-  style={{ marginBottom: "1rem" }}
->
-  {translations[language].exportCsv}
+<NeonButton onClick={() => alert(t.exportingCsv)} style={{ marginBottom: "1rem" }}>
+  {t.exportCsv}
 </NeonButton>
 
 <NeonButton
   onClick={() => {
-    if (window.confirm(translations[language].deleteConfirm)) {
-      alert(translations[language].accountDeleted);
+    if (window.confirm(t.deleteConfirm)) {
+      alert(t.accountDeleted);
     }
   }}
   style={{ backgroundColor: neonColors.neonRed, borderColor: neonColors.neonRed }}
 >
-  {translations[language].deleteAccount}
+  {t.deleteAccount}
 </NeonButton>
 
 <p style={{ marginTop: "1rem", fontSize: "0.8rem" }}>
   <a href="/privacy-policy" style={{ color: neonColors.neonBlue }}>
-    {translations[language].privacyPolicy}
+    {t.privacyPolicy}
   </a>
 </p>
+
 </section>
 
 
@@ -850,22 +956,18 @@ setEaSettings(data.eaSettings ?? {
             }}
           >
             <h2 style={{ color: neonColors.neonBlue }}>
-  {translations[language].languageSettings}
+  {t.languageSettings}
 </h2>
 
-<select
-  value={language}
-  onChange={handleLanguageChange}
-  style={inputStyle(neonColors)}
->
+<select value={language} onChange={handleLanguageChange} style={inputStyle(neonColors)}>
   {languages.map((lang) => (
     <option key={lang} value={lang}>
-      {translations[language][lang]} {/* ✅ show translated language name */}
+      {lang}
     </option>
   ))}
 </select>
 <p style={{ marginTop: "1rem", color: "yellow" }}>
-  Current language: {language}
+  {t.pleaseLogin} {/* optional info text */}
 </p>
 
 </section>
@@ -886,8 +988,9 @@ setEaSettings(data.eaSettings ?? {
           {/* Save button */}
           <div style={{ textAlign: "center", marginTop: "1rem" }}>
             <NeonButton onClick={handleSaveSettings} style={{ minWidth: 160 }}>
-              Save Settings
-            </NeonButton>
+  {t.saveSettings}
+</NeonButton>
+
           </div>
         </>
       )}

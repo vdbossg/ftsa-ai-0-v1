@@ -5,16 +5,36 @@
 require('dotenv').config();
 const WebSocket = require("ws");
 const chochService = require('./chochService'); // must export storeLTF(pair, side, valid)
+const fs = require("fs");
+const path = require("path");
+const DailySelection = require("../models/DailySelection");
+const EquitySnapshot = require("../models/EquitySnapshot");
+// -------------------- AppConfig loader --------------------
+function loadAppConfig() {
+  try {
+    const filePath = path.join(__dirname, "../../config/appConfig.json");
+    if (!fs.existsSync(filePath)) return null;
+    const data = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(data);
+  } catch (err) {
+    console.error("❌ Failed to load appConfig.json:", err.message);
+    return null;
+  }
+}
 
 let wss; // set from server.js via setWebSocketServer
-const allPairs = [
-  "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
-  "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
-  "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
-  "AUDJPY","AUDNZD","AUDCHF",
-  "CADJPY","CADCHF",
-  "CHFJPY","NZDJPY","NZDCHF"
-];
+const configPairs = loadAppConfig()?.pairs;
+const allPairs = Array.isArray(configPairs) && configPairs.length > 0 
+  ? configPairs
+  : [
+      "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+      "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
+      "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
+      "AUDJPY","AUDNZD","AUDCHF",
+      "CADJPY","CADCHF",
+      "CHFJPY","NZDJPY","NZDCHF"
+    ];
+
 
 // ---------- TUNABLE CONSTANTS ----------
 const DERIV_API_TOKEN = process.env.DERIV_API_TOKEN;
@@ -30,7 +50,8 @@ const MOMENTUM_SCALE_PCT = 1.0;
 const CHOCH_MAG_PCT = 0.08;
 
 // What we consider a "strong" HTF candidate before selecting it as TOP_PAIR
-const STRONG_PAIR_THRESHOLD = 75; // more inclusive // user requested >75/80 — set to 80
+ const STRONG_PAIR_THRESHOLD = 80; // require ≥80 to be selected as daily trade
+// more inclusive // user requested >75/80 — set to 80
 
 // Color thresholds (tweak if needed)
 const COLOR_GREEN = 80; // ≥ 80 -> 🟩
@@ -108,6 +129,48 @@ function detectLTFChochFromCandles(candles, lookback = 5, magnitudeThresholdPct 
 
   // No valid signal
   return { side: null, valid: false, magnitudePct: 0 };
+}
+
+// -------------------- AppConfig writer (production-ready) --------------------
+function writeAppConfig({ pair, side, balance, strength }) {
+  // percentages (can be tuned or made configurable)
+  const tpPct = parseFloat(process.env.TP_PCT) || 0.03;       // default 3%
+const riskPct = parseFloat(process.env.RISK_PCT) || 0.01;   // default 1%
+
+
+  // numeric amounts in USD (or account currency)
+  const riskAmount = +(balance * riskPct).toFixed(2); // e.g. 1.00
+  const tpAmount = +(balance * tpPct).toFixed(2);     // e.g. 3.00
+
+  // absolute equity targets the EA will use to close all positions
+  const targetEquity = +(balance + tpAmount).toFixed(2); // e.g. 103.00
+  const stopEquity = +(balance - riskAmount).toFixed(2); // e.g. 99.00
+
+  const config = {
+    pair,
+    buy: side === "BUY",
+    sell: side === "SELL",
+    riskPercent: riskPct * 100, // e.g., 1% -> 1
+    tpPercent: tpPct * 100,     // e.g., 3% -> 3
+    riskAmount,      // USD amount corresponding to riskPercent
+    tpAmount,        // USD amount corresponding to tpPercent
+    targetEquity,    // equity value at which EA closes all positions (TP)
+    stopEquity,      // equity value at which EA closes all positions (SL)
+    strength: strength || null,
+    dailyTrade: new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  };
+
+  // ensure config directory exists and write atomically
+  const dirPath = path.join(__dirname, "../../config");
+  if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+
+  const filePath = path.join(dirPath, "appConfig.json");
+  // write to temp and rename to avoid partial writes
+  const tmpPath = filePath + ".tmp";
+  fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2));
+  fs.renameSync(tmpPath, filePath);
+
+  console.log("📝 appConfig.json updated:", config);
 }
 
 
@@ -301,7 +364,67 @@ async function updateBrainData() {
   broadcastBrainData("CHOCH_DATA", chochData);
   broadcastBrainData("TOP_PAIR", cleanPair);
 
+    // ---------------- Daily selection & config update ----------------
+  try {
+    await handleDailySelection(cleanPair, chochData);
+  } catch (err) {
+    console.error("❌ handleDailySelection error:", err && err.message ? err.message : err);
+  }
+
+
   return { marketStrength, chochData, topPair: cleanPair };
+}
+// -------------------- Daily strongest selection (production) --------------------
+async function handleDailySelection(topPair, chochData) {
+  if (!topPair) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 1) Have we already picked a daily trade?
+  const existing = await DailySelection.findOne({ date: today });
+  if (existing) {
+    // already selected for today — nothing to do
+    return;
+  }
+
+  // 2) must have CHoCH and be valid
+  const choch = chochData[topPair];
+  if (!choch || !choch.valid) return;
+
+  // 3) get latest account snapshot
+  // EquitySnapshot model expected to have { balance, equity, margin, createdAt } (adjust if different)
+  const snapshot = await EquitySnapshot.findOne().sort({ createdAt: -1 });
+  if (!snapshot || typeof snapshot.balance !== "number") {
+    console.error("❌ handleDailySelection: no valid EquitySnapshot available");
+    return;
+  }
+
+  // Prefer equity (floating PnL), fallback to balance
+const balance = typeof snapshot.equity === "number" 
+  ? snapshot.equity 
+  : Number(snapshot.balance);
+
+  const strength = chochData[topPair]?.magnitudePct ? Math.round(chochData[topPair].magnitudePct) : null;
+
+  // 4) persist DailySelection record
+  const selection = new DailySelection({
+    date: today,
+    pair: topPair,
+    side: choch.side,         // "BUY" or "SELL"
+    strength: strength || null,
+    balanceAtSelection: balance,
+    createdAt: new Date()
+  });
+  await selection.save();
+
+  // 5) Write config/appConfig.json for EA (includes numeric USD amounts)
+  try {
+    writeAppConfig({ pair: topPair, side: choch.side, balance, strength });
+  } catch (err) {
+    console.error("❌ writeAppConfig failed:", err && err.message ? err.message : err);
+  }
+console.log(`✅ Daily selection saved & config written: ${topPair} ${choch.side} (equity/balance ${balance})`);
+
 }
 
 // -------------------- Continuous loop --------------------

@@ -1,37 +1,42 @@
-const mongoose = require('mongoose');
+// server/models/Trade.js
+const mongoose = require("mongoose");
 
 const tradeSchema = new mongoose.Schema({
   // Currency pair, e.g., "EURUSD"
-  pair: { type: String, required: true, uppercase: true },
+  pair: { type: String, required: true, uppercase: true, index: true },
 
   // Trade type: BUY or SELL
-  type: { type: String, enum: ['BUY', 'SELL'], required: true },
+  type: { type: String, enum: ["BUY", "SELL"], required: true },
 
   // Entry price for the trade
   price: { type: Number, required: true },
 
-  // Trade size (units, lots, or quantity depending on your logic)
+  // Trade size (lots, units, or qty depending on your logic)
   size: { type: Number, required: true },
 
   // Current status of the trade
-  status: { type: String, enum: ['OPEN', 'CLOSED'], default: 'OPEN' },
+  status: { type: String, enum: ["OPEN", "CLOSED"], default: "OPEN", index: true },
 
-  // Optional: target profit and stop loss
-  takeProfit: { type: Number },
-  stopLoss: { type: Number },
+  // Optional: take profit and stop loss levels (price values)
+  takeProfit: { type: Number, default: null },
+  stopLoss: { type: Number, default: null },
 
-  // Optional: additional metadata like strategy or signal info
-  signal: { type: String },
+  // Metadata (strategy name, signal ID, etc.)
+  signal: { type: String, default: null },
 
-  // Record when the trade was created and closed
+  // PnL tracking (optional, but useful if EA syncs back results)
+  profit: { type: Number, default: null },
+
+  // Record timestamps
   createdAt: { type: Date, default: Date.now },
-  closedAt: { type: Date }
+  closedAt: { type: Date, default: null }
 });
 
-// Optional: pre-save hook to automatically calculate anything if needed
-tradeSchema.pre('save', function (next) {
-  // Example: you could calculate risk/reward here
+// Pre-save hook (optional future logic: auto-calculate R:R, etc.)
+tradeSchema.pre("save", function (next) {
+  // Example: you could enforce pair uppercase even if API forgets
+  if (this.pair) this.pair = this.pair.toUpperCase();
   next();
 });
 
-module.exports = mongoose.model('Trade', tradeSchema);
+module.exports = mongoose.model("Trade", tradeSchema);
