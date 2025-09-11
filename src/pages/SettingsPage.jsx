@@ -24,7 +24,9 @@ export default function SettingsPage() {
     sirName: "",
     phoneNumber: "",
     email: "",
-    county: "",
+    country: "",
+phoneCode: "+254",
+
   });
 
   const [security, setSecurity] = useState({
@@ -72,32 +74,16 @@ export default function SettingsPage() {
     setLoading(true);
     APIControl.fetchSettingsData()
       .then((data) => {
-        const mockData = {
-          profile: {
-            profitPhoto: "https://via.placeholder.com/100",
-            firstName: "John",
-            middleName: "A.",
-            sirName: "Doe",
-            phoneNumber: "123456789",
-            email: "john@example.com",
-            county: "Nairobi",
-          },
-          security: { twoFactorEnabled: true },
-          notifications: {
-            appUpdate: true,
-            tradesUpdate: true,
-            newsHeadlines: true,
-            marketOffers: false,
-          },
-          theme: { darkMode: true, neonAccentColor: "Blue" },
-          language: "ENGLISH",
-        };
-        const d = data ?? mockData;
-        setProfile(d.profile);
-        setSecurity((s) => ({ ...s, twoFactorEnabled: d.security?.twoFactorEnabled ?? false }));
-        setNotifications(d.notifications);
-        setTheme(d.theme ?? theme);
-        setLanguage(d.language);
+        if (!data || !data.profile) {
+  setError("No settings data found.");
+  setLoading(false);
+  return;
+}
+setProfile(data.profile);
+setSecurity((s) => ({ ...s, twoFactorEnabled: data.security?.twoFactorEnabled ?? false }));
+setNotifications(data.notifications ?? notifications);
+setTheme(data.theme ?? theme);
+setLanguage(data.language ?? language);
       })
       .catch(() => setError("Failed to load settings data"))
       .finally(() => setLoading(false));
@@ -120,18 +106,24 @@ export default function SettingsPage() {
   const handleLanguageChange = (e) => setLanguage(e.target.value);
 
   const handleSaveSettings = async () => {
-    setLoading(true);
-    try {
-      await new Promise((res) => setTimeout(res, 1000));
-      console.log("Saved data:", { profile, security, notifications, theme, language });
-      alert("Settings saved successfully!");
-    } catch {
-      alert("Failed to save settings.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Check password match
+  if (security.newPassword && security.newPassword !== security.confirmNewPassword) {
+    alert("New password and confirm password do not match!");
+    return;
+  }
 
+  setLoading(true);
+  try {
+    const saveData = { profile, security, notifications, theme, language };
+    const result = await APIControl.saveSettingsData(saveData);
+    if (!result.success) throw new Error(result.error || "Save failed");
+    alert("Settings saved successfully!");
+  } catch (err) {
+    alert("Failed to save settings: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, fontFamily: "'Orbitron', sans-serif", minHeight: "100vh", padding: "1rem 2rem" }}>
       <header style={{ fontSize: "2rem", fontWeight: "bold", borderBottom: `2px solid ${neonColors.neonBlue}`, paddingBottom: "0.5rem", marginBottom: "1rem", textAlign: "center" }}>
@@ -157,20 +149,68 @@ export default function SettingsPage() {
               {t.profitPhoto}:
               <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "0.5rem" }}>
                 <img src={profile.profitPhoto || "https://via.placeholder.com/100"} alt="Profit" style={{ width: 80, height: 80, borderRadius: "8px", objectFit: "cover" }} />
-                <NeonButton onClick={() => {
-                  const url = prompt("Enter Profit Photo URL", profile.profitPhoto);
-                  if (url) setProfile(prev => ({ ...prev, profitPhoto: url }));
-                }}>Edit</NeonButton>
-              </div>
+                <NeonButton onClick={async () => {
+  const url = prompt("Enter Profit Photo URL", profile.profitPhoto);
+  if (!url) return;
+  setProfile(prev => ({ ...prev, profitPhoto: url }));
+
+  try {
+    setLoading(true);
+    await APIControl.saveSettingsData({ 
+      profile: { 
+        ...profile, 
+        profitPhoto: url,
+        firstName: profile.firstName,
+        middleName: profile.middleName,
+        sirName: profile.sirName,
+        email: profile.email,
+        country: profile.country,
+        phoneNumber: profile.phoneNumber,
+        phoneCode: profile.phoneCode
+      }, 
+      security, 
+      notifications, 
+      theme, 
+      language 
+    });
+    alert("Profit photo updated successfully!");
+  } catch {
+    alert("Failed to update profit photo.");
+  } finally {
+    setLoading(false);
+  }
+}}>Edit</NeonButton>
+             </div>
             </label>
 
-            {["firstName", "middleName", "sirName", "phoneNumber", "email", "county"].map((field) => (
-              <label key={field} style={{ display: "block", marginBottom: "1rem" }}>
-                {t[field]}:
-                <input type="text" name={field} value={profile[field]} onChange={handleProfileChange} style={inputStyle(neonColors)} />
-              </label>
-            ))}
+            {["firstName", "middleName", "sirName", "email"].map((field) => (
+  <label key={field} style={{ display: "block", marginBottom: "1rem" }}>
+    {t[field]}:
+    <input type="text" name={field} value={profile[field]} onChange={handleProfileChange} style={inputStyle(neonColors)} />
+  </label>
+))}
 
+<label style={{ display: "block", marginBottom: "1rem" }}>
+  {t.country}:
+  <select name="country" value={profile.country} onChange={handleProfileChange} style={inputStyle(neonColors)}>
+    <option value="">Select Country</option>
+    <option value="Kenya">Kenya</option>
+    <option value="Uganda">Uganda</option>
+    <option value="Tanzania">Tanzania</option>
+  </select>
+</label>
+
+<label style={{ display: "block", marginBottom: "1rem" }}>
+  {t.phoneNumber}:
+  <div style={{ display: "flex", gap: "0.5rem" }}>
+    <select name="phoneCode" value={profile.phoneCode} onChange={handleProfileChange} style={{ ...inputStyle(neonColors), maxWidth: "120px" }}>
+      <option value="+254">+254</option>
+      <option value="+255">+255</option>
+      <option value="+256">+256</option>
+    </select>
+    <input type="text" name="phoneNumber" value={profile.phoneNumber} onChange={handleProfileChange} style={inputStyle(neonColors)} />
+  </div>
+</label>
             <div style={{ marginTop: "1rem" }}>
               <NeonButton onClick={() => setProfileModalOpen(false)} style={{ marginRight: "1rem" }}>Close</NeonButton>
               <NeonButton onClick={handleSaveSettings}>Save</NeonButton>
@@ -307,7 +347,7 @@ const translations = {
     sirName: "Sir Name",
     phoneNumber: "Phone Number",
     email: "Email",
-    county: "County",
+    country: "Country",
     securitySettings: "SECURITY SETTINGS",
     oldPassword: "Old Password",
     newPassword: "New Password",
@@ -330,6 +370,8 @@ const translations = {
     pleaseLogin: "Please login to access settings.",
     on: "ON",
     off: "OFF",
+    country: "Country",
+    phoneCode: "Phone Code",
     appUpdate: "App Updates",
     tradesUpdate: "Trades Updates",
     newsHeadlines: "News Headlines",
@@ -345,7 +387,6 @@ const translations = {
     sirName: "Jina la Mwisho", 
     phoneNumber: "Nambari ya Simu", 
     email: "Barua Pepe", 
-    county: "Kaunti", 
     securitySettings: "MPANGILIKO WA USALAMA", 
     oldPassword: "Nenosiri la Zamani", 
     newPassword: "Nenosiri Jipya", 
@@ -370,7 +411,10 @@ const translations = {
     languageSettings: "MPANGILIKO WA LUGHA", 
     saveSettings: "Hifadhi Mpangilio", 
     pleaseLogin: "Tafadhali ingia ili kupata mpangilio.", 
-    on: "WAKO", off: "ZIMEZIMWA", 
+    on: "WAKO", 
+    off: "ZIMEZIMWA",
+    country: "Nchi",
+    phoneCode: "Nambari ya Nchi",
     appUpdate: "Mabadiliko ya App", 
     tradesUpdate: "Mabadiliko ya Biashara", 
     newsHeadlines: "Vichwa vya Habari", 
@@ -388,8 +432,7 @@ const translations = {
     middleName: "Segundo Nombre", 
     sirName: "Apellido", 
     phoneNumber: "Número de Teléfono", 
-    email: "Correo Electrónico", 
-    county: "Condado", 
+    email: "Correo Electrónico",
     securitySettings: "CONFIGURACIÓN DE SEGURIDAD", 
     oldPassword: "Contraseña Antigua", 
     newPassword: "Nueva Contraseña", 
@@ -416,6 +459,8 @@ const translations = {
     pleaseLogin: "Por favor inicia sesión para acceder a la configuración.", 
     on: "ENCENDIDO", 
     off: "APAGADO", 
+    country: "País",
+    phoneCode: "Código de Teléfono",
     appUpdate: "Actualizaciones de la App", 
     tradesUpdate: "Actualizaciones de Trades", 
     newsHeadlines: "Titulares de Noticias", 
@@ -434,7 +479,6 @@ const translations = {
       sirName: "姓氏", 
       phoneNumber: "电话号码", 
       email: "电子邮箱", 
-      county: "县", 
       securitySettings: "安全设置", 
       oldPassword: "旧密码", 
       newPassword: "新密码", 
@@ -461,6 +505,8 @@ const translations = {
       pleaseLogin: "请登录以访问设置。", 
       on: "开启", 
       off: "关闭", 
+      country: "国家",
+      phoneCode: "电话号码区号",
       appUpdate: "应用更新", 
       tradesUpdate: "交易更新", 
       newsHeadlines: "新闻头条", 
@@ -479,7 +525,6 @@ const translations = {
         sirName: "اسم العائلة", 
         phoneNumber: "رقم الهاتف", 
         email: "البريد الإلكتروني", 
-        county: "المقاطعة", 
         securitySettings: "إعدادات الأمان", 
         oldPassword: "كلمة المرور القديمة", 
         newPassword: "كلمة المرور الجديدة", 
@@ -505,7 +550,9 @@ const translations = {
         saveSettings: "حفظ الإعدادات", 
         pleaseLogin: "الرجاء تسجيل الدخول للوصول إلى الإعدادات.", 
         on: "تشغيل", 
-        off: "إيقاف", 
+        off: "إيقاف",
+        country: "الدولة",
+        phoneCode: "رمز الهاتف", 
         appUpdate: "تحديثات التطبيق", 
         tradesUpdate: "تحديثات التداول", 
         newsHeadlines: "عناوين الأخبار", 
@@ -523,8 +570,7 @@ const translations = {
         middleName: "मध्यम नाम", 
         sirName: "उपनाम", 
         phoneNumber: "फ़ोन नंबर", 
-        email: "ईमेल", 
-        county: "काउंटी", 
+        email: "ईमेल",  
         securitySettings: "सुरक्षा सेटिंग्स", 
         oldPassword: "पुराना पासवर्ड", 
         newPassword: "नया पासवर्ड", 
@@ -551,6 +597,8 @@ const translations = {
         pleaseLogin: "सेटिंग्स तक पहुँचने के लिए कृपया लॉगिन करें।", 
         on: "चालू", 
         off: "बंद", 
+        country: "देश",
+        phoneCode: "फ़ोन कोड",
         appUpdate: "ऐप अपडेट्स", 
         tradesUpdate: "ट्रेड अपडेट्स", 
         newsHeadlines: "समाचार शीर्षक", 
@@ -568,8 +616,7 @@ const translations = {
         middleName: "Deuxième prénom", 
         sirName: "Nom de famille", 
         phoneNumber: "Numéro de téléphone", 
-        email: "Email", 
-        county: "Comté", 
+        email: "Email",  
         securitySettings: "PARAMÈTRES DE SÉCURITÉ", 
         oldPassword: "Ancien mot de passe", 
         newPassword: "Nouveau mot de passe", 
@@ -596,6 +643,8 @@ const translations = {
         pleaseLogin: "Veuillez vous connecter pour accéder aux paramètres.", 
         on: "ACTIVÉ", 
         off: "DÉSACTIVÉ", 
+        country: "Pays",
+        phoneCode: "Indicatif Téléphonique",
         appUpdate: "Mises à jour de l'application", 
         tradesUpdate: "Mises à jour des transactions", 
         newsHeadlines: "Titres d'actualités", 
