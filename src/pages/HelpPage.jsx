@@ -108,9 +108,9 @@ const HelpPage = () => {
     type="SMS"
     user={user}
     onClose={() => setTicketModalOpen(false)}
-  />
-)}
-
+  
+     />
+      )}
 
       {/* Footer */}
       <footer className="help-footer">

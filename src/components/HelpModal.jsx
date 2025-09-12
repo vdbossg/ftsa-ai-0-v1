@@ -22,11 +22,14 @@ const HelpModal = ({ onClose, type, user }) => {
 
   const typeLower = type.toLowerCase();
   const typeCode =
-    typeLower === "email"
-      ? "Emailftsa-help"
-      : typeLower === "sms"
-      ? "SMSftsa-help"
-      : "Otherftsa-help";
+  typeLower === "email"
+    ? "Emailftsa-help"
+    : typeLower === "sms"
+    ? "SMSftsa-help"
+    : typeLower === "whatsapp"
+    ? "WhatsAppftsa-help"
+    : "Otherftsa-help";
+
 
   // Add milliseconds for extra uniqueness
   const serial = `${Math.floor(Math.random() * 900 + 100)}${String.fromCharCode(
