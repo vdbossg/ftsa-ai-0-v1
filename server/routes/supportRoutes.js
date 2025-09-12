@@ -4,12 +4,29 @@ const Ticket = require("../models/Ticket");
 const User = require("../models/User");
 const mongoose = require("mongoose");
 
-// Helper to generate unique ticket numbers
-const generateTicketNumber = () => {
-  return `TICKET-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+// --- Helper: Generate ticket number in frontend format ---
+const generateTicketNumber = (type) => {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+
+  // Unique serial: 001AAA
+  const serial = `${Math.floor(Math.random() * 900 + 100)}${String.fromCharCode(
+    65 + Math.floor(Math.random() * 26)
+  )}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`;
+
+  const typeCode =
+    type?.toLowerCase() === "email"
+      ? "Emailftsa-help"
+      : type?.toLowerCase() === "sms"
+      ? "SMSftsa-help"
+      : "Otherftsa-help";
+
+  return `#${serial}-${typeCode}-${day}/${month}/${year}`;
 };
 
-// GET all tickets
+// --- GET all tickets ---
 router.get("/tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find()
@@ -22,7 +39,7 @@ router.get("/tickets", async (req, res) => {
   }
 });
 
-// POST create new ticket
+// --- POST create new ticket ---
 router.post("/tickets", async (req, res) => {
   try {
     const { userId, type, category, message, subject } = req.body;
@@ -31,11 +48,15 @@ router.post("/tickets", async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
+    if (!category || !message) {
+      return res.status(400).json({ message: "Category and message are required" });
+    }
+
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const ticket = new Ticket({
-      ticketNumber: generateTicketNumber(),
+      ticketNumber: generateTicketNumber(type),
       user: userId,
       userName: user.name,
       userEmail: user.email,
@@ -55,14 +76,14 @@ router.post("/tickets", async (req, res) => {
   }
 });
 
-// POST reply to a ticket
+// --- POST reply to a ticket ---
 router.post("/tickets/:id/reply", async (req, res) => {
   try {
     const { message, sender } = req.body;
     const { id } = req.params;
 
-    if (!message || !sender) {
-      return res.status(400).json({ message: "Message and sender are required" });
+    if (!message || !sender || !["user", "admin"].includes(sender)) {
+      return res.status(400).json({ message: "Message and valid sender are required" });
     }
 
     const ticket = await Ticket.findById(id);
@@ -79,7 +100,7 @@ router.post("/tickets/:id/reply", async (req, res) => {
   }
 });
 
-// PATCH update ticket status
+// --- PATCH update ticket status ---
 router.patch("/tickets/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
@@ -104,5 +125,4 @@ router.patch("/tickets/:id/status", async (req, res) => {
   }
 });
 
-// ✅ Export router using CommonJS
 module.exports = router;

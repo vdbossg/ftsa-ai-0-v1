@@ -1,0 +1,32 @@
+.faq-item {
+  border: 1px solid #00FFFF;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  background-color: #000;
+  color: #00FFFF;
+}
+
+.faq-question {
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  font-weight: bold;
+  background: #000;
+  color: #00FFFF;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-answer {
+  padding: 1rem;
+  border-top: 1px solid #00FFFF;
+  background: #111;
+}
+
+.faq-icon {
+  font-size: 0.9rem;
+}

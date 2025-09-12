@@ -20,7 +20,8 @@ const autoTradeRoutes = require('./routes/autoTradeRoutes');
 const strengthRoutes = require('./routes/strengthRoutes');
 const { startPairWatcher, setWebSocketServer: pairWatcherWS } = require("./services/pairWatcherService");
 const { setWebSocketServer: brainWS, updateBrainData } = require('./services/brainService');
-
+const faqsRoute = require("./routes/faqs");
+const supportChannelsRoute = require("./routes/supportChannels");
 const chochService = require('./services/chochService');
 
 
@@ -81,7 +82,8 @@ app.use('/api/propfirmaccounts', propFirmRoutes); // ✅ Added
 app.use('/api/mpesa', mpesaRoutes);  // ← add this line
 console.log('✅ /api/mpesa routes mounted'); 
 app.use("/api/support", supportRoutes);
-
+app.use("/api/faqs", faqsRoute); // Frontend fetchFAQs() → /api/faqs
+app.use("/api/support/channels", supportChannelsRoute);
 
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
 app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
