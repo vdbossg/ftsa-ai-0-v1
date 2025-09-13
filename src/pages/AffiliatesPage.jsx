@@ -65,12 +65,11 @@ export default function AffiliatesPage() {
   }, []);
 
   const ticketWithExtension = useMemo(() => {
-    if (!affiliate?.ticketBase) return "";
-    // extension equals number of NEW subscribers since last withdrawal
-    // backend should send affiliate.newSubscribersCount; fallback to 0
-    const ext = pad3(affiliate?.newSubscribersCount || 0);
-    return `${affiliate.ticketBase}=${ext}`;
-  }, [affiliate]);
+  if (!affiliate?.ticketNumber) return "";
+  const ext = pad3(affiliate?.newSubscribersCount || 0); // number of new subscribers since last withdrawal
+  return `${affiliate.ticketNumber}=${ext}`;
+}, [affiliate]);
+
 
   const nextWithdrawalDate = useMemo(() => {
     // biweekly rule: lastWithdrawalAt + 14 days
@@ -314,17 +313,37 @@ export default function AffiliatesPage() {
         }}
       >
         <h3 style={{ marginTop: 0 }}>Your Ticket</h3>
-        {affiliate?.ticketBase ? (
-          <div style={{ fontSize: 18, color: neon.green }}>
-            {ticketWithExtension}
-          </div>
-        ) : (
-          <div style={{ color: neon.red }}>No ticket yet.</div>
-        )}
+        {affiliate?.ticketNumber ? (
+  <div style={{ fontSize: 18, color: neon.green }}>
+    {ticketWithExtension}
+  </div>
+) : (
+  <div style={{ color: neon.red }}>No ticket yet.</div>
+)}
+
         <div style={{ marginTop: 8, fontSize: 13, color: "#9ee" }}>
           The extension (=xxx) auto-increments with new subscribers from your link.
         </div>
       </section>
+<div style={{ marginTop: 8, fontSize: 14, color: neon.green }}>
+  Your referral link:
+  <div style={{ marginTop: 4 }}>
+    <input
+      type="text"
+      readOnly
+      value={`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`}
+      style={{
+        width: "100%",
+        padding: "6px 8px",
+        borderRadius: 6,
+        border: `1px solid ${neon.blue}`,
+        background: "#000",
+        color: neon.blue
+      }}
+      onClick={(e) => e.target.select()}
+    />
+  </div>
+</div>
 
       {/* Cards */}
       <section
