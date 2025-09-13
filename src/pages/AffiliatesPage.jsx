@@ -325,15 +325,15 @@ export default function AffiliatesPage() {
           The extension (=xxx) auto-increments with new subscribers from your link.
         </div>
       </section>
-<div style={{ marginTop: 8, fontSize: 14, color: neon.green }}>
+      <div style={{ marginTop: 8, fontSize: 14, color: neon.green }}>
   Your referral link:
-  <div style={{ marginTop: 4 }}>
+  <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
     <input
       type="text"
       readOnly
       value={`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`}
       style={{
-        width: "100%",
+        flex: 1,
         padding: "6px 8px",
         borderRadius: 6,
         border: `1px solid ${neon.blue}`,
@@ -342,9 +342,17 @@ export default function AffiliatesPage() {
       }}
       onClick={(e) => e.target.select()}
     />
+    <NeonButton
+      onClick={() => {
+        navigator.clipboard.writeText(`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`);
+        alert("Referral link copied!");
+      }}
+      style={{ flexShrink: 0 }}
+    >
+      Copy
+    </NeonButton>
   </div>
 </div>
-
       {/* Cards */}
       <section
         style={{
