@@ -29,6 +29,8 @@ const AffiliateSchema = new mongoose.Schema(
     pendingCommission: { type: Number, default: 0 },   // locked, awaiting admin approval
     paidCommission: { type: Number, default: 0 },      // total successfully withdrawn
     totalCommission: { type: Number, default: 0 },     // lifetime earned (withdrawable + pending + paid)
+    newSubscribersCount: { type: Number, default: 0 }, // tracks how many new subscribers joined
+
 
     // Track referred users
     referredUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

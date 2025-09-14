@@ -1,5 +1,7 @@
 import Affiliate from "../models/Affiliate.js";
 import User from "../models/User.js";
+import AffiliateWithdrawal from "../models/AffiliateWithdrawal.js";  // ✅ add this
+import { sendEmail } from "../utils/emailService.js";               // ✅ add this
 
 // ✅ Get affiliate data
 export const getAffiliateData = async (req, res) => {
@@ -82,10 +84,28 @@ export const requestWithdrawal = async (req, res) => {
     affiliate.lastWithdrawalAt = new Date();
     await affiliate.save();
 
-    res.json({
-      message: "Withdrawal request submitted. Awaiting admin approval.",
-      affiliate
-    });
+// ✅ Create a withdrawal request record
+const withdrawal = await AffiliateWithdrawal.create({
+  affiliate: affiliate._id,
+  amount: affiliate.pendingCommission, 
+  status: "pending"
+});
+
+// ✅ Send email notification
+await sendEmail(
+  affiliate.email,
+  "Withdrawal Request Submitted",
+  "",
+  `<p>Dear ${affiliate.firstName || affiliate.email},</p>
+   <p>Your withdrawal request of <strong>${withdrawal.amount}</strong> has been submitted. Our team will review it shortly.</p>`
+);
+
+res.json({
+  message: "Withdrawal request submitted. Awaiting admin approval.",
+  affiliate,
+  withdrawal
+});
+
   } catch (err) {
     console.error("Error requesting withdrawal:", err);
     res.status(500).json({ message: "Withdrawal request failed" });
