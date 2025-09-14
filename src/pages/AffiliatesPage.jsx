@@ -340,6 +340,7 @@ export default function AffiliatesPage() {
         background: "#000",
         color: neon.blue
       }}
+      
       onClick={(e) => e.target.select()}
     />
     <NeonButton

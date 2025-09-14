@@ -24,6 +24,7 @@ const AffiliateSchema = new mongoose.Schema(
     idFront: String, // image path or URL
     idBack: String,
 
+    
     // Earnings & balances
     withdrawableBalance: { type: Number, default: 0 }, // funds available for withdrawal
     pendingCommission: { type: Number, default: 0 },   // locked, awaiting admin approval

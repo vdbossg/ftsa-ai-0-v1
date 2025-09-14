@@ -150,6 +150,7 @@ const AboutPage = () => {
                   boxShadow: "0 0 10px #00FFFF",
                 }}
               >
+                
                 {photo && (
                   <img
                     src={photo}

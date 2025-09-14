@@ -39,6 +39,7 @@ export const subscribe = async (req, res, next) => {
       source: "FTSA_AI_APP",
     });
 
+    
     // 4. Handle Affiliate Commission
     const affiliate = await Affiliate.findOne({ referredUsers: userId });
     if (affiliate) {

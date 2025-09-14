@@ -91,6 +91,7 @@ const withdrawal = await AffiliateWithdrawal.create({
   status: "pending"
 });
 
+
 // ✅ Send email notification
 await sendEmail(
   affiliate.email,
