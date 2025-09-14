@@ -150,8 +150,6 @@ const AboutPage = () => {
                   boxShadow: "0 0 10px #00FFFF",
                 }}
               >
-                
-                
                 {photo && (
                   <img
                     src={photo}
@@ -171,6 +169,7 @@ const AboutPage = () => {
           </div>
         </section>
       )}
+
 
       {/* Roadmap */}
       {roadmap?.length > 0 && (
