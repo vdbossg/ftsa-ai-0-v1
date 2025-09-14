@@ -151,6 +151,7 @@ const AboutPage = () => {
                 }}
               >
                 
+                
                 {photo && (
                   <img
                     src={photo}

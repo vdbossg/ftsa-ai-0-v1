@@ -93,6 +93,7 @@ const HelpPage = () => {
         )}
       </section>
 
+
       {/* Contact Section */}
       <section id="contact-support" className="contact-section">
         <ContactSection
