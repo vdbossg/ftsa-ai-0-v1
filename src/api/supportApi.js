@@ -34,6 +34,11 @@ export const createTicket = async (ticketData) => {
   const res = await axios.post(`${API_BASE}/support/tickets`, { ...ticketData, ticketNumber });
   return res.data; // returns { number: "#001AAA-smsftsa-help-20/09/2025" }
 };
+export async function fetchTicketCategories() {
+  const response = await fetch("/api/support/categories");
+  if (!response.ok) throw new Error("Failed to fetch categories");
+  return response.json();
+}
 
 // Get all tickets
 export const getTickets = async () => {

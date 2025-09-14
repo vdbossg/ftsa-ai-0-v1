@@ -347,7 +347,6 @@ const translations = {
     sirName: "Sir Name",
     phoneNumber: "Phone Number",
     email: "Email",
-    country: "Country",
     securitySettings: "SECURITY SETTINGS",
     oldPassword: "Old Password",
     newPassword: "New Password",
