@@ -100,13 +100,14 @@ const HelpPage = () => {
         )}
       </section>
 
+
       {/* Contact Section */}
       <section id="contact-support" className="help-section">
         <h3 className="help-subtitle">Contact Support</h3>
         <ContactSection
           contactInfo={contactInfo}
           onOpenTicket={openTicketModal}
-          ticketButtonLabel="Create Ticket"
+          ticketButtonLabel="SMS"  // renamed button
         />
       </section>
 

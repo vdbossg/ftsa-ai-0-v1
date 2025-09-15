@@ -4,7 +4,6 @@ import { fetchTicketCategories, createTicket } from "../api/supportApi";
 import "../styles/TicketModal.css";
 
 const HelpModal = ({ onClose, type, user }) => {
-  // --- Local state for form fields ---
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [email, setEmail] = useState(user?.email || "");
   const [category, setCategory] = useState("");
@@ -16,7 +15,7 @@ const HelpModal = ({ onClose, type, user }) => {
 
   const modalRef = useRef(null);
 
-  // --- Generate ticket number ---
+  // --- Generate unique ticket number ---
   const generateTicketNumber = (type) => {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, "0");
@@ -40,11 +39,11 @@ const HelpModal = ({ onClose, type, user }) => {
     return `#${serial}-${typeCode}-${day}/${month}/${year}`;
   };
 
-  // --- Fetch categories & initialize ticket number ---
+  // --- Fetch categories dynamically from Admin panel & initialize ticket ---
   useEffect(() => {
     const initializeModal = async () => {
       try {
-        const data = await fetchTicketCategories();
+        const data = await fetchTicketCategories(); // expects nested topics structure
         setCategories(data);
         setTicketNumber(generateTicketNumber(type));
       } catch (err) {
@@ -56,9 +55,7 @@ const HelpModal = ({ onClose, type, user }) => {
 
   // --- Close modal on ESC key ---
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handleEsc = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
@@ -92,7 +89,7 @@ const HelpModal = ({ onClose, type, user }) => {
     return () => modalRef.current.removeEventListener("keydown", handleTab);
   }, []);
 
-  // --- Handle form submit ---
+  // --- Handle form submission ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!category || !message) return;
@@ -126,6 +123,26 @@ const HelpModal = ({ onClose, type, user }) => {
     }
   };
 
+  // Recursive function to render nested categories for <select>
+const renderOptions = (items, prefix = "") => {
+  return items.flatMap((item) => {
+    const label = prefix ? `${prefix} → ${item.name}` : item.name;
+    const option = (
+      <option key={item._id || item.id || label} value={label}>
+        {label}
+      </option>
+    );
+
+    // If there are sub-options, recursively render them
+    if (item.subOptions && item.subOptions.length > 0) {
+      return [option, ...renderOptions(item.subOptions, label)];
+    }
+
+    return option;
+  });
+};
+
+
   return (
     <div className="ticket-modal-overlay">
       <div
@@ -148,6 +165,7 @@ const HelpModal = ({ onClose, type, user }) => {
         {sendSuccess === false && (
           <p className="ticket-error">Failed to submit ticket. Please try again.</p>
         )}
+
 
         {!sendSuccess && (
           <form onSubmit={handleSubmit} className="ticket-form">
@@ -173,6 +191,7 @@ const HelpModal = ({ onClose, type, user }) => {
               />
             </label>
 
+            {/* --- DYNAMIC NESTED CATEGORY SELECT --- */}
             <label>
               Category
               <select
@@ -182,11 +201,7 @@ const HelpModal = ({ onClose, type, user }) => {
                 className="ticket-input"
               >
                 <option value="">Select category</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
+                {renderOptions(categories)}
               </select>
             </label>
 
