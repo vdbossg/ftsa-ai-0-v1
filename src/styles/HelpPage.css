@@ -24,20 +24,20 @@
 }
 
 /* 3️⃣ Section Cards */
+/* 3️⃣ Section Cards (Refined - Sleek, Pro look) */
 .help-section {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid var(--help-accent);
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--help-accent);
+  border-radius: 0; /* sharp corners */
   padding: 25px;
   margin-bottom: 25px;
-  box-shadow: 0 0 12px var(--help-accent);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 6px var(--help-accent); /* toned-down glow */
 }
 
 .help-section:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 18px var(--help-accent), 0 0 30px var(--help-accent);
+  box-shadow: 0 0 10px var(--help-accent); /* subtle hover glow */
 }
+
 
 /* 4️⃣ Titles & Headings */
 .help-title {
@@ -126,14 +126,15 @@
 .faq-search-input {
   width: 100%;
   padding: 10px;
-  border: 2px solid var(--help-accent);
-  border-radius: 8px;
+  border: 1px solid var(--help-accent);
+  border-radius: 0; /* sharp */
   background: transparent;
   color: var(--text-white);
   font-family: 'Orbitron', sans-serif;
-  box-shadow: 0 0 8px var(--help-accent);
+  box-shadow: 0 0 4px var(--help-accent);
   margin-bottom: 15px;
 }
+
 
 .faq-search-input::placeholder {
   color: var(--help-accent);
