@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
-import Modal from "../components/Modal";
-import { fetchFAQs, fetchSupportChannels, createTicket } from "../api/supportApi";
+import { fetchFAQs, fetchSupportChannels } from "../api/supportApi";
 import FAQItem from "../components/FAQItem";
 import ContactSection from "../components/ContactSection";
 import HelpModal from "../components/HelpModal";
@@ -13,13 +12,11 @@ import "../styles/HelpPage.css";
 const HelpPage = () => {
   const { isAuthenticated, user } = useContext(AuthContext);
 
-  // State
   const [loading, setLoading] = useState(true);
   const [faqs, setFaqs] = useState([]);
   const [filteredFaqs, setFilteredFaqs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
-  
   const [contactInfo, setContactInfo] = useState({ email: "", phone: [], whatsapp: "" });
 
   // Fetch FAQs and contact info
@@ -44,7 +41,7 @@ const HelpPage = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!searchTerm) setFilteredFaqs(faqs);
-      else
+      else {
         setFilteredFaqs(
           faqs.filter(
             (faq) =>
@@ -52,33 +49,37 @@ const HelpPage = () => {
               faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
           )
         );
-    }, 300); // 300ms debounce
+      }
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm, faqs]);
 
-  
-
   const openTicketModal = () => {
-  if (!isAuthenticated) return (window.location.href = "/login");
-  setTicketModalOpen(true);
-};
+    if (!isAuthenticated) return (window.location.href = "/login");
+    setTicketModalOpen(true);
+  };
 
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="help-page">
+    <div className="help-container">
       {/* Header */}
-      <header className="help-header">
-        <h1>FTSA AI</h1>
-        <h2>Need Help?</h2>
+      <header className="help-section">
+        <h1 className="help-title">FTSA AI</h1>
+        <h2 className="help-subtitle">Need Help?</h2>
       </header>
 
       {/* Quick Links */}
-      <QuickLinks links={[{ title: "FAQ", href: "#faq" }, { title: "Contact Support", href: "#contact-support" }]} />
+      <QuickLinks
+        links={[
+          { title: "FAQ", href: "#faq" },
+          { title: "Contact Support", href: "#contact-support" },
+        ]}
+      />
 
       {/* FAQ Section */}
-      <section id="faq" className="faq-section">
-        <h3>Frequently Asked Questions</h3>
+      <section id="faq" className="help-section">
+        <h3 className="help-title">Frequently Asked Questions</h3>
         <input
           type="search"
           placeholder="Search FAQs..."
@@ -89,14 +90,19 @@ const HelpPage = () => {
         {filteredFaqs.length === 0 ? (
           <p className="no-faq">No FAQs found.</p>
         ) : (
-          filteredFaqs.map((faq) => <FAQItem key={faq._id || faq.id} question={faq.question} answer={faq.answer} />)
+          filteredFaqs.map((faq) => (
+            <FAQItem
+              key={faq._id || faq.id}
+              question={faq.question}
+              answer={faq.answer}
+            />
+          ))
         )}
       </section>
 
-
-
       {/* Contact Section */}
-      <section id="contact-support" className="contact-section">
+      <section id="contact-support" className="help-section">
+        <h3 className="help-subtitle">Contact Support</h3>
         <ContactSection
           contactInfo={contactInfo}
           onOpenTicket={openTicketModal}
@@ -105,18 +111,17 @@ const HelpPage = () => {
       </section>
 
       {/* Ticket Modal */}
-     {ticketModalOpen && (
-  <HelpModal
-    type="SMS"
-    user={user}
-    onClose={() => setTicketModalOpen(false)}
-  
-     />
+      {ticketModalOpen && (
+        <HelpModal
+          type="SMS"
+          user={user}
+          onClose={() => setTicketModalOpen(false)}
+        />
       )}
 
       {/* Footer */}
-      <footer className="help-footer">
-        <p>FTSA AI © 2025</p>
+      <footer className="help-section">
+        <p className="help-subtitle">FTSA AI © 2025</p>
       </footer>
     </div>
   );

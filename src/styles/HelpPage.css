@@ -121,3 +121,38 @@
     transform: rotate(360deg);
   }
 }
+
+/* 8️⃣ FAQ Search */
+.faq-search-input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid var(--help-accent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-white);
+  font-family: 'Orbitron', sans-serif;
+  box-shadow: 0 0 8px var(--help-accent);
+  margin-bottom: 15px;
+}
+
+.faq-search-input::placeholder {
+  color: var(--help-accent);
+  opacity: 0.8;
+}
+
+/* 9️⃣ No FAQ */
+.no-faq {
+  text-align: center;
+  color: var(--neon-orange);
+  margin-top: 15px;
+  text-shadow: 0 0 5px var(--neon-orange);
+}
+
+/* 🔟 Footer */
+.help-footer {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 0.9rem;
+  color: var(--help-accent);
+  text-shadow: 0 0 6px var(--help-accent);
+}
