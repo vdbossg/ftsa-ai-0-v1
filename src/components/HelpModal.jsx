@@ -4,55 +4,55 @@ import { fetchTicketCategories, createTicket } from "../api/supportApi";
 import "../styles/TicketModal.css";
 
 const HelpModal = ({ onClose, type, user }) => {
-  const [ticketNumber, setTicketNumber] = useState("");
+  // --- Local state for form fields ---
+  const [fullName, setFullName] = useState(user?.fullName || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
+  const [ticketNumber, setTicketNumber] = useState("");
   const [sending, setSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(null);
   const [categories, setCategories] = useState([]);
 
   const modalRef = useRef(null);
 
-  // --- Ticket Number Generator ---
+  // --- Generate ticket number ---
   const generateTicketNumber = (type) => {
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, "0");
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const year = now.getFullYear();
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, "0");
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const year = now.getFullYear();
 
-  const typeLower = type.toLowerCase();
-  const typeCode =
-  typeLower === "email"
-    ? "Emailftsa-help"
-    : typeLower === "sms"
-    ? "SMSftsa-help"
-    : typeLower === "whatsapp"
-    ? "WhatsAppftsa-help"
-    : "Otherftsa-help";
+    const typeLower = type.toLowerCase();
+    const typeCode =
+      typeLower === "email"
+        ? "Emailftsa-help"
+        : typeLower === "sms"
+        ? "SMSftsa-help"
+        : typeLower === "whatsapp"
+        ? "WhatsAppftsa-help"
+        : "Otherftsa-help";
 
+    const serial = `${Math.floor(Math.random() * 900 + 100)}${String.fromCharCode(
+      65 + Math.floor(Math.random() * 26)
+    )}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${now.getMilliseconds()}`;
 
-  // Add milliseconds for extra uniqueness
-  const serial = `${Math.floor(Math.random() * 900 + 100)}${String.fromCharCode(
-    65 + Math.floor(Math.random() * 26)
-  )}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${now.getMilliseconds()}`;
-
-  return `#${serial}-${typeCode}-${day}/${month}/${year}`;
-};
-
-
-  // --- Fetch Categories ---
-  useEffect(() => {
-  const initializeModal = async () => {
-    try {
-      const data = await fetchTicketCategories();
-      setCategories(data);
-      setTicketNumber(generateTicketNumber(type)); // moved here
-    } catch (err) {
-      console.error("Failed to fetch categories", err);
-    }
+    return `#${serial}-${typeCode}-${day}/${month}/${year}`;
   };
-  initializeModal();
-}, [type]);
+
+  // --- Fetch categories & initialize ticket number ---
+  useEffect(() => {
+    const initializeModal = async () => {
+      try {
+        const data = await fetchTicketCategories();
+        setCategories(data);
+        setTicketNumber(generateTicketNumber(type));
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    initializeModal();
+  }, [type]);
 
   // --- Close modal on ESC key ---
   useEffect(() => {
@@ -92,7 +92,7 @@ const HelpModal = ({ onClose, type, user }) => {
     return () => modalRef.current.removeEventListener("keydown", handleTab);
   }, []);
 
-  // --- Handle Form Submit ---
+  // --- Handle form submit ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!category || !message) return;
@@ -100,7 +100,6 @@ const HelpModal = ({ onClose, type, user }) => {
     setSending(true);
     setSendSuccess(null);
 
-    // Generate a new unique ticket number for each submission
     const newTicketNumber = generateTicketNumber(type);
     setTicketNumber(newTicketNumber);
 
@@ -109,11 +108,12 @@ const HelpModal = ({ onClose, type, user }) => {
         ticketNumber: newTicketNumber,
         userId: user?.id,
         type,
+        fullName,
+        email,
         category,
         message,
       });
 
-      // Backend may override ticket number
       setTicketNumber(ticket.number || newTicketNumber);
       setSendSuccess(true);
       setMessage("");
@@ -153,12 +153,24 @@ const HelpModal = ({ onClose, type, user }) => {
           <form onSubmit={handleSubmit} className="ticket-form">
             <label>
               Full Name
-              <input type="text" value={user?.fullName || ""} disabled className="ticket-input" />
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="ticket-input"
+                required
+              />
             </label>
 
             <label>
               Email
-              <input type="email" value={user?.email || ""} disabled className="ticket-input" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="ticket-input"
+                required
+              />
             </label>
 
             <label>
