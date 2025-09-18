@@ -568,7 +568,7 @@ async toggleAutoTrade(start) {
  */
 async fetchMarketStrength() {
   try {
-    const response = await fetch(`${BASE_URL}/api/strength`, {
+    const response = await fetch(`${BASE_URL}/strength`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
     });
     if (!response.ok) return { success: false, data: [] };
@@ -579,7 +579,6 @@ async fetchMarketStrength() {
     return { success: false, data: [] };
   }
 },
-
 
 /**
  * Fetch the strongest Forex pair
