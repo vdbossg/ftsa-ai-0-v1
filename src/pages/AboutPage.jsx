@@ -17,10 +17,27 @@ const AboutPage = () => {
     async function fetchAboutData() {
       try {
         setLoading(true);
-        const response = await fetch("/api/admin/about"); // your admin panel endpoint
-        if (!response.ok) throw new Error("Failed to fetch about data.");
-        const data = await response.json();
-        setAboutData(data);
+       const response = await fetch(
+  `${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`
+);
+
+
+let data;
+try {
+  data = await response.json();
+} catch (err) {
+  // If JSON parsing fails, log the actual text
+  const text = await response.text();
+  console.error("Expected JSON but got:", text);
+  throw new Error("Failed to parse about data");
+}
+
+if (!response.ok) {
+  throw new Error("Failed to fetch about data.");
+}
+
+setAboutData(data);
+
       } catch (err) {
         setError(err.message);
         console.error(err);
@@ -34,15 +51,15 @@ const AboutPage = () => {
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="error-msg neon-glow-border">{error}</div>;
 
-  const {
-    keyFeatures,
-    whyExist,
-    poweredBy,
-    offices,
-    team,
-    roadmap,
-    criticalNotices,
-  } = aboutData || {};
+ const { 
+  keyFeatures, 
+  whyExist, 
+  poweredBy, 
+  offices, 
+  team, 
+  roadmap, 
+  criticalNotices, 
+} = aboutData || {};
 
   return (
     <div

@@ -23,7 +23,7 @@ const { setWebSocketServer: brainWS, updateBrainData } = require('./services/bra
 const faqsRoute = require("./routes/faqs");
 const supportChannelsRoute = require("./routes/supportChannels");
 const chochService = require('./services/chochService');
-
+const aboutRoutes = require("./routes/aboutRoutes");
 
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -84,7 +84,7 @@ console.log('✅ /api/mpesa routes mounted');
 app.use("/api/support", supportRoutes);
 app.use("/api/faqs", faqsRoute); // Frontend fetchFAQs() → /api/faqs
 app.use("/api/support/channels", supportChannelsRoute);
-
+app.use("/api/admin/about", aboutRoutes);
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
 app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
 app.use('/api/brain/strength', strengthRoutes);   // GET /api/brain/strength
