@@ -19,9 +19,10 @@ const AboutPage = () => {
         setLoading(true);
 const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`);
 
+
 // read the response once as text
 const text = await response.text(); 
-
+console.log("Response body:", text); // check if it's HTML or JSON
 let data;
 try {
   data = JSON.parse(text); // try to convert text to JSON

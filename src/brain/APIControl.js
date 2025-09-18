@@ -169,12 +169,12 @@ async fetchPropFirmAccountsData() {
  */
 async fetchMarketStrength() {
   try {
-    const response = await fetch(`${BASE_URL}/strength`, {
+    const response = await fetch(`${BASE_URL}/api/brain/strength`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
     });
     if (!response.ok) return { success: false, data: [] };
     const data = await response.json();
-    return { success: true, data };
+    return data.success ? { success: true, data: data.data } : { success: false, data: [] };
   } catch (err) {
     console.error("Error fetching market strength:", err);
     return { success: false, data: [] };
@@ -568,7 +568,7 @@ async toggleAutoTrade(start) {
  */
 async fetchMarketStrength() {
   try {
-    const response = await fetch(`${BASE_URL}/strength`, {
+    const response = await fetch(`${BASE_URL}/api/brain/strength`, { // ✅ correct path
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
     });
     if (!response.ok) return { success: false, data: [] };
