@@ -17,18 +17,16 @@ const AboutPage = () => {
     async function fetchAboutData() {
       try {
         setLoading(true);
-       const response = await fetch(
-  `${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`
-);
+const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`);
 
+// read the response once as text
+const text = await response.text(); 
 
 let data;
 try {
-  data = await response.json();
+  data = JSON.parse(text); // try to convert text to JSON
 } catch (err) {
-  // If JSON parsing fails, log the actual text
-  const text = await response.text();
-  console.error("Expected JSON but got:", text);
+  console.error("Expected JSON but got:", text); // if it's HTML or something else, log it
   throw new Error("Failed to parse about data");
 }
 
@@ -37,6 +35,7 @@ if (!response.ok) {
 }
 
 setAboutData(data);
+
 
       } catch (err) {
         setError(err.message);
