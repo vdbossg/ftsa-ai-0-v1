@@ -1,12 +1,11 @@
+//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\server\routes\aboutRoutes.js
 const express = require("express");
 const router = express.Router();
 const About = require("../models/About");
 const { body, validationResult } = require("express-validator");
-const { verifyAdmin } = require("../middleware/auth"); // middleware to protect admin routes
+const { verifyAdmin } = require("../middleware/auth");
 
-// --------------------
-// GET about data (for user app)
-// --------------------
+// GET about data
 router.get("/", async (req, res) => {
   try {
     const about = await About.findOne();
@@ -27,11 +26,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-// --------------------
-// POST create about (admin only)
-// --------------------
+// POST create about (admin)
 router.post(
-  "/about",
+  "/",
   verifyAdmin,
   [
     body("criticalNotices").isArray().optional(),
@@ -56,11 +53,9 @@ router.post(
   }
 );
 
-// --------------------
-// PUT update about (admin only)
-// --------------------
+// PUT update about (admin)
 router.put(
-  "/about/:id",
+  "/:id",
   verifyAdmin,
   [
     body("criticalNotices").isArray().optional(),
@@ -85,10 +80,8 @@ router.put(
   }
 );
 
-// --------------------
-// DELETE about (admin only)
-// --------------------
-router.delete("/about/:id", verifyAdmin, async (req, res) => {
+// DELETE about (admin)
+router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
     const deleted = await About.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "About not found" });

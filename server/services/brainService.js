@@ -271,7 +271,7 @@ function broadcastBrainData(type, payload) {
 // -------------------- Core brain logic --------------------
 function determineTopPairFromList(marketStrengthList) {
   if (!marketStrengthList || marketStrengthList.length === 0) return null;
-  return marketStrengthList.reduce((top, p) => (p.strength > (top?.strength || 0) ? p : top), null)?.pair || null;
+  return marketStrengthList.reduce((top, p) => (p.strength > (top?.strength || 0) ? p : top), null)?.symbol || null;
 }
 
 /**
@@ -322,11 +322,12 @@ async function updateBrainData() {
                     combinedStrength >= COLOR_ORANGE ? "🟧" : "🟥";
 
       marketStrength.push({
-        pair,
-        strength: combinedStrength,
-        trend: trendText,
-        color
-      });
+  symbol: pair,
+  strength: combinedStrength,
+  bias: trendText,
+  signal: color
+});
+
 
       // ---------------- Persist CHoCH ----------------
       if (ltf.valid) {
@@ -347,16 +348,18 @@ async function updateBrainData() {
 
   let cleanPair = null;
   for (const p of marketStrength) {
-    const ltf = chochData[p.pair];
-    if (
-      ltf &&
-      ltf.valid &&
-      ((p.trend === "Bullish" && ltf.side === "BUY") || (p.trend === "Bearish" && ltf.side === "SELL")) &&
-      p.strength >= STRONG_PAIR_THRESHOLD
-    ) {
-      cleanPair = p.pair;
-      break;
-    }
+    const ltf = chochData[p.symbol];
+
+if (
+  ltf &&
+  ltf.valid &&
+  ((p.bias === "Bullish" && ltf.side === "BUY") || (p.bias === "Bearish" && ltf.side === "SELL")) &&
+  p.strength >= STRONG_PAIR_THRESHOLD
+) {
+  cleanPair = p.symbol;
+  break;
+}
+
   }
 
   // ---------------- Broadcast ----------------
@@ -449,11 +452,11 @@ async function getStrongestPair(minStrength = 80) {
 
   // Filter only strong pairs (≥ minStrength) and aligned LTF CHoCH
   const strongPairs = marketStrength.filter(p => {
-    const choch = chochData[p.pair];
-    if (!choch || !choch.valid) return false;
-    // alignment: HTF trend vs LTF CHoCH
-    const aligned = (p.trend === "Bullish" && choch.side === "BUY") ||
-                (p.trend === "Bearish" && choch.side === "SELL");
+    const choch = chochData[p.symbol];
+if (!choch || !choch.valid) return false;
+const aligned = (p.bias === "Bullish" && choch.side === "BUY") ||
+                (p.bias === "Bearish" && choch.side === "SELL");
+
 return p.strength >= minStrength && aligned && (choch.magnitudePct || 0) >= CHOCH_MAG_PCT;
 
 
@@ -463,7 +466,13 @@ return p.strength >= minStrength && aligned && (choch.magnitudePct || 0) >= CHOC
 
   // Pick the strongest one
   strongPairs.sort((a, b) => b.strength - a.strength);
-  return strongPairs[0]; // { pair, strength, trend, color }
+  return {
+  symbol: strongPairs[0].symbol,
+  strength: strongPairs[0].strength,
+  bias: strongPairs[0].bias,
+  signal: strongPairs[0].signal
+};
+ // { pair, strength, trend, color }
 }
 
 
@@ -476,6 +485,9 @@ module.exports = {
   setWebSocketServer,
   updateBrainData,
   startBrainLoop,
-  getStrongestPair
+  getStrongestPair,
+  candlesStore,
+  detectLTFChochFromCandles
 };
+
 

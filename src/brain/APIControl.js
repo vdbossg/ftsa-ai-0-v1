@@ -167,6 +167,9 @@ async fetchPropFirmAccountsData() {
 /**
  * Fetch current currency strength from backend
  */
+/**
+ * Fetch all Forex pair strengths
+ */
 async fetchMarketStrength() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/strength`, {
@@ -186,7 +189,7 @@ async fetchMarketStrength() {
  */
 async fetchChochData() {
   try {
-    const response = await fetch(`${BASE_URL}/choch`, {
+    const response = await fetch(`${BASE_URL}/api/brain/choch`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
     });
     if (!response.ok) return { success: false, data: {} };
@@ -371,22 +374,21 @@ async refreshBinance(token) {
   },
 
   /**
-   * Fetch strongest currency pair from backend
-   */
-  async fetchStrongestPair() {
-    try {
-      const response = await fetch(`${BASE_URL}/strongest-pair`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
-      });
+ * Fetch the strongest Forex pair
+ */
+async fetchStrongestPair() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/brain/strongest`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+    });
+    if (!response.ok) return { success: false, data: null };
+    const data = await response.json();
+    return data.success ? { success: true, data: data.data } : { success: false, data: null };
+  } catch (err) {
+    console.error("Error fetching strongest pair:", err);
+    return { success: false, data: null };
+  }
 
-      if (!response.ok) return { success: false, data: null };
-
-      const data = await response.json();
-      return { success: true, data };
-    } catch (err) {
-      console.error("Error fetching strongest pair:", err);
-      return { success: false, data: null };
-    }
   },
 
   /**
@@ -563,39 +565,7 @@ async toggleAutoTrade(start) {
     return { success: false, error: "Failed to toggle auto-trade" };
   }
 },
-/**
- * Fetch all Forex pair strengths
- */
-async fetchMarketStrength() {
-  try {
-    const response = await fetch(`${BASE_URL}/api/brain/strength`, { // ✅ correct path
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
-    });
-    if (!response.ok) return { success: false, data: [] };
-    const data = await response.json();
-    return data.success ? { success: true, data: data.data } : { success: false, data: [] };
-  } catch (err) {
-    console.error("Error fetching market strength:", err);
-    return { success: false, data: [] };
-  }
-},
 
-/**
- * Fetch the strongest Forex pair
- */
-async fetchStrongestPair() {
-  try {
-    const response = await fetch(`${BASE_URL}/strength/strongest`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
-    });
-    if (!response.ok) return { success: false, data: null };
-    const data = await response.json();
-    return data.success ? { success: true, data: data.data } : { success: false, data: null };
-  } catch (err) {
-    console.error("Error fetching strongest pair:", err);
-    return { success: false, data: null };
-  }
-},
 
 };
 

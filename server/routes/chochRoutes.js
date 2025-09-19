@@ -1,20 +1,48 @@
 // server/routes/chochRoutes.js
 const express = require('express');
 const router = express.Router();
-const chochService = require('../services/chochService');
+const brainService = require('../services/brainService'); // live brainService
 
-// GET /api/choch?symbol=EURUSD
+const allPairs = [
+  "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+  "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
+  "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
+  "AUDJPY","AUDNZD","AUDCHF",
+  "CADJPY","CADCHF",
+  "CHFJPY","NZDJPY","NZDCHF"
+];
+
+// GET /choch?symbol=EURUSD
 router.get('/', async (req, res) => {
-  const symbol = req.query.symbol;
-  const choch = await chochService.getLTF(symbol); // <-- use getLTF
-  res.json(choch);
-});
+  const symbolQuery = req.query.symbol ? String(req.query.symbol).toUpperCase() : null;
 
-// POST /api/choch
-router.post('/', async (req, res) => {
-  const { symbol, side, valid } = req.body;
-  await chochService.storeLTF(symbol, side, valid); // <-- use storeLTF
-  res.json({ ok: true });
+  try {
+    const results = [];
+
+    for (const pair of allPairs) {
+      if (symbolQuery && pair !== symbolQuery) continue;
+
+      const candles = brainService.candlesStore[pair]?.[900]; // 15m
+      if (!candles || candles.length < 6) {
+        // No candles yet, return placeholder
+        results.push({ symbol: pair, side: null, valid: false });
+        continue;
+      }
+
+      const ltf = brainService.detectLTFChochFromCandles(candles, 5);
+
+      results.push({
+        symbol: pair,
+        side: ltf.side,          // "BUY" or "SELL" or null
+        valid: !!ltf.valid       // true/false
+      });
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error("❌ CHoCH route error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

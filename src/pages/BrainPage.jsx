@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useBrainData } from "../contexts/BrainDataContext";
 import NeonButton from "../components/NeonButton";
 import APIControl from "../brain/APIControl"; // for fetching brain data, market strength, CHoCH
+import { useRef } from "react"; // at top of file
 
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
@@ -18,6 +19,9 @@ export default function BrainPage() {
   dailyTP: 2,   // daily take profit %
   dailySL: 1,   // daily stop loss %
 });
+const tradeHistoryRef = useRef(tradeHistory);
+const marketStrengthRef = useRef(marketStrength);
+
 const saveSettings = async (newSettings) => {
   try {
     await APIControl.saveSettings(newSettings); // backend endpoint
@@ -35,13 +39,15 @@ const loadBrainData = async () => {
     const strengthJson = strengthResp.data;
 
     setMarketStrength(
-      strengthJson.map((p) => ({
-        pair: p.symbol,
-        strength: p.percent,
-        trend: p.percent >= 50 ? "Bullish" : "Bearish",
-        color: p.color,
-      }))
-    );
+  strengthJson.map((p) => ({
+    pair: p.symbol,
+    strength: p.strength,
+    trend: p.bias?.toLowerCase() === "bullish" ? "Bullish" : "Bearish", // normalized
+    color: p.signal || "neutral",
+  }))
+);
+
+
 
     // Fetch CHoCH direction
     const chochResp = await APIControl.fetchChochData();
@@ -56,6 +62,8 @@ const loadBrainData = async () => {
     setLoading(false);
   }
 };
+useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
+useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
 
 useEffect(() => {
   let ws;
@@ -67,7 +75,17 @@ useEffect(() => {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "MARKET_STRENGTH") setMarketStrength(data.payload);
+      if (data.type === "MARKET_STRENGTH") {
+  setMarketStrength(
+    data.payload.map(p => ({
+      pair: p.symbol,
+      strength: p.strength,
+      trend: p.bias?.toLowerCase() === "bullish" ? "Bullish" : "Bearish",
+      color: p.signal || "neutral",
+    }))
+  );
+}
+
       if (data.type === "CHOCH_DATA") setChochData(data.payload);
       if (data.type === "TOP_PAIR") setTopPair(data.payload);
     };
@@ -99,11 +117,12 @@ useEffect(() => {
       if (resp.success && resp.data?.tradingSettings) {
         const s = resp.data.tradingSettings;
         setSettings({
-          pairs: s.pairs || [],
-          risk: s.risk || 1,
-          dailyTP: s.dailyTarget || 2,
-          dailySL: s.dailyStopLoss || 1,
-        });
+  pairs: s.pairs || [],
+  risk: s.risk ?? 1,
+  dailyTP: s.dailyTP ?? s.dailyTarget ?? 2,
+  dailySL: s.dailySL ?? s.dailyStopLoss ?? 1,
+});
+
       }
 
       // Load initial brain data once
@@ -129,40 +148,30 @@ const allPairs = [
 
 
 useEffect(() => {
-  if (autoTradeStatus && topPair) {
-    // Check if a trade has already happened today
-    const today = new Date().toISOString().split("T")[0];
-    const alreadyTraded = tradeHistory.some(
-      (t) => t.date === today
-    );
+  if (!autoTradeStatus || !topPair) return;
 
-    if (!alreadyTraded) {
-      // send topPair + current settings to backend for trade execution
-      APIControl.executeTrade({
-        pair: topPair,
-        risk: settings.risk,
-        dailyTP: settings.dailyTP,
-        dailySL: settings.dailySL,
-      }).then(() => {
-        
-        // Add this trade to tradeHistory
-        const now = new Date();
-        setTradeHistory((prev) => [
-          {
-            time: now.toLocaleTimeString(),
-            date: now.toISOString().split("T")[0],
-            pair: topPair,
-            strength: marketStrength.find((p) => p.pair === topPair)?.strength || 0,
-            trend: marketStrength.find((p) => p.pair === topPair)?.trend || "-",
-            tradeActivated: true,
-          },
-          ...prev
-        ]);
-      }).catch((err) => console.error("Trade execution failed", err));
-    }
-  }
-}, [autoTradeStatus, topPair, settings, marketStrength, tradeHistory]);
+  const today = new Date().toISOString().split("T")[0];
+  const alreadyTraded = tradeHistoryRef.current.some(t => t.date === today);
+  if (alreadyTraded) return;
 
+  APIControl.executeTrade({
+    pair: topPair,
+    risk: settings.risk,
+    dailyTP: settings.dailyTP,
+    dailySL: settings.dailySL,
+  }).then(() => {
+    const now = new Date();
+    const tradeData = {
+      time: now.toLocaleTimeString(),
+      date: today,
+      pair: topPair,
+      strength: marketStrengthRef.current.find(p => p.pair === topPair)?.strength || 0,
+      trend: marketStrengthRef.current.find(p => p.pair === topPair)?.trend || "-",
+      tradeActivated: true,
+    };
+    setTradeHistory(prev => [tradeData, ...prev]);
+  }).catch(err => console.error("Trade execution failed", err));
+}, [autoTradeStatus, topPair, settings]);
 
   return (
     <div
@@ -302,7 +311,7 @@ useEffect(() => {
   }}
 >
   <td>{symbol}</td>
-  <td>{data.side || "-"}</td>
+  <td>{data.side ? data.side.charAt(0).toUpperCase() + data.side.slice(1) : "-"}</td>
   <td>{data.valid ? "✅" : "❌"}</td>
 </tr>
 
@@ -428,10 +437,11 @@ useEffect(() => {
       </tr>
     </thead>
     <tbody>
-      {marketStrength
-        .sort((a, b) => b.strength - a.strength)
-        .slice(0, 3)
-        .map((row, idx) => (
+      {[...marketStrength]
+  .sort((a, b) => b.strength - a.strength)
+  .slice(0, 3)
+  .map((row, idx) => (
+
           <tr
             key={idx}
             style={{

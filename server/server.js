@@ -84,15 +84,16 @@ console.log('✅ /api/mpesa routes mounted');
 app.use("/api/support", supportRoutes);
 app.use("/api/faqs", faqsRoute); // Frontend fetchFAQs() → /api/faqs
 app.use("/api/support/channels", supportChannelsRoute);
+app.use("/api/about", aboutRoutes);
 app.use("/api/admin/about", aboutRoutes);
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
 app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
-app.use('/api/brain/strength', strengthRoutes);   // GET /api/brain/strength
+app.use('/api/brain/strength', strengthRoutes);   
 
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/bias', require('./routes/biasRoutes'));
-app.use('/api/choch', require('./routes/chochRoutes'));
+app.use('/choch', require('./routes/chochRoutes'));
 app.use('/api/equity', require('./routes/equityRoutes'));
 // FTSA AI Brain Main Routes
 app.use('/api/brain', require('./routes/brainRoutes'));
