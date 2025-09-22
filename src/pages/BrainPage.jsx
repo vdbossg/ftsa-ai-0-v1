@@ -54,7 +54,10 @@ const loadBrainData = async () => {
     if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
     const chochJson = chochResp.data;
 
-    setChochData(chochJson); // keep full array from backend
+    setChochData(
+  Array.isArray(chochJson) ? chochJson : []
+);
+
   } catch (err) {
     setError("Failed to load brain data");
     console.error(err);
@@ -86,7 +89,10 @@ useEffect(() => {
   );
 }
 
-      if (data.type === "CHOCH_DATA") setChochData(data.payload);
+      if (data.type === "CHOCH_DATA") {
+  setChochData(Array.isArray(data.payload) ? data.payload : []);
+}
+
       if (data.type === "TOP_PAIR") setTopPair(data.payload);
     };
 
