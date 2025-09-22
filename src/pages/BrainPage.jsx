@@ -333,9 +333,9 @@ useEffect(() => {
       }}
     >
       <td>{item.symbol}</td>
-      <td>{item.side || "-"}</td>
-      <td>{item.valid ? "✅" : "❌"}</td>
-    </tr>
+        <td>{item.side ? item.side : "-"}</td>
+        <td>{item.valid ? "✅" : "❌"}</td>
+      </tr>
   ))}
 </tbody>
         </table>
