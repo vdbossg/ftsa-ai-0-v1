@@ -50,18 +50,13 @@ const loadBrainData = async () => {
 
 
     // Fetch CHoCH direction
-    try {
-  const chochResp = await APIControl.fetchChochData();
-  if (chochResp.success && Array.isArray(chochResp.data)) {
-    setChochData(chochResp.data);
-  } else {
-    console.warn("CHoCH fetch returned invalid or forbidden data");
-    setChochData([]); // always set to empty array
-  }
-} catch (err) {
-  console.error("Failed to fetch CHoCH data", err);
-  setChochData([]); // fallback so table always renders
-}
+   const chochResp = await APIControl.fetchChochData();
+if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
+const chochJson = chochResp.data;
+
+setChochData(
+  Array.isArray(chochJson) ? chochJson : []
+);
 
 
   } catch (err) {
