@@ -50,13 +50,19 @@ const loadBrainData = async () => {
 
 
     // Fetch CHoCH direction
-    const chochResp = await APIControl.fetchChochData();
-    if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
-    const chochJson = chochResp.data;
+    try {
+  const chochResp = await APIControl.fetchChochData();
+  if (chochResp.success && Array.isArray(chochResp.data)) {
+    setChochData(chochResp.data);
+  } else {
+    console.warn("CHoCH fetch returned invalid or forbidden data");
+    setChochData([]); // always set to empty array
+  }
+} catch (err) {
+  console.error("Failed to fetch CHoCH data", err);
+  setChochData([]); // fallback so table always renders
+}
 
-    setChochData(
-  Array.isArray(chochJson) ? chochJson : []
-);
 
   } catch (err) {
     setError("Failed to load brain data");
@@ -90,8 +96,24 @@ useEffect(() => {
 }
 
     if (data.type === "CHOCH_DATA") {
-  setChochData(Array.isArray(data.payload) ? data.payload : []);
+  // Ensure chochData is always an array
+  const choch = Array.isArray(data.payload) ? data.payload : [];
+  // Fill missing pairs with default invalid values
+  const allPairsList = [
+    "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+    "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
+    "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
+    "AUDJPY","AUDNZD","AUDCHF",
+    "CADJPY","CADCHF",
+    "CHFJPY","NZDJPY","NZDCHF"
+  ];
+  const filledChoch = allPairsList.map(p => {
+    const found = choch.find(c => c.symbol === p);
+    return found || { symbol: p, side: null, valid: false };
+  });
+  setChochData(filledChoch);
 }
+
 
       if (data.type === "TOP_PAIR") setTopPair(data.payload);
     };
