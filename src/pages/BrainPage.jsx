@@ -90,8 +90,24 @@ useEffect(() => {
 }
 
       if (data.type === "CHOCH_DATA") {
-  setChochData(Array.isArray(data.payload) ? data.payload : []);
+  // Ensure chochData is always an array
+  const choch = Array.isArray(data.payload) ? data.payload : [];
+  // Fill missing pairs with default invalid values
+  const allPairsList = [
+    "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+    "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
+    "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
+    "AUDJPY","AUDNZD","AUDCHF",
+    "CADJPY","CADCHF",
+    "CHFJPY","NZDJPY","NZDCHF"
+  ];
+  const filledChoch = allPairsList.map(p => {
+    const found = choch.find(c => c.symbol === p);
+    return found || { symbol: p, side: null, valid: false };
+  });
+  setChochData(filledChoch);
 }
+
 
       if (data.type === "TOP_PAIR") setTopPair(data.payload);
     };
