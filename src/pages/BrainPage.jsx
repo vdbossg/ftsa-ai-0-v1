@@ -10,7 +10,7 @@ export default function BrainPage() {
   const [tradeHistory, setTradeHistory] = useState([]);
   const [topPair, setTopPair] = useState(null);
   const [marketStrength, setMarketStrength] = useState([]);
-  const [chochData, setChochData] = useState({});
+  const [chochData, setChochData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [settings, setSettings] = useState({
@@ -42,7 +42,7 @@ const loadBrainData = async () => {
   strengthJson.map((p) => ({
     pair: p.symbol,
     strength: p.strength,
-    trend: p.bias?.toLowerCase() === "bullish" ? "Bullish" : "Bearish", // normalized
+    trend: p.bias ? p.bias : "Unknown",
     color: p.signal || "neutral",
   }))
 );
@@ -54,7 +54,7 @@ const loadBrainData = async () => {
     if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
     const chochJson = chochResp.data;
 
-    setChochData(chochJson);
+    setChochData(chochJson); // keep full array from backend
   } catch (err) {
     setError("Failed to load brain data");
     console.error(err);
@@ -80,7 +80,7 @@ useEffect(() => {
     data.payload.map(p => ({
       pair: p.symbol,
       strength: p.strength,
-      trend: p.bias?.toLowerCase() === "bullish" ? "Bullish" : "Bearish",
+      trend: p.bias ? p.bias : "Unknown",
       color: p.signal || "neutral",
     }))
   );
@@ -301,26 +301,23 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-            {Object.keys(chochData).length > 0 ? (
-              Object.entries(chochData).map(([symbol, data], idx) => (
-                <tr
-  key={idx}
-  style={{
-    backgroundColor: symbol === topPair ? "#002255" : "transparent",
-    fontWeight: symbol === topPair ? "bold" : "normal",
-  }}
->
-  <td>{symbol}</td>
-  <td>{data.side ? data.side.charAt(0).toUpperCase() + data.side.slice(1) : "-"}</td>
-  <td>{data.valid ? "✅" : "❌"}</td>
-</tr>
-
-              ))
-            ) : (
-              <tr>
-                <td colSpan={3}>No CHoCH data</td>
-              </tr>
-            )}
+            {chochData.length > 0 ? (
+  chochData.map((item, idx) => (
+    <tr
+      key={idx}
+      style={{
+        backgroundColor: item.symbol === topPair ? "#002255" : "transparent",
+        fontWeight: item.symbol === topPair ? "bold" : "normal",
+      }}
+    >
+      <td>{item.symbol}</td>
+      <td>{item.side ? item.side : "-"}</td>
+<td>{item.valid ? "✅" : "❌"}</td>
+    </tr>
+  ))
+) : (
+  <tr><td colSpan={3}>No CHoCH data</td></tr>
+)}
           </tbody>
         </table>
       </section>

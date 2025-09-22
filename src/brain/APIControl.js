@@ -192,14 +192,16 @@ async fetchChochData() {
     const response = await fetch(`${BASE_URL}/api/brain/choch`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
     });
-    if (!response.ok) return { success: false, data: {} };
+    if (!response.ok) return { success: false, data: [] };
     const data = await response.json();
-    return { success: true, data };
+    // data is already the array from backend
+    return { success: true, data: Array.isArray(data) ? data : [] };
   } catch (err) {
     console.error("Error fetching CHoCH data:", err);
-    return { success: false, data: {} };
+    return { success: false, data: [] };
   }
 },
+
 
 /**
  * Fetch next command for MT account

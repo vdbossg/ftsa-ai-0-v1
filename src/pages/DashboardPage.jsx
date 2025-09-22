@@ -201,23 +201,24 @@ const DashboardPage = () => {
     </thead>
     <tbody>
       {dashboardData?.marketStrength?.length > 0 ? (
-        dashboardData.marketStrength.map(({ pair, strength, trend }, idx) => (
-          <tr key={idx} style={{
-            borderBottom: "1px solid #00FFFF",
-            backgroundColor: idx % 2 === 0 ? "#001111" : "#000000",
-          }}>
-            <td style={{ padding: "0.5rem" }}>{pair}</td>
-            <td style={{ padding: "0.5rem" }}>{strength}</td>
-            <td style={{ padding: "0.5rem", color: trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
-              {trend}
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan={3} style={{ textAlign: "center", padding: "1rem" }}>No market strength data.</td>
-        </tr>
-      )}
+  dashboardData.marketStrength.map(({ symbol, strength, bias }, idx) => (
+    <tr key={idx} style={{
+      borderBottom: "1px solid #00FFFF",
+      backgroundColor: idx % 2 === 0 ? "#001111" : "#000000",
+    }}>
+      <td style={{ padding: "0.5rem" }}>{symbol}</td> {/* changed pair → symbol */}
+      <td style={{ padding: "0.5rem" }}>{strength}</td>
+      <td style={{ padding: "0.5rem", color: bias === "Bullish" ? "#00FF00" : bias === "Bearish" ? "#FF0000" : "#AAAAAA" }}>
+        {bias || "Unknown"} {/* changed trend → bias and handle Unknown */}
+      </td>
+    </tr>
+  ))
+) : (
+  <tr>
+    <td colSpan={3} style={{ textAlign: "center", padding: "1rem" }}>No market strength data.</td>
+  </tr>
+)}
+
     </tbody>
   </table>
 </section>
