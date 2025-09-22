@@ -307,8 +307,7 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-            {chochData.length > 0 ? (
-  chochData.map((item, idx) => (
+  {chochData.map((item, idx) => (
     <tr
       key={idx}
       style={{
@@ -317,14 +316,11 @@ useEffect(() => {
       }}
     >
       <td>{item.symbol}</td>
-      <td>{item.side ? item.side : "-"}</td>
-<td>{item.valid ? "✅" : "❌"}</td>
+      <td>{item.side || "-"}</td>
+      <td>{item.valid ? "✅" : "❌"}</td>
     </tr>
-  ))
-) : (
-  <tr><td colSpan={3}>No CHoCH data</td></tr>
-)}
-          </tbody>
+  ))}
+</tbody>
         </table>
       </section>
 
