@@ -29,22 +29,27 @@ const impactColor = (impact) => {
 };
 
   useEffect(() => {
-    let isMounted = true;
-    if (!isAuthenticated) return;
+  let isMounted = true;
+  if (!isAuthenticated) return;
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    setError("No auth token available");
+    setLoading(false);
+    return;
+  }
 
-    
-    Promise.all([
-  APIControl.fetchUserInfo(),
-  fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
-  .then(res => res.json())
-  .then(json => json.success ? json.data : [])
-
-
-])
+  Promise.all([
+    APIControl.fetchUserInfo(),
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(json => json.success ? json.data : [])
+  ])
   .then(([userRes, newsRes]) => {
     if (!isMounted) return;
 
@@ -61,17 +66,32 @@ const impactColor = (impact) => {
       setError(err?.message || "Failed to load data");
       setLoading(false);
     }
-  }); 
+  });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated]);
+  return () => { isMounted = false; };
+}, [isAuthenticated]);
+
 
   
 useEffect(() => {
-  const interval = setInterval(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
+  if (!isAuthenticated) return;
+
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    console.error("No auth token available");
+    return; // stop fetch if token is missing
+  }
+
+  const fetchNews = () => {
+    const token = localStorage.getItem('authToken');
+if (!token) {
+  console.error("No auth token available");
+  return;
+}
+
+fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
   .then(res => res.json())
   .then(json => {
     if (json.success) {
@@ -80,10 +100,13 @@ useEffect(() => {
   })
 
       .catch(err => console.error("Failed to refresh news:", err));
-  }, 60 * 1000); // refresh every 1 minute
+  };
 
+  fetchNews(); // immediately fetch news
+  const interval = setInterval(fetchNews, 60 * 1000); // refresh every 1 min
   return () => clearInterval(interval);
-}, []);
+}, [isAuthenticated]);
+
 
   if (!isAuthenticated) {
     return (
