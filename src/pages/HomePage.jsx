@@ -6,11 +6,27 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
 
+
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+
+const impactColor = (impact) => {
+  switch (impact) {
+    case "🟨":
+      return "yellow";
+    case "🟧":
+      return "orange";
+    case "🟥":
+      return "red";
+    case "⬛":
+      return "gray";
+    default:
+      return "#00FFFF"; // fallback neon cyan
+  }
+};
 
   useEffect(() => {
     let isMounted = true;
@@ -23,8 +39,11 @@ const HomePage = () => {
     
     Promise.all([
   APIControl.fetchUserInfo(),
-  fetch("http://localhost:5000/api/news/today")
-.then(res => res.json())
+  fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
+  .then(res => res.json())
+  .then(json => json.success ? json.data : [])
+
+
 ])
   .then(([userRes, newsRes]) => {
     if (!isMounted) return;
@@ -48,6 +67,23 @@ const HomePage = () => {
       isMounted = false;
     };
   }, [isAuthenticated]);
+
+  
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
+  .then(res => res.json())
+  .then(json => {
+    if (json.success) {
+      setData(prev => ({ ...prev, marketNews: json.data || [] }));
+    }
+  })
+
+      .catch(err => console.error("Failed to refresh news:", err));
+  }, 60 * 1000); // refresh every 1 minute
+
+  return () => clearInterval(interval);
+}, []);
 
   if (!isAuthenticated) {
     return (
@@ -111,7 +147,8 @@ const HomePage = () => {
 <section style={styles.section}>
   <h2 style={styles.sectionTitle}>Global Market News</h2>
   <div style={styles.card}>
-    {data?.marketNews?.length ? (
+  {data?.marketNews?.length ? (
+    <div style={styles.newsTableWrapper}>
       <table style={styles.newsTable}>
         <thead>
           <tr>
@@ -123,11 +160,19 @@ const HomePage = () => {
         <tbody>
           {data.marketNews.map((news, idx) => (
             <tr key={idx}>
-              <td style={styles.newsTableThTd}>{news.date}</td>
+              <td style={styles.newsTableThTd}>{news.date?.replace("\n", " ") || "—"}</td>
               <td style={styles.newsTableThTd}>{news.time}</td>
               <td style={styles.newsTableThTd}>{news.currency}</td>
               <td style={styles.newsTableThTd}>{news.event}</td>
-              <td style={styles.newsTableThTd}>{news.impact}</td>
+              <td style={{ ...styles.newsTableThTd, color: impactColor(news.impact) }}>
+                {news.impact}{" "}
+                <span style={{ fontSize: "0.75rem", color: "#00FFFF" }}>
+                  {news.impact === "🟥" && "High"}
+                  {news.impact === "🟧" && "Medium"}
+                  {news.impact === "🟨" && "Low"}
+                  {news.impact === "⬛" && "Holiday"}
+                </span>
+              </td>
               <td style={styles.newsTableThTd}>{news.actual ?? "—"}</td>
               <td style={styles.newsTableThTd}>{news.previous ?? "—"}</td>
               <td style={styles.newsTableThTd}>{news.forecast ?? "—"}</td>
@@ -135,10 +180,13 @@ const HomePage = () => {
           ))}
         </tbody>
       </table>
-    ) : (
-      <p style={styles.newsItem}>No market news available</p>
-    )}
-  </div>
+    </div>   {/* ✅ closing wrapper added here */}
+  ) : (
+    <p style={styles.newsItem}>No market news available</p>
+  )}
+</div>
+
+    
 </section>
  <footer style={styles.footer}>
         <p style={styles.footerText}>
@@ -183,6 +231,14 @@ const styles = {
     padding: "1rem",
     boxShadow: "0 0 10px #00FFFF",
   },
+  newsTableWrapper: {
+  maxHeight: "400px",
+  overflowY: "auto",
+  border: "1px solid #00FFFF",
+  borderRadius: "6px",
+  marginTop: "1rem",
+},
+
   newsItem: {
     marginBottom: "0.5rem",
   },

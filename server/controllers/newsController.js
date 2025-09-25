@@ -1,11 +1,12 @@
+// server/controllers/newsController.js
 const newsService = require("../services/newsService");
 
 exports.getTodayNews = async (req, res) => {
   try {
-    const data = await newsService.getLatestEconomicEvents(); // updated
-    res.json(data);
-  } catch (error) {
-    console.error("❌ Error fetching news:", error);
-    res.status(500).json({ error: "Failed to fetch news" });
+    const data = await newsService.getLatestEconomicEvents();
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("Error fetching news:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch news" });
   }
 };
