@@ -28,35 +28,32 @@ const impactColor = (impact) => {
   }
 };
 
-  
   useEffect(() => {
-  let isMounted = true;
-  if (!isAuthenticated) return;
+    let isMounted = true;
+    if (!isAuthenticated) return;
 
-  const token = localStorage.getItem("token");
-  if (!token) {
-    setError("No auth token available");
-    setLoading(false);
-    return;
-  }
+    setLoading(true);
+    setError(null);
 
-  setLoading(true);
-  setError(null);
 
-  Promise.all([
-    APIControl.fetchUserInfo(),
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    }).then(res => res.json())
-      .then(json => json.success ? json.data : [])
-  ])
+    
+    Promise.all([
+  APIControl.fetchUserInfo(),
+  fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
+  .then(res => res.json())
+  .then(json => json.success ? json.data : [])
+
+
+])
   .then(([userRes, newsRes]) => {
     if (!isMounted) return;
-    setData({
-      ...(userRes.success ? userRes.data : {}),
-      marketNews: newsRes || []
-    });
-    if (!userRes.success) setError(userRes.error || "Failed to load user info");
+
+    if (userRes.success) {
+      const userData = { ...userRes.data, marketNews: newsRes || [] };
+      setData(userData);
+    } else {
+      setError(userRes.error || "Failed to load data");
+    }
     setLoading(false);
   })
   .catch(err => {
@@ -64,46 +61,29 @@ const impactColor = (impact) => {
       setError(err?.message || "Failed to load data");
       setLoading(false);
     }
-  });
+  }); 
 
-  return () => { isMounted = false; };
-}, [isAuthenticated]);
-
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
 
   
 useEffect(() => {
   const interval = setInterval(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No auth token, skipping news refresh");
-      return;
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
+  .then(res => res.json())
+  .then(json => {
+    if (json.success) {
+      setData(prev => ({ ...prev, marketNews: json.data || [] }));
     }
+  })
 
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-      .then(async res => {
-        if (!res.ok) {
-          console.error("Failed to fetch news:", res.status, res.statusText);
-          return [];
-        }
-        try {
-          const json = await res.json();
-          return json.success ? json.data : [];
-        } catch (err) {
-          console.error("Invalid JSON from news API", err);
-          return [];
-        }
-      })
-      .then(newsData => {
-        setData(prev => ({ ...prev, marketNews: newsData || [] }));
-      })
       .catch(err => console.error("Failed to refresh news:", err));
   }, 60 * 1000); // refresh every 1 minute
 
   return () => clearInterval(interval);
 }, []);
-
 
   if (!isAuthenticated) {
     return (
