@@ -28,41 +28,35 @@ const impactColor = (impact) => {
   }
 };
 
-  useEffect(() => {
-    let isMounted = true;
-    if (!isAuthenticated) return;
-
-    setLoading(true);
-    setError(null);
-
-
-    const token = localStorage.getItem("token");
-    Promise.all([
-  APIControl.fetchUserInfo(),
   
+  useEffect(() => {
+  let isMounted = true;
+  if (!isAuthenticated) return;
 
-fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
-  headers: { "Authorization": `Bearer ${token}` }
-})
-  .then(res => res.json())
-  .then(json => json.success ? json.data : [])
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setError("No auth token available");
+    setLoading(false);
+    return;
+  }
 
+  setLoading(true);
+  setError(null);
 
-
-])
+  Promise.all([
+    APIControl.fetchUserInfo(),
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    }).then(res => res.json())
+      .then(json => json.success ? json.data : [])
+  ])
   .then(([userRes, newsRes]) => {
     if (!isMounted) return;
-
-    const userData = {
-  ...(userRes.success ? userRes.data : {}), // safely include user data if available
-  marketNews: newsRes || []                 // always include news
-};
-setData(userData);
-
-if (!userRes.success) {
-  setError(userRes.error || "Failed to load user info");
-}
-
+    setData({
+      ...(userRes.success ? userRes.data : {}),
+      marketNews: newsRes || []
+    });
+    if (!userRes.success) setError(userRes.error || "Failed to load user info");
     setLoading(false);
   })
   .catch(err => {
@@ -70,12 +64,11 @@ if (!userRes.success) {
       setError(err?.message || "Failed to load data");
       setLoading(false);
     }
-  }); 
+  });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated]);
+  return () => { isMounted = false; };
+}, [isAuthenticated]);
+
 
   
 useEffect(() => {
