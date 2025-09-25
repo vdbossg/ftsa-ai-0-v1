@@ -48,12 +48,16 @@ const impactColor = (impact) => {
   .then(([userRes, newsRes]) => {
     if (!isMounted) return;
 
-    if (userRes.success) {
-      const userData = { ...userRes.data, marketNews: newsRes || [] };
-      setData(userData);
-    } else {
-      setError(userRes.error || "Failed to load data");
-    }
+    const userData = {
+  ...(userRes.success ? userRes.data : {}), // safely include user data if available
+  marketNews: newsRes || []                 // always include news
+};
+setData(userData);
+
+if (!userRes.success) {
+  setError(userRes.error || "Failed to load user info");
+}
+
     setLoading(false);
   })
   .catch(err => {
@@ -180,7 +184,7 @@ useEffect(() => {
           ))}
         </tbody>
       </table>
-    </div>   {/* ✅ closing wrapper added here */}
+    </div>   
   ) : (
     <p style={styles.newsItem}>No market news available</p>
   )}
