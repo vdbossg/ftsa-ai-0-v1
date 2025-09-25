@@ -76,7 +76,20 @@ if (!userRes.success) {
 useEffect(() => {
   const interval = setInterval(() => {
     fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
-  .then(res => res.json())
+  .then(async res => {
+    if (!res.ok) {
+      console.error("Failed to fetch news:", res.status, res.statusText);
+      return [];
+    }
+    try {
+      const json = await res.json();
+      return json.success ? json.data : [];
+    } catch (err) {
+      console.error("Invalid JSON from news API", err);
+      return [];
+    }
+  })
+
   .then(json => {
     if (json.success) {
       setData(prev => ({ ...prev, marketNews: json.data || [] }));
