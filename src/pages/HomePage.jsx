@@ -36,12 +36,17 @@ const impactColor = (impact) => {
     setError(null);
 
 
-    
+    const token = localStorage.getItem("token");
     Promise.all([
   APIControl.fetchUserInfo(),
-  fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
+  
+
+fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
+  headers: { "Authorization": `Bearer ${token}` }
+})
   .then(res => res.json())
   .then(json => json.success ? json.data : [])
+
 
 
 ])
