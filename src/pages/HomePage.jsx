@@ -75,32 +75,37 @@ if (!userRes.success) {
   
 useEffect(() => {
   const interval = setInterval(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`)
-  .then(async res => {
-    if (!res.ok) {
-      console.error("Failed to fetch news:", res.status, res.statusText);
-      return [];
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No auth token, skipping news refresh");
+      return;
     }
-    try {
-      const json = await res.json();
-      return json.success ? json.data : [];
-    } catch (err) {
-      console.error("Invalid JSON from news API", err);
-      return [];
-    }
-  })
 
-  .then(json => {
-    if (json.success) {
-      setData(prev => ({ ...prev, marketNews: json.data || [] }));
-    }
-  })
-
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+      .then(async res => {
+        if (!res.ok) {
+          console.error("Failed to fetch news:", res.status, res.statusText);
+          return [];
+        }
+        try {
+          const json = await res.json();
+          return json.success ? json.data : [];
+        } catch (err) {
+          console.error("Invalid JSON from news API", err);
+          return [];
+        }
+      })
+      .then(newsData => {
+        setData(prev => ({ ...prev, marketNews: newsData || [] }));
+      })
       .catch(err => console.error("Failed to refresh news:", err));
   }, 60 * 1000); // refresh every 1 minute
 
   return () => clearInterval(interval);
 }, []);
+
 
   if (!isAuthenticated) {
     return (
