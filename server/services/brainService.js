@@ -47,8 +47,7 @@ const MOMENTUM_SCALE_PCT = 1.0;
 
 // LTF CHoCH breakout magnitude required (in percent).
 // 0.08 => 0.08% (8 basis points). Raise if too noisy.
-const CHOCH_MAG_PCT = 0.05;
-
+const CHOCH_MAG_PCT = 0.06;
 
 // What we consider a "strong" HTF candidate before selecting it as TOP_PAIR
  const STRONG_PAIR_THRESHOLD = 80; // require ≥80 to be selected as daily trade
@@ -304,20 +303,14 @@ async function updateBrainData() {
 
       // ---------------- LTF CHoCH (15m) ----------------
       const ltfCandles = candlesStore[pair]?.[900];
-let ltf = { side: null, valid: false, magnitudePct: 0 };
+      const ltf = detectLTFChochFromCandles(ltfCandles, 5, CHOCH_MAG_PCT, htfDirection === "BULL" ? "Bullish" : htfDirection === "BEAR" ? "Bearish" : null);
+      // Ensure every pair is represented 1:1
+chochData[pair] = {
+  side: ltf && ltf.valid ? ltf.side : null,
+  valid: ltf?.valid || false,
+  magnitudePct: ltf?.magnitudePct || 0
+};
 
-if (!ltfCandles || ltfCandles.length < 7) {
-  console.warn(`⚠️ Not enough 15m candles for ${pair}:`, ltfCandles?.length);
-} else {
-  ltf = detectLTFChochFromCandles(
-    ltfCandles,
-    5,
-    CHOCH_MAG_PCT,
-    htfDirection === "BULL" ? "Bullish" : htfDirection === "BEAR" ? "Bearish" : null
-  );
-}
-
-chochData[pair] = { side: ltf.side, valid: ltf.valid, magnitudePct: ltf.magnitudePct };
 
 
       // ---------------- Combine strengths ----------------
