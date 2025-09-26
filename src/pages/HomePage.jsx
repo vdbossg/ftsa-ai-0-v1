@@ -6,114 +6,80 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
 
-
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
-const impactColor = (impact) => {
-  switch (impact) {
-    case "🟨":
-      return "yellow";
-    case "🟧":
-      return "orange";
-    case "🟥":
-      return "red";
-    case "⬛":
-      return "gray";
-    default:
-      return "#00FFFF"; // fallback neon cyan
-  }
-};
-
-  useEffect(() => {
-  let isMounted = true;
-  if (!isAuthenticated) return;
-
-  setLoading(true);
-  setError(null);
-
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    setError("No auth token available");
-    setLoading(false);
-    return;
-  }
-
-  Promise.all([
-    APIControl.fetchUserInfo(),
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.json())
-      .then(json => json.success ? json.data : [])
-  ])
-  .then(([userRes, newsRes]) => {
-    if (!isMounted) return;
-
-    if (userRes.success) {
-      const userData = { ...userRes.data, marketNews: newsRes || [] };
-      setData(userData);
-    } else {
-      setError(userRes.error || "Failed to load data");
+  const impactColor = (impact) => {
+    switch (impact) {
+      case "🟨":
+        return "yellow";
+      case "🟧":
+        return "orange";
+      case "🟥":
+        return "red";
+      case "⬛":
+        return "gray";
+      default:
+        return "#00FFFF"; // fallback neon cyan
     }
-    setLoading(false);
-  })
-  .catch(err => {
-    if (isMounted) {
-      setError(err?.message || "Failed to load data");
-      setLoading(false);
-    }
-  });
-
-  return () => { isMounted = false; };
-}, [isAuthenticated]);
-
-
-  
-useEffect(() => {
-  if (!isAuthenticated) return;
-
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    console.error("No auth token available");
-    return; // stop fetch if token is missing
-  }
-
-  const fetchNews = () => {
-    const token = localStorage.getItem('authToken');
-if (!token) {
-  console.error("No auth token available");
-  return;
-}
-
-fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
-  headers: { Authorization: `Bearer ${token}` },
-})
-  .then(res => res.json())
-  .then(json => {
-    if (json.success) {
-      setData(prev => ({ ...prev, marketNews: json.data || [] }));
-    }
-  })
-
-      .catch(err => console.error("Failed to refresh news:", err));
   };
 
-  fetchNews(); // immediately fetch news
-  const interval = setInterval(fetchNews, 60 * 1000); // refresh every 1 min
-  return () => clearInterval(interval);
-}, [isAuthenticated]);
+  // Initial load (user info + news)
+  useEffect(() => {
+    let isMounted = true;
+    if (!isAuthenticated) return;
 
+    setLoading(true);
+    setError(null);
+
+    Promise.all([APIControl.fetchUserInfo(), APIControl.fetchNews()])
+      .then(([userRes, newsRes]) => {
+        if (!isMounted) return;
+
+        if (userRes.success && newsRes.success) {
+          const userData = { ...userRes.data, marketNews: newsRes.data || [] };
+          setData(userData);
+        } else {
+          setError(userRes.error || newsRes.error || "Failed to load data");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err?.message || "Failed to load data");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
+
+  // Auto-refresh news every 1 min
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchNews = () => {
+      APIControl.fetchNews()
+        .then((res) => {
+          if (res.success) {
+            setData((prev) => ({ ...prev, marketNews: res.data || [] }));
+          }
+        })
+        .catch((err) => console.error("Failed to refresh news:", err));
+    };
+
+    fetchNews(); // run immediately
+    const interval = setInterval(fetchNews, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
-    return (
-      <div style={styles.notAuth}>
-        Please log in to view the homepage.
-      </div>
-    );
+    return <div style={styles.notAuth}>Please log in to view the homepage.</div>;
   }
 
   if (loading) return <LoadingSpinner />;
@@ -166,52 +132,76 @@ fetch(`${import.meta.env.VITE_BACKEND_URL}/api/news/today`, {
           </div>
         </section>
       )}
-      {/* Market News */}
-<section style={styles.section}>
-  <h2 style={styles.sectionTitle}>Global Market News</h2>
-  <div style={styles.card}>
-  {data?.marketNews?.length ? (
-    <div style={styles.newsTableWrapper}>
-      <table style={styles.newsTable}>
-        <thead>
-          <tr>
-            {["Date","Time","Currency","Event","Impact","Actual","Previous","Forecast"].map((h, idx) => (
-              <th key={idx} style={styles.newsTableThTd}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.marketNews.map((news, idx) => (
-            <tr key={idx}>
-              <td style={styles.newsTableThTd}>{news.date?.replace("\n", " ") || "—"}</td>
-              <td style={styles.newsTableThTd}>{news.time}</td>
-              <td style={styles.newsTableThTd}>{news.currency}</td>
-              <td style={styles.newsTableThTd}>{news.event}</td>
-              <td style={{ ...styles.newsTableThTd, color: impactColor(news.impact) }}>
-                {news.impact}{" "}
-                <span style={{ fontSize: "0.75rem", color: "#00FFFF" }}>
-                  {news.impact === "🟥" && "High"}
-                  {news.impact === "🟧" && "Medium"}
-                  {news.impact === "🟨" && "Low"}
-                  {news.impact === "⬛" && "Holiday"}
-                </span>
-              </td>
-              <td style={styles.newsTableThTd}>{news.actual ?? "—"}</td>
-              <td style={styles.newsTableThTd}>{news.previous ?? "—"}</td>
-              <td style={styles.newsTableThTd}>{news.forecast ?? "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>   
-  ) : (
-    <p style={styles.newsItem}>No market news available</p>
-  )}
-</div>
 
-    
-</section>
- <footer style={styles.footer}>
+      {/* Market News */}
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Global Market News</h2>
+        <div style={styles.card}>
+          {data?.marketNews?.length ? (
+            <div style={styles.newsTableWrapper}>
+              <table style={styles.newsTable}>
+                <thead>
+                  <tr>
+                    {[
+                      "Date",
+                      "Time",
+                      "Currency",
+                      "Event",
+                      "Impact",
+                      "Actual",
+                      "Previous",
+                      "Forecast",
+                    ].map((h, idx) => (
+                      <th key={idx} style={styles.newsTableThTd}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.marketNews.map((news, idx) => (
+                    <tr key={idx}>
+                      <td style={styles.newsTableThTd}>
+                        {news.date?.replace("\n", " ") || "—"}
+                      </td>
+                      <td style={styles.newsTableThTd}>{news.time}</td>
+                      <td style={styles.newsTableThTd}>{news.currency}</td>
+                      <td style={styles.newsTableThTd}>{news.event}</td>
+                      <td
+                        style={{
+                          ...styles.newsTableThTd,
+                          color: impactColor(news.impact),
+                        }}
+                      >
+                        {news.impact}{" "}
+                        <span style={{ fontSize: "0.75rem", color: "#00FFFF" }}>
+                          {news.impact === "🟥" && "High"}
+                          {news.impact === "🟧" && "Medium"}
+                          {news.impact === "🟨" && "Low"}
+                          {news.impact === "⬛" && "Holiday"}
+                        </span>
+                      </td>
+                      <td style={styles.newsTableThTd}>
+                        {news.actual ?? "—"}
+                      </td>
+                      <td style={styles.newsTableThTd}>
+                        {news.previous ?? "—"}
+                      </td>
+                      <td style={styles.newsTableThTd}>
+                        {news.forecast ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p style={styles.newsItem}>No market news available</p>
+          )}
+        </div>
+      </section>
+
+      <footer style={styles.footer}>
         <p style={styles.footerText}>
           FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
         </p>
@@ -255,13 +245,12 @@ const styles = {
     boxShadow: "0 0 10px #00FFFF",
   },
   newsTableWrapper: {
-  maxHeight: "400px",
-  overflowY: "auto",
-  border: "1px solid #00FFFF",
-  borderRadius: "6px",
-  marginTop: "1rem",
-},
-
+    maxHeight: "400px",
+    overflowY: "auto",
+    border: "1px solid #00FFFF",
+    borderRadius: "6px",
+    marginTop: "1rem",
+  },
   newsItem: {
     marginBottom: "0.5rem",
   },
@@ -280,18 +269,17 @@ const styles = {
     fontFamily: "'Orbitron', sans-serif",
   },
   newsTable: {
-  width: "100%",
-  borderCollapse: "collapse",
-  marginTop: "1rem",
-  color: "#00FFFF",
-  fontSize: "0.9rem",
-},
-newsTableThTd: {
-  border: "1px solid #00FFFF",
-  padding: "0.5rem",
-  textAlign: "center",
-},
-
+    width: "100%",
+    borderCollapse: "collapse",
+    marginTop: "1rem",
+    color: "#00FFFF",
+    fontSize: "0.9rem",
+  },
+  newsTableThTd: {
+    border: "1px solid #00FFFF",
+    padding: "0.5rem",
+    textAlign: "center",
+  },
 };
 
 export default HomePage;

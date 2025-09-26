@@ -15,16 +15,18 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const login = (userInfo) => {
-    setUser(userInfo);
-    localStorage.setItem('authUser', JSON.stringify(userInfo));
-    localStorage.setItem('authToken', token); // <-- ADD THIS LINE
-  };
+  const login = (userInfo, token) => {
+  setUser(userInfo);
+  localStorage.setItem('authUser', JSON.stringify(userInfo));
+  localStorage.setItem('authToken', token); // now uses passed token
+};
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('authUser');
-  };
+const logout = () => {
+  setUser(null);
+  localStorage.removeItem('authUser');
+  localStorage.removeItem('authToken'); // also clear token
+};
+
 
   const isAuthenticated = !!user;
 

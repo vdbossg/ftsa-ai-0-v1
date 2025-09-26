@@ -45,7 +45,7 @@ async loginUser(username, password) {
       // If backend logout API exists, call it here; else just resolve immediately
       const response = await fetch(`${BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
       if (!response.ok) {
@@ -64,7 +64,7 @@ async loginUser(username, password) {
   async fetchUserInfo() {
     try {
       const response = await fetch(`${BASE_URL}/api/user/info`, {
-  headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+  headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
 });
 
       if (!response.ok) {
@@ -84,7 +84,7 @@ async loginUser(username, password) {
   async fetchTrades() {
     try {
       const response = await fetch(`${BASE_URL}/trades`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
       if (!response.ok) {
@@ -99,24 +99,25 @@ async loginUser(username, password) {
   },
 
   /**
-   * Fetch real news events from backend
-   */
-  async fetchNews() {
-    try {
-      const response = await fetch(`${BASE_URL}/news`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
-      });
+ * Fetch real news events from backend
+ */
+async fetchNews() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/news/today`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+    });
 
-      if (!response.ok) {
-        return { success: false, error: "Failed to fetch news" };
-      }
-
-      const data = await response.json();
-      return { success: true, data };
-    } catch (error) {
+    if (!response.ok) {
       return { success: false, error: "Failed to fetch news" };
     }
-  },
+
+    const json = await response.json();
+    return { success: true, data: json.data || [] };
+  } catch (error) {
+    return { success: false, error: error.message || "Failed to fetch news" };
+  }
+},
+
 
   /**
  * Fetch MT accounts data from backend safely
@@ -124,7 +125,7 @@ async loginUser(username, password) {
 async fetchMTAccountsData() {
   try {
     const response = await fetch(`${BASE_URL}/api/mtaccounts`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
 
     if (!response.ok) {
@@ -147,7 +148,7 @@ async fetchMTAccountsData() {
 async fetchPropFirmAccountsData() {
   try {
     const response = await fetch(`${BASE_URL}/api/propfirmaccounts`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
 
     if (!response.ok) {
@@ -173,7 +174,7 @@ async fetchPropFirmAccountsData() {
 async fetchMarketStrength() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/strength`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
     if (!response.ok) return { success: false, data: [] };
     const data = await response.json();
@@ -190,7 +191,7 @@ async fetchMarketStrength() {
 async fetchChochData() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/choch`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
     if (!response.ok) return { success: false, data: [] };
     const data = await response.json();
@@ -209,7 +210,7 @@ async fetchChochData() {
 async fetchNextCommand(account) {
   try {
     const response = await fetch(`${BASE_URL}/command?account=${account}`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
     if (!response.ok) return { success: false, data: null };
     const data = await response.json();
@@ -224,7 +225,7 @@ async sendTVSignal(symbol, percent, timeframe, direction) {
     await fetch(`${BASE_URL}/tv-webhook`, {
       method: "POST",
       headers: { 
-        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ symbol, percent, timeframe, direction })
@@ -266,7 +267,7 @@ async propFirmLogin(accountID, password, serverName) {
   async fetchTradesData(tab) {
     try {
       const response = await fetch(`${BASE_URL}/trades?tab=${encodeURIComponent(tab)}`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
       if (!response.ok) {
@@ -289,7 +290,7 @@ async propFirmLogin(accountID, password, serverName) {
       const params = new URLSearchParams({ accountType, ...filters }).toString();
 
       const response = await fetch(`${BASE_URL}/journal?${params}`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
       if (!response.ok) {
@@ -305,7 +306,7 @@ async propFirmLogin(accountID, password, serverName) {
   async fetchBinanceData() {
   try {
     const response = await fetch(`${BASE_URL}/api/binance`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
 
     if (!response.ok) {
@@ -358,7 +359,7 @@ async refreshBinance(token) {
       const response = await fetch(`${BASE_URL}/equity-report`, {
         method: "POST",
         headers: { 
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ account, balance, equity }),
@@ -381,7 +382,7 @@ async refreshBinance(token) {
 async fetchStrongestPair() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/strongest`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
     if (!response.ok) return { success: false, data: null };
     const data = await response.json();
@@ -399,7 +400,7 @@ async fetchStrongestPair() {
   async fetchBrainDashboard() {
     try {
       const response = await fetch(`${BASE_URL}/dashboard`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
       if (!response.ok) return { success: false, data: {} };
@@ -485,7 +486,7 @@ async fetchDashboardData() {
     const response = await fetch(`${BASE_URL}/command`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ command, ...payload }),
@@ -514,7 +515,7 @@ async fetchDashboardData() {
   async fetchSettingsData() {
   try {
     const response = await fetch(`${BASE_URL}/api/settings`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
 
     if (!response.ok) return { success: false, data: null };
@@ -533,7 +534,7 @@ async fetchDashboardData() {
     const response = await fetch(`${BASE_URL}/api/settings`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(settings),
@@ -553,7 +554,7 @@ async toggleAutoTrade(start) {
     const response = await fetch(`${BASE_URL}/api/auto-trade`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ start }),
