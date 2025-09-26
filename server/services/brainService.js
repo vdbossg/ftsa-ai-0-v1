@@ -305,11 +305,13 @@ async function updateBrainData() {
       const ltfCandles = candlesStore[pair]?.[900];
       const ltf = detectLTFChochFromCandles(ltfCandles, 5, CHOCH_MAG_PCT, htfDirection === "BULL" ? "Bullish" : htfDirection === "BEAR" ? "Bearish" : null);
       // Ensure every pair is represented 1:1
-chochData[pair] = {
-  side: ltf && ltf.valid ? ltf.side : null,
+      chochData[pair] = {
+  side: ltf?.valid ? ltf.side : null,  // null if invalid
   valid: ltf?.valid || false,
   magnitudePct: ltf?.magnitudePct || 0
 };
+
+
 
 
 
