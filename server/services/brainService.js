@@ -371,21 +371,9 @@ if (
   }
 
   // ---------------- Broadcast ----------------
-
-// Ensure all pairs are present and side is null if invalid
-const chochFull = allPairs.map(p => {
-  const ltf = chochData[p] || {};
-  return {
-    symbol: p,
-    side: ltf.valid ? ltf.side : null, // null if invalid
-    valid: ltf.valid || false
-  };
-});
-
-broadcastBrainData("MARKET_STRENGTH", marketStrength);
-broadcastBrainData("CHOCH_DATA", chochFull); // <-- use chochFull
-broadcastBrainData("TOP_PAIR", cleanPair);
-
+  broadcastBrainData("MARKET_STRENGTH", marketStrength);
+  broadcastBrainData("CHOCH_DATA", chochData);
+  broadcastBrainData("TOP_PAIR", cleanPair);
 
     // ---------------- Daily selection & config update ----------------
   try {

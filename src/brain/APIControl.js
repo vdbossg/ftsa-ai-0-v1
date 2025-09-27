@@ -310,46 +310,59 @@ async propFirmLogin(accountID, password, serverName) {
     });
 
     if (!response.ok) {
-      return { success: false, data: null };
+      return { success: false, data: null, error: "Failed to fetch Binance data" };
+    }
+
+    const data = await response.json();
+    // Ensure structure: { account: {...}, public: {...} }
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error fetching Binance data:", error);
+    return { success: false, data: null, error: error.message || "Failed to fetch Binance data" };
+  }
+},
+
+
+
+async connectBinance(apiKey, apiSecret) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/binance/connect`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apiKey, apiSecret }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || "Failed to connect Binance" };
     }
 
     const data = await response.json();
     return { success: true, data };
-  } catch (error) {
-    console.error("Error fetching Binance data:", error);
-    return { success: false, data: null };
-  }
-},
-async connectBinance(token) {
-  try {
-    const response = await fetch(`${BASE_URL}/api/binance/connect`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-    if (!response.ok) return { success: false, error: "Failed to connect Binance" };
-    const data = await response.json();
-    return { success: true, data };
   } catch (err) {
+    console.error("Error connecting Binance:", err);
     return { success: false, error: "Failed to connect Binance" };
   }
 },
-async refreshBinance(token) {
+
+async refreshBinance() {
   try {
     const response = await fetch(`${BASE_URL}/api/binance/refresh`, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${token}` },
+      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     });
-    if (!response.ok) return { success: false, error: "Failed to refresh Binance" };
+
+    if (!response.ok) {
+      return { success: false, error: "Failed to refresh Binance" };
+    }
+
     const data = await response.json();
     return { success: true, data };
   } catch (err) {
-    return { success: false, error: "Failed to refresh Binance" };
+    console.error("Error refreshing Binance:", err);
+    return { success: false, error: err.message || "Failed to refresh Binance" };
   }
 },
-
 
     /**
    * Send equity report to backend

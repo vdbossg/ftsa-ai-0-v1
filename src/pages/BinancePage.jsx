@@ -16,13 +16,20 @@ const neonColors = {
 export default function BinancePage() {
   const [authToken, setAuthToken] = useState(null);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [binanceData, setBinanceData] = useState(null);
 
   // -----------------------------
-  // Login Handler (calls backend)
+  // Load token from localStorage
+  // -----------------------------
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) setAuthToken(token);
+  }, []);
+
+  // -----------------------------
+  // Login Handler
   // -----------------------------
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,6 +44,7 @@ export default function BinancePage() {
       const response = await APIControl.loginUser(credentials.username, credentials.password);
       if (response?.token) {
         setAuthToken(response.token);
+        localStorage.setItem("authToken", response.token);
         setError(null);
       } else {
         setError(response?.message || "Login failed. Please try again.");
@@ -55,28 +63,35 @@ export default function BinancePage() {
     if (!authToken) return;
 
     let mounted = true;
-    setLoading(true);
-
-    APIControl.fetchBinanceData(authToken)
-      .then((data) => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await APIControl.fetchBinanceData();
         if (mounted) {
           setBinanceData(data || {});
           setError(null);
         }
-      })
-      .catch((err) => {
-        if (mounted) {
-          setError("Failed to load Binance data.");
-        }
-      })
-      .finally(() => {
+      } catch (err) {
+        if (mounted) setError(err.message || "Failed to load Binance data.");
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    };
 
+    fetchData();
     return () => {
       mounted = false;
     };
   }, [authToken]);
+
+  // -----------------------------
+  // Logout Handler
+  // -----------------------------
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    setAuthToken(null);
+    setBinanceData(null);
+  };
 
   // -----------------------------
   // Login Screen
@@ -108,7 +123,7 @@ export default function BinancePage() {
             width: "300px",
           }}
         >
-          <h2 style={{ textAlign: "center" }}>Binance Login</h2>
+          <h2 style={{ textAlign: "center" }}>Login</h2>
           {error && <StatusBadge status="error">{error}</StatusBadge>}
           <input
             type="text"
@@ -162,7 +177,13 @@ export default function BinancePage() {
           textAlign: "center",
         }}
       >
-        FTSA AI - Binance Account
+        FTSA AI - Binance Dashboard
+        <NeonButton
+          onClick={handleLogout}
+          style={{ marginLeft: "1rem", fontSize: "0.8rem" }}
+        >
+          Logout
+        </NeonButton>
       </header>
 
       {loading && (
@@ -171,11 +192,7 @@ export default function BinancePage() {
         </div>
       )}
 
-      {error && (
-        <StatusBadge status="error" className="glow-red">
-          {error}
-        </StatusBadge>
-      )}
+      {error && <StatusBadge status="error">{error}</StatusBadge>}
 
       {binanceData && !loading && (
         <>
@@ -220,17 +237,9 @@ export default function BinancePage() {
           <section style={sectionStyle()}>
             <h2>WALLET BREAKDOWN</h2>
             <ul>
-              <li>
-                Spots Wallet: ${Number(binanceData.wallets?.spots || 0).toFixed(2)}
-              </li>
-              <li>
-                Funding Wallet: $
-                {Number(binanceData.wallets?.funding || 0).toFixed(2)}
-              </li>
-              <li>
-                Futures Wallet: $
-                {Number(binanceData.wallets?.futures || 0).toFixed(2)}
-              </li>
+              <li>Spots Wallet: ${Number(binanceData.wallets?.spots || 0).toFixed(2)}</li>
+              <li>Funding Wallet: ${Number(binanceData.wallets?.funding || 0).toFixed(2)}</li>
+              <li>Futures Wallet: ${Number(binanceData.wallets?.futures || 0).toFixed(2)}</li>
             </ul>
           </section>
 
@@ -252,86 +261,14 @@ export default function BinancePage() {
                     <tr key={coin}>
                       <td style={tdStyle()}>{coin}</td>
                       <td style={tdStyle()}>{amount || 0}</td>
-                      <td style={tdStyle()}>
-                        ${Number(usdValue || 0).toFixed(2)}
-                      </td>
-                      <td style={tdStyle()}>
-                        {Number(portfolioPct || 0).toFixed(2)}%
-                      </td>
+                      <td style={tdStyle()}>${Number(usdValue || 0).toFixed(2)}</td>
+                      <td style={tdStyle()}>{Number(portfolioPct || 0).toFixed(2)}%</td>
                     </tr>
                   )
                 )}
               </tbody>
             </table>
           </section>
-
-          {/* MARKET WATCHLIST */}
-          <section style={sectionStyle()}>
-            <h2>MARKET WATCHLIST</h2>
-            <ul>
-              {(binanceData.marketWatchlist || []).map(
-                ({ symbol, price, changePct }) => (
-                  <li key={symbol} style={{ marginBottom: "0.5rem" }}>
-                    <strong>{symbol}</strong> | $
-                    {Number(price || 0).toFixed(2)} |{" "}
-                    <span
-                      style={{
-                        color:
-                          (changePct || 0) >= 0
-                            ? neonColors.neonGreen
-                            : neonColors.neonRed,
-                      }}
-                    >
-                      {(changePct || 0) >= 0 ? "+" : ""}
-                      {Number(changePct || 0).toFixed(2)}%
-                    </span>
-                  </li>
-                )
-              )}
-            </ul>
-          </section>
-
-          {/* CONNECTION STATUS */}
-          <section style={sectionStyle()}>
-            <h2>CONNECTION STATUS</h2>
-            <ul>
-              {(binanceData.connectionHistory || []).map((entry, i) => (
-                <li key={i}>{entry}</li>
-              ))}
-            </ul>
-            <NeonButton onClick={() => APIControl.connectBinance(authToken)}>
-              Connect Binance Account
-            </NeonButton>
-            <NeonButton
-              style={{ marginLeft: "1rem" }}
-              onClick={() => APIControl.refreshBinance(authToken)}
-            >
-              Refresh Connection
-            </NeonButton>
-          </section>
-
-          {/* SECURITY INFO */}
-          <section style={sectionStyle()}>
-            <h2>SECURITY INFORMATION</h2>
-            <p>Last login: {binanceData.lastLogin || "N/A"}</p>
-            <p>
-              2FA status: {binanceData.twoFAEnabled ? "ENABLED" : "DISABLED"}
-            </p>
-            <p>Binance UID: {binanceData.binanceUID || "N/A"}</p>
-          </section>
-
-          <footer
-            style={{
-              marginTop: "auto",
-              paddingTop: "1rem",
-              borderTop: `1px solid ${neonColors.neonBlue}`,
-              fontSize: "0.9rem",
-              color: neonColors.neonBlue,
-              textAlign: "center",
-            }}
-          >
-            FTSA AI - Binance View powered by KELVIN SPECTER (MBURU G) © 2025
-          </footer>
         </>
       )}
     </div>

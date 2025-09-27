@@ -24,6 +24,7 @@ const faqsRoute = require("./routes/faqs");
 const supportChannelsRoute = require("./routes/supportChannels");
 const chochService = require('./services/chochService');
 const aboutRoutes = require("./routes/aboutRoutes");
+const binanceRoutes = require("./routes/binanceRoutes");
 
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -88,7 +89,10 @@ app.use("/api/about", aboutRoutes);
 app.use("/api/admin/about", aboutRoutes);
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
 app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
-app.use('/api/brain/strength', strengthRoutes);   
+app.use('/api/brain/strength', strengthRoutes);
+app.use("/api/binance", binanceRoutes);
+console.log("✅ /api/binance routes mounted");
+
 
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));
