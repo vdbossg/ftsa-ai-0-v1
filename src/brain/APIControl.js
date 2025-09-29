@@ -83,7 +83,7 @@ async loginUser(username, password) {
    */
   async fetchTrades() {
     try {
-      const response = await fetch(`${BASE_URL}/trades`, {
+      const response = await fetch(`${BASE_URL}/api/trades`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
@@ -266,7 +266,7 @@ async propFirmLogin(accountID, password, serverName) {
    */
   async fetchTradesData(tab) {
     try {
-      const response = await fetch(`${BASE_URL}/trades?tab=${encodeURIComponent(tab)}`, {
+      const response = await fetch(`${BASE_URL}/api/trades?tab=${encodeURIComponent(tab)}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
 
@@ -324,6 +324,7 @@ async propFirmLogin(accountID, password, serverName) {
 
 async connectBinance(apiKey, apiSecret) {
   try {
+    console.log("Frontend token:", localStorage.getItem("authToken"));
     const response = await fetch(`${BASE_URL}/api/binance/connect`, {
       method: "POST",
       headers: { 

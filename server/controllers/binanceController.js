@@ -1,5 +1,11 @@
 // server/controllers/binanceController.js
-const { saveUserKeys, fetchData, refresh } = require("../services/binanceService.js");
+const {
+  saveUserKeys,
+  getUserKeys,
+  fetchPublicPrices,
+  fetchAccountWithUsd,
+} = require("../services/binanceService.js");
+
 
 // --- Connect Binance API keys ---
 async function connectBinance(req, res) {
@@ -13,20 +19,23 @@ async function connectBinance(req, res) {
         .json({ success: false, message: "API Key and Secret required" });
     }
 
+    // Save user’s Binance keys
     await saveUserKeys(userId, apiKey, apiSecret);
-    const data = await fetchData(userId);
 
-    return res.json({ success: true, data });
+    // Fetch account data immediately to confirm keys work
+    const accountData = await fetchAccountWithUsd(apiKey, apiSecret);
+
+    return res.json({ success: true, data: accountData });
   } catch (err) {
-    console.error(err);
+    console.error("Error connecting Binance:", err);
     return res
       .status(500)
       .json({ success: false, message: err.message || "Failed to connect Binance" });
   }
 }
 
+
 // --- Get Binance account data ---
-const { fetchPublicPrices, getUserKeys, fetchAccountWithUsd } = require("../services/binanceService.js");
 
 async function fetchBinanceData(req, res) {
   try {

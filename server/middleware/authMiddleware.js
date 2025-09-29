@@ -9,6 +9,7 @@ module.exports = function authMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
+    console.log("Auth header:", req.headers.authorization);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // attach user to request
     next();

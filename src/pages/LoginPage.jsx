@@ -99,7 +99,7 @@ export default function LoginPage() {
     setError("");
     try {
       const authData = await APIControl.login(loginData.identifier, loginData.password);
-login(authData);
+login(authData.data, authData.token);
 setSuccessMsg("Login successful! Redirecting...");
     } catch (err) {
       setError(err.message || "Login failed. Check credentials.");
