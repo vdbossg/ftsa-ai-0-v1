@@ -45,12 +45,13 @@ export default function LoginPage() {
   }, [isAuthenticated]);
 
   const validateLogin = () => {
-    if (!loginData.identifier || !loginData.password) {
-      setError("Please fill in all login fields.");
-      return false;
-    }
-    return true;
-  };
+  if (!loginData.email || !loginData.password) {
+    setError("Please fill in all login fields.");
+    return false;
+  }
+  return true;
+};
+
 
   const validateSignup = () => {
     const { firstName, email, phone, password, confirmPassword, agreeTerms } = signupData;
@@ -94,20 +95,31 @@ export default function LoginPage() {
   };
 
   const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateLogin()) return;
-    setLoading(true);
-    setError("");
-    try {
-      const authData = await APIControl.login(loginData.email, loginData.password);
+  e.preventDefault();
+  console.log("Login clicked with:", loginData); // ← added
+  if (!validateLogin()) return;
+  setLoading(true);
+  setError("");
+  try {
+    const authData = await APIControl.login(loginData.email, loginData.password);
+console.log("API response:", authData);
+
+if (!authData.success) {
+  setError(authData.error || "Login failed. Check credentials.");
+  return; // stop execution if login fails
+}
+
 login(authData.data, authData.token);
 setSuccessMsg("Login successful! Redirecting...");
-    } catch (err) {
-      setError(err.message || "Login failed. Check credentials.");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+  } catch (err) {
+    console.error(err); // ← added
+    setError(err.message || "Login failed. Check credentials.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
@@ -276,7 +288,7 @@ setSuccessMsg("Login successful! Redirecting...");
             Keep me logged in on this device
           </label>
 
-          <NeonButton type="submit" disabled={!loginData.identifier || !loginData.password}>
+          <NeonButton type="submit" disabled={!loginData.email || !loginData.password}>
             Login
           </NeonButton>
 
