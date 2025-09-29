@@ -30,7 +30,7 @@ const APIControl = {
 
     localStorage.setItem("authToken", data.token);
 
-    return { success: true, data: data.user, token: data.token };
+    return { success: true, data: data.data, token: data.token };
   } catch (error) {
     localStorage.removeItem("authToken");
     return { success: false, error: "Login failed" };
@@ -41,6 +41,29 @@ const APIControl = {
 async loginUser(email, password) {
   return this.login(email, password);
 },
+/**
+ * Real API signup
+ */
+async signup(firstName, middleName, email, phone, password) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, middleName, email, phone, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return { success: false, error: data.error || "Signup failed" };
+    }
+
+    return { success: true, data: data.data };
+  } catch (err) {
+    return { success: false, error: "Signup failed" };
+  }
+},
+
   /**
    * Real API logout (if applicable)
    */
@@ -64,7 +87,7 @@ async loginUser(email, password) {
       return { success: false, error: "Logout failed" };
     }
   },
-
+  
   /**
    * Fetch real user info from backend
    */
@@ -81,7 +104,8 @@ async loginUser(email, password) {
     }
 
     const data = await response.json();
-    return { success: true, data };
+return { success: true, data: data.data }; // Only the user object
+
   } catch (error) {
     return { success: false, error: "Failed to fetch user info" };
   }
