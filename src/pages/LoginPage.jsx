@@ -126,7 +126,9 @@ if (!authData.success) {
     setLoading(true);
     setError("");
     try {
-  const result = await APIControl.signup(signupData); // <-- store result
+   const { firstName, middleName, email, phone, password } = signupData; 
+ const payload = { firstName, middleName, email, phone, password }; 
+ const result = await APIControl.signup(payload);
   if (result.success) {
     setSuccessMsg("Signup successful! Please login.");
     setMode("login");

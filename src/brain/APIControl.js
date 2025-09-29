@@ -15,10 +15,13 @@ const APIControl = {
    */
   async login(email, password) {
   try {
+    email = email.trim();
+    password = password.trim();
+
     const response = await fetch(`${BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }), // <-- send email, not username
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
@@ -29,7 +32,6 @@ const APIControl = {
     }
 
     localStorage.setItem("authToken", data.token);
-
     return { success: true, data: data.data, token: data.token };
   } catch (error) {
     localStorage.removeItem("authToken");
@@ -38,14 +40,18 @@ const APIControl = {
 },
 
 
+
 async loginUser(email, password) {
   return this.login(email, password);
 },
 /**
  * Real API signup
  */
-async signup(firstName, middleName, email, phone, password) {
+async signup(signupData) {
   try {
+    // Flatten the object correctly
+    const { firstName, middleName, email, phone, password, confirmPassword, agreeTerms } = signupData;
+
     const response = await fetch(`${BASE_URL}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,7 +69,6 @@ async signup(firstName, middleName, email, phone, password) {
     return { success: false, error: "Signup failed" };
   }
 },
-
   /**
    * Real API logout (if applicable)
    */
