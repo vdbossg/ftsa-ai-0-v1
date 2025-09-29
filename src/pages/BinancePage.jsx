@@ -19,6 +19,9 @@ export default function BinancePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [binanceData, setBinanceData] = useState(null);
+  const [apiKey, setApiKey] = useState("");
+  const [apiSecret, setApiSecret] = useState("");
+
 
   // -----------------------------
   // Load token from localStorage
@@ -196,6 +199,49 @@ export default function BinancePage() {
 
       {binanceData && !loading && (
         <>
+        {/* CONNECT BINANCE ACCOUNT */}
+<section style={sectionStyle()}>
+  <h2>Connect Binance Account</h2>
+  <form
+    onSubmit={async (e) => {
+      e.preventDefault();
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await APIControl.connectBinance(apiKey, apiSecret);
+        if (res.success) {
+          alert("✅ Binance account connected!");
+        } else {
+          setError(res.message || "Failed to connect Binance.");
+        }
+      } catch (err) {
+        setError(err.message || "Connection failed.");
+      } finally {
+        setLoading(false);
+      }
+    }}
+    style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+  >
+    <input
+      type="text"
+      placeholder="Binance API Key"
+      value={apiKey}
+      onChange={(e) => setApiKey(e.target.value)}
+      style={inputStyle()}
+    />
+    <input
+      type="password"
+      placeholder="Binance Secret Key"
+      value={apiSecret}
+      onChange={(e) => setApiSecret(e.target.value)}
+      style={inputStyle()}
+    />
+    <NeonButton type="submit" disabled={loading}>
+      {loading ? "Connecting..." : "Connect Binance"}
+    </NeonButton>
+  </form>
+</section>
+
           {/* ACCOUNT INFORMATION */}
           <section style={sectionStyle()}>
             <h2>ACCOUNT INFORMATION</h2>

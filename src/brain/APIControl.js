@@ -15,7 +15,7 @@ const APIControl = {
    */
   async login(username, password) {
     try {
-      const response = await fetch(`${BASE_URL}/auth/login`, {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -43,7 +43,7 @@ async loginUser(username, password) {
   async logout() {
     try {
       // If backend logout API exists, call it here; else just resolve immediately
-      const response = await fetch(`${BASE_URL}/auth/logout`, {
+      const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
@@ -322,13 +322,14 @@ async propFirmLogin(accountID, password, serverName) {
   }
 },
 
-
-
 async connectBinance(apiKey, apiSecret) {
   try {
     const response = await fetch(`${BASE_URL}/api/binance/connect`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+      },
       body: JSON.stringify({ apiKey, apiSecret }),
     });
 

@@ -32,9 +32,12 @@ function decrypt(base64) {
 
 // --- Create Binance client ---
 const createClient = (apiKey, apiSecret) => {
-  if (apiKey && apiSecret) return new Binance().options({ APIKEY: apiKey, APISECRET: apiSecret });
-  return new Binance(); // public client
+  if (apiKey && apiSecret) {
+    return new Binance().options({ APIKEY: apiKey, APISECRET: apiSecret }).useServerTime();
+  }
+  return new Binance().useServerTime(); // public client
 };
+
 
 // --- Save user Binance keys to MongoDB ---
 async function saveUserKeys(userId, apiKey, apiSecret) {
@@ -57,12 +60,16 @@ async function saveUserKeys(userId, apiKey, apiSecret) {
 // --- Get user Binance keys from MongoDB ---
 async function getUserKeys(userId) {
   const account = await BinanceAccount.findOne({ userId });
-  if (!account) return null;
+  if (!account) throw new Error("No Binance keys saved for this user");
+  if (!account.apiKeyEncrypted || !account.apiSecretEncrypted) {
+    throw new Error("Incomplete Binance keys for this user");
+  }
   return {
-    apiKey: account.apiKeyEncrypted,
-    apiSecret: account.apiSecretEncrypted,
-  };
+  apiKey: decrypt(account.apiKeyEncrypted),
+  apiSecret: decrypt(account.apiSecretEncrypted),
+};
 }
+
 
 // --- Fetch public prices ---
 async function fetchPublicPrices() {
@@ -75,11 +82,19 @@ async function fetchPublicPrices() {
 }
 
 // --- Fetch account balances in USD ---
-async function fetchAccountWithUsd(apiKeyEncrypted, apiSecretEncrypted) {
+// --- Fetch account balances in USD ---
+async function fetchAccountWithUsd(apiKey, apiSecret) {
   try {
-    const binance = createClient(decrypt(apiKeyEncrypted), decrypt(apiSecretEncrypted));
+    const binance = createClient(apiKey, apiSecret);
+
     const accountInfo = await binance.accountInfo();
-    const prices = await binance.prices();
+    let prices = {};
+try {
+  prices = await binance.prices();
+} catch (err) {
+  console.warn("Could not fetch market prices, proceeding with empty prices");
+}
+
 
     const balances = (accountInfo.balances || [])
       .map((b) => {
@@ -108,6 +123,14 @@ async function fetchAccountWithUsd(apiKeyEncrypted, apiSecretEncrypted) {
       funding: 0,
       futures: 0,
     };
+    // --- Fetch futures balances ---
+try {
+  const futuresInfo = await binance.futuresAccount();
+  wallets.futures = futuresInfo.assets.reduce((sum, a) => sum + parseFloat(a.walletBalance || 0), 0);
+} catch (err) {
+  console.warn("Could not fetch futures balances");
+}
+
 
     return {
       email: accountInfo.email || "N/A",
