@@ -22,10 +22,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [loginData, setLoginData] = useState({
-    identifier: "", // email/username/phone
-    password: "",
-    keepLoggedIn: false,
-  });
+  email: "",
+  password: "",
+  keepLoggedIn: false,
+});
+
   const [signupData, setSignupData] = useState({
     firstName: "",
     middleName: "",
@@ -98,7 +99,7 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const authData = await APIControl.login(loginData.identifier, loginData.password);
+      const authData = await APIControl.login(loginData.email, loginData.password);
 login(authData.data, authData.token);
 setSuccessMsg("Login successful! Redirecting...");
     } catch (err) {
@@ -230,15 +231,16 @@ setSuccessMsg("Login successful! Redirecting...");
           <label>
             Email / Username / Phone Number
             <input
-              type="text"
-              name="identifier"
-              value={loginData.identifier}
-              onChange={handleLoginChange}
-              autoComplete="username"
-              style={inputStyle(neonColors)}
-              placeholder="Enter email, username or phone"
-              required
-            />
+  type="email"
+  name="email"
+  value={loginData.email}
+  onChange={handleLoginChange}
+  autoComplete="username"
+  style={inputStyle(neonColors)}
+  placeholder="Enter your email"
+  required
+/>
+
           </label>
 
           <label>

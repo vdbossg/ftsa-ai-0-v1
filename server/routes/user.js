@@ -1,3 +1,4 @@
+//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\server\routes\user.js
 const express = require('express');
 const router = express.Router();
 

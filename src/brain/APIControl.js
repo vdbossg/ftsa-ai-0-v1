@@ -13,30 +13,34 @@ const APIControl = {
   /**
    * Real API login
    */
-  async login(username, password) {
-    try {
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+  async login(email, password) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }), // <-- send email, not username
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        return { success: false, error: errorData.message || "Invalid username or password" };
-      }
+    const data = await response.json();
 
-      const data = await response.json();
-      // Expecting backend returns something like { token, user }
-      return { success: true, data: data.user, token: data.token };
-    } catch (error) {
-      return { success: false, error: "Login failed" };
+    if (!response.ok || !data.token) {
+      localStorage.removeItem("authToken");
+      return { success: false, error: data.error || "Invalid email or password" };
     }
-  },
-async loginUser(username, password) {
-  return this.login(username, password);
+
+    localStorage.setItem("authToken", data.token);
+
+    return { success: true, data: data.user, token: data.token };
+  } catch (error) {
+    localStorage.removeItem("authToken");
+    return { success: false, error: "Login failed" };
+  }
 },
 
+
+async loginUser(email, password) {
+  return this.login(email, password);
+},
   /**
    * Real API logout (if applicable)
    */
@@ -45,7 +49,10 @@ async loginUser(username, password) {
       // If backend logout API exists, call it here; else just resolve immediately
       const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+        headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
       });
 
       if (!response.ok) {
@@ -62,21 +69,24 @@ async loginUser(username, password) {
    * Fetch real user info from backend
    */
   async fetchUserInfo() {
-    try {
-      const response = await fetch(`${BASE_URL}/api/user/info`, {
-  headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
-});
-
-      if (!response.ok) {
-        return { success: false, error: "Failed to fetch user info" };
+  try {
+    const response = await fetch(`${BASE_URL}/api/user/profile`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       }
+    });
 
-      const data = await response.json();
-      return { success: true, data };
-    } catch (error) {
+    if (!response.ok) {
       return { success: false, error: "Failed to fetch user info" };
     }
-  },
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: "Failed to fetch user info" };
+  }
+},
+
 
   /**
    * Fetch real trades data from backend
@@ -84,7 +94,10 @@ async loginUser(username, password) {
   async fetchTrades() {
     try {
       const response = await fetch(`${BASE_URL}/api/trades`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+        headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
       });
 
       if (!response.ok) {
@@ -104,7 +117,10 @@ async loginUser(username, password) {
 async fetchNews() {
   try {
     const response = await fetch(`${BASE_URL}/api/news/today`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
 
     if (!response.ok) {
@@ -125,7 +141,10 @@ async fetchNews() {
 async fetchMTAccountsData() {
   try {
     const response = await fetch(`${BASE_URL}/api/mtaccounts`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
 
     if (!response.ok) {
@@ -148,7 +167,10 @@ async fetchMTAccountsData() {
 async fetchPropFirmAccountsData() {
   try {
     const response = await fetch(`${BASE_URL}/api/propfirmaccounts`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
 
     if (!response.ok) {
@@ -174,7 +196,10 @@ async fetchPropFirmAccountsData() {
 async fetchMarketStrength() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/strength`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
     if (!response.ok) return { success: false, data: [] };
     const data = await response.json();
@@ -191,7 +216,10 @@ async fetchMarketStrength() {
 async fetchChochData() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/choch`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
     if (!response.ok) return { success: false, data: [] };
     const data = await response.json();
@@ -210,7 +238,10 @@ async fetchChochData() {
 async fetchNextCommand(account) {
   try {
     const response = await fetch(`${BASE_URL}/command?account=${account}`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
     if (!response.ok) return { success: false, data: null };
     const data = await response.json();
@@ -267,7 +298,10 @@ async propFirmLogin(accountID, password, serverName) {
   async fetchTradesData(tab) {
     try {
       const response = await fetch(`${BASE_URL}/api/trades?tab=${encodeURIComponent(tab)}`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+        headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
       });
 
       if (!response.ok) {
@@ -290,7 +324,10 @@ async propFirmLogin(accountID, password, serverName) {
       const params = new URLSearchParams({ accountType, ...filters }).toString();
 
       const response = await fetch(`${BASE_URL}/journal?${params}`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+        headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
       });
 
       if (!response.ok) {
@@ -306,7 +343,10 @@ async propFirmLogin(accountID, password, serverName) {
   async fetchBinanceData() {
   try {
     const response = await fetch(`${BASE_URL}/api/binance`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
 
     if (!response.ok) {
@@ -351,7 +391,10 @@ async refreshBinance() {
   try {
     const response = await fetch(`${BASE_URL}/api/binance/refresh`, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
 
     if (!response.ok) {
@@ -397,7 +440,10 @@ async refreshBinance() {
 async fetchStrongestPair() {
   try {
     const response = await fetch(`${BASE_URL}/api/brain/strongest`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
     if (!response.ok) return { success: false, data: null };
     const data = await response.json();
@@ -415,7 +461,10 @@ async fetchStrongestPair() {
   async fetchBrainDashboard() {
     try {
       const response = await fetch(`${BASE_URL}/dashboard`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+        headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
       });
 
       if (!response.ok) return { success: false, data: {} };
@@ -530,7 +579,10 @@ async fetchDashboardData() {
   async fetchSettingsData() {
   try {
     const response = await fetch(`${BASE_URL}/api/settings`, {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+      headers: {
+  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+}
+
     });
 
     if (!response.ok) return { success: false, data: null };
