@@ -15,7 +15,7 @@ const neonColors = {
 
 export default function BinancePage() {
   const [authToken, setAuthToken] = useState(null);
-  const [credentials, setCredentials] = useState({ username: "", password: "" });
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [binanceData, setBinanceData] = useState(null);
@@ -36,22 +36,23 @@ export default function BinancePage() {
   // -----------------------------
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!credentials.username || !credentials.password) {
-      setError("Please enter both username and password.");
+    if (!credentials.email || !credentials.password) {
+      setError("Please enter both email and password.");
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      const response = await APIControl.loginUser(credentials.username, credentials.password);
-      if (response?.token) {
-        setAuthToken(response.token);
-        localStorage.setItem("authToken", response.token);
-        setError(null);
-      } else {
-        setError(response?.message || "Login failed. Please try again.");
-      }
+      const response = await APIControl.loginUser(credentials.email, credentials.password);
+if (response.success && response.token) {
+  setAuthToken(response.token);
+  localStorage.setItem("authToken", response.token);
+  setError(null);
+} else {
+  setError(response.error || "Login failed. Please try again.");
+}
+
     } catch (err) {
       setError("Unable to login. Please check your connection.");
     } finally {
@@ -69,11 +70,15 @@ export default function BinancePage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await APIControl.fetchBinanceData();
-        if (mounted) {
-          setBinanceData(data || {});
-          setError(null);
-        }
+        const response = await APIControl.fetchBinanceData();
+if (mounted) {
+  if (response.success) {
+    setBinanceData(response.data || {});
+    setError(null);
+  } else {
+    setError(response.error || "Failed to load Binance data.");
+  }
+}
       } catch (err) {
         if (mounted) setError(err.message || "Failed to load Binance data.");
       } finally {
@@ -129,14 +134,15 @@ export default function BinancePage() {
           <h2 style={{ textAlign: "center" }}>Login</h2>
           {error && <StatusBadge status="error">{error}</StatusBadge>}
           <input
-            type="text"
-            placeholder="Username"
-            value={credentials.username}
-            onChange={(e) =>
-              setCredentials({ ...credentials, username: e.target.value })
-            }
-            style={inputStyle()}
-          />
+  type="email"
+  placeholder="Email"
+  value={credentials.email}
+  onChange={(e) =>
+    setCredentials({ ...credentials, email: e.target.value })
+  }
+  style={inputStyle()}
+/>
+
           <input
             type="password"
             placeholder="Password"
@@ -212,7 +218,7 @@ export default function BinancePage() {
         if (res.success) {
           alert("✅ Binance account connected!");
         } else {
-          setError(res.message || "Failed to connect Binance.");
+          setError(res.error || "Failed to connect Binance.");
         }
       } catch (err) {
         setError(err.message || "Connection failed.");

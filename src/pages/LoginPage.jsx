@@ -106,11 +106,10 @@ console.log("API response:", authData);
 
 if (!authData.success) {
   setError(authData.error || "Login failed. Check credentials.");
-  return; // stop execution if login fails
+} else {
+  login(authData.data, authData.token); // update context
+  setSuccessMsg("Login successful! Redirecting...");
 }
-
-login(authData.data, authData.token);
-setSuccessMsg("Login successful! Redirecting...");
 
   } catch (err) {
     console.error(err); // ← added
@@ -127,24 +126,30 @@ setSuccessMsg("Login successful! Redirecting...");
     setLoading(true);
     setError("");
     try {
-      await APIControl.signup(signupData);
-      setSuccessMsg("Signup successful! Please login.");
-      setMode("login");
-      setSignupData({
-        firstName: "",
-        middleName: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-        agreeTerms: false,
-      });
-    } catch (err) {
-      setError(err.message || "Signup failed. Try again.");
-    } finally {
-      setLoading(false);
-    }
+  const result = await APIControl.signup(signupData); // <-- store result
+  if (result.success) {
+    setSuccessMsg("Signup successful! Please login.");
+    setMode("login");
+    setSignupData({
+      firstName: "",
+      middleName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      agreeTerms: false,
+    });
+  } else {
+    setError(result.error || "Signup failed. Try again."); // <-- check API response
+  }
+} catch (err) {
+  console.error(err);
+  setError(err.message || "Signup failed. Try again.");
+} finally {
+  setLoading(false);
+}
   };
+
 
   return (
     <div
@@ -288,7 +293,7 @@ setSuccessMsg("Login successful! Redirecting...");
             Keep me logged in on this device
           </label>
 
-          <NeonButton type="submit" disabled={!loginData.email || !loginData.password}>
+          <NeonButton type="submit" disabled={loading || !loginData.email || !loginData.password}>
             Login
           </NeonButton>
 
@@ -443,18 +448,20 @@ setSuccessMsg("Login successful! Redirecting...");
           </label>
 
           <NeonButton
-            type="submit"
-            disabled={
-              !signupData.firstName ||
-              !signupData.email ||
-              !signupData.phone ||
-              !signupData.password ||
-              !signupData.confirmPassword ||
-              !signupData.agreeTerms
-            }
-          >
-            Sign Up
-          </NeonButton>
+  type="submit"
+  disabled={
+    loading || // <-- add this
+    !signupData.firstName ||
+    !signupData.email ||
+    !signupData.phone ||
+    !signupData.password ||
+    !signupData.confirmPassword ||
+    !signupData.agreeTerms
+  }
+>
+  Sign Up
+</NeonButton>
+
         </form>
       )}
 
