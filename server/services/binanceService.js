@@ -88,12 +88,14 @@ async function fetchPublicPrices() {
 }
 
 // --- Fetch account balances in USD ---
-// --- Fetch account balances in USD ---
 async function fetchAccountWithUsd(apiKey, apiSecret) {
   try {
     const binance = createClient(apiKey, apiSecret);
 
+    // --- Fetch spot balances ---
     const balancesRaw = await binance.balance(); // ✅ supported
+
+    // --- Fetch market prices safely ---
     let prices = {};
     try {
       prices = await binance.prices();
@@ -101,88 +103,69 @@ async function fetchAccountWithUsd(apiKey, apiSecret) {
       console.warn("Could not fetch market prices, proceeding with empty prices");
     }
 
-    // Spot balances in USD
-    const balances = Object.keys(balancesRaw).map((asset) => {
-  const free = parseFloat(balancesRaw[asset].available || "0");
-  const locked = parseFloat(balancesRaw[asset].onOrder || "0");
-  const amount = free + locked;
-  if (amount <= 0) return null;
+    // --- Calculate spot balances in USD ---
+    const balances = Object.keys(balancesRaw)
+      .map((asset) => {
+        const free = parseFloat(balancesRaw[asset].available || "0");
+        const locked = parseFloat(balancesRaw[asset].onOrder || "0");
+        const amount = free + locked;
+        if (amount <= 0) return null;
 
-  let usdValue = 0;
-  if (asset === "USDT") usdValue = amount;
-  else if (prices[asset + "USDT"]) usdValue = amount * parseFloat(prices[asset + "USDT"]);
-  else if (prices[asset + "BUSD"]) usdValue = amount * parseFloat(prices[asset + "BUSD"]);
+        let usdValue = 0;
+        if (asset === "USDT") usdValue = amount;
+        else if (prices[asset + "USDT"]) usdValue = amount * parseFloat(prices[asset + "USDT"]);
+        else if (prices[asset + "BUSD"]) usdValue = amount * parseFloat(prices[asset + "BUSD"]);
 
-  return { coin: asset, free, locked, amount, usdValue };
-}).filter(Boolean);
-
+        return { coin: asset, free, locked, amount, usdValue };
+      })
+      .filter(Boolean);
 
     const totalUsd = balances.reduce((s, x) => s + (x.usdValue || 0), 0);
     balances.forEach((b) => {
       b.portfolioPct = totalUsd ? ((b.usdValue / totalUsd) * 100).toFixed(2) : "0.00";
     });
 
-    const accountInfo = await new Promise((resolve, reject) => {
-  binance.account((error, data) => {
-    if (error) return reject(error);
-    resolve(data);
-  });
-});
+    // --- Available balance in USD ---
+    const availableBalanceUsd = balances.reduce((s, b) => s + (b.free * (b.usdValue / b.amount || 0)), 0);
 
-
-
-    // ✅ FIX 1: Available balance converted to USD
-    const availableBalanceUsd = accountInfo.balances.reduce((s, b) => {
-      const free = parseFloat(b.free || "0");
-      if (free <= 0) return s;
-      if (b.asset === "USDT") return s + free;
-      if (prices[b.asset + "USDT"]) return s + free * parseFloat(prices[b.asset + "USDT"]);
-      if (prices[b.asset + "BUSD"]) return s + free * parseFloat(prices[b.asset + "BUSD"]);
-      return s;
-    }, 0);
-
-    // Wallets breakdown
+    // --- Wallets breakdown ---
     const wallets = {
       spots: balances.reduce((s, b) => s + b.usdValue, 0),
       funding: 0,
       futures: 0,
     };
 
-    // ✅ FIX 2: Futures balances converted to USD
+    // --- Fetch futures balances safely ---
+    let futuresBalance = 0;
     try {
-      const futuresInfo = await binance.futuresAccount();
-      wallets.futures = futuresInfo.assets.reduce((sum, a) => {
-        const bal = parseFloat(a.walletBalance || 0);
-        if (bal <= 0) return sum;
-        if (a.asset === "USDT") return sum + bal;
-        if (prices[a.asset + "USDT"]) return sum + bal * parseFloat(prices[a.asset + "USDT"]);
-        return sum;
-      }, 0);
+      const futures = await binance.futuresBalance();
+      futuresBalance = Object.values(futures).reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);
     } catch (err) {
-      console.warn("Could not fetch futures balances");
+      console.warn("Could not fetch futures balances:", err.message);
     }
-    console.log("✅ Final Binance account data normalized:", {
-  totalUsd,
-  availableBalanceUsd,
-  holdingsCount: balances.length,
-});
+    wallets.futures = futuresBalance;
 
+    console.log("✅ Final Binance account data normalized:", {
+      totalUsd,
+      availableBalanceUsd,
+      holdingsCount: balances.length,
+    });
 
     return {
-  email: accountInfo?.email || "N/A",
-  totalBalance: parseFloat((totalUsd + (wallets?.futures || 0)).toFixed(2)),
-  availableBalance: parseFloat(availableBalanceUsd.toFixed(2)),
-  dailyPnl: 0,
-  weeklyPnl: 0,
-  holdings: Array.isArray(balances) ? balances : [],
-  wallets: wallets || { spots: 0, funding: 0, futures: 0 },
-};
-
+      email: "N/A",
+      totalBalance: parseFloat((totalUsd + wallets.futures).toFixed(2)),
+      availableBalance: parseFloat(availableBalanceUsd.toFixed(2)),
+      dailyPnl: 0,
+      weeklyPnl: 0,
+      holdings: balances,
+      wallets: wallets,
+    };
   } catch (err) {
     console.error("Error fetching account:", err);
     throw new Error("Failed to fetch Binance account");
   }
 }
+
 
 
 // --- Main fetch function ---

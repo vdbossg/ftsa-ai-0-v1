@@ -119,13 +119,18 @@ async function refreshBinanceData(req, res) {
 
 // --- Helpers for consistent structure ---
 function normalizePublic(data) {
-  if (!data || typeof data !== "object" || Array.isArray(data))
-    return { prices: {}, strongPairs: [] };
-  return data;
+  if (!data || typeof data !== "object") {
+    return { prices: {}, holdings: [] };
+  }
+  return {
+    prices: data.prices || {},
+    holdings: data.holdings || [],
+  };
 }
 
+
 function normalizeAccount(data) {
-  if (!data || typeof data !== "object" || Array.isArray(data))
+  if (!data || typeof data !== "object") {
     return {
       email: "N/A",
       totalBalance: 0,
@@ -135,8 +140,18 @@ function normalizeAccount(data) {
       holdings: [],
       wallets: { spots: 0, funding: 0, futures: 0 },
     };
-  return data;
+  }
+  return {
+    email: data.email || "N/A",
+    totalBalance: data.totalBalance || 0,
+    availableBalance: data.availableBalance || 0,
+    dailyPnl: data.dailyPnl || 0,
+    weeklyPnl: data.weeklyPnl || 0,
+    holdings: Array.isArray(data.holdings) ? data.holdings : [],
+    wallets: data.wallets || { spots: 0, funding: 0, futures: 0 },
+  };
 }
+
 
 module.exports = {
   connectBinance,

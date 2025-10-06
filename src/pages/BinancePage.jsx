@@ -243,12 +243,24 @@ if (response?.success) {
   alert("✅ Binance account connected!");
   // 🔄 Refresh data immediately
   const refreshed = await APIControl.fetchBinanceData();
-  if (refreshed?.success) {
-    const account = refreshed.data?.account || {};
-    const publicData = refreshed.data?.public || {};
-    setBinanceData({ ...account, publicPrices: publicData });
-    setError(null);
-  }
+if (refreshed?.success && refreshed.data) {
+  const account = refreshed.data.account || {
+    email: "N/A",
+    totalBalance: 0,
+    availableBalance: 0,
+    dailyPnl: 0,
+    weeklyPnl: 0,
+    holdings: [],
+    wallets: { spots: 0, funding: 0, futures: 0 },
+  };
+  const publicData = refreshed.data.public || { prices: {}, holdings: [] };
+  setBinanceData({ ...account, publicPrices: publicData });
+  setError(null);
+} else {
+  setError(refreshed?.error || "Failed to load Binance data.");
+  setBinanceData(null);
+}
+
 } else {
   setError(res.error || "Failed to connect Binance.");
 }
