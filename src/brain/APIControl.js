@@ -141,68 +141,52 @@ return { success: true, data: data.data }; // Only the user object
   },
 
   /**
- * Fetch real news events from backend
+ * Fetch the single MT account
  */
-async fetchNews() {
+async fetchMTAccount() {
   try {
-    const response = await fetch(`${BASE_URL}/api/news/today`, {
-      headers: {
-  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
-}
-
-    });
-
-    if (!response.ok) {
-      return { success: false, error: "Failed to fetch news" };
-    }
-
-    const json = await response.json();
-    return { success: true, data: json.data || [] };
-  } catch (error) {
-    return { success: false, error: error.message || "Failed to fetch news" };
-  }
-},
-
-/**
- * Fetch all MT accounts
- */
-async fetchMTAccounts() {
-  try {
-    const response = await fetch(`${BASE_URL}/api/mtaccounts`, { // plural!
+    const response = await fetch(`${BASE_URL}/api/mtaccounts`, {
       headers: {
         ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       }
     });
-    if (!response.ok) return { success: false, data: [] };
+
+    if (!response.ok) return { success: false, data: null };
+
     const data = await response.json();
-    return { success: true, data: Array.isArray(data.data) ? data.data : [] }; // always return array
+    return { success: true, data: data.data || null }; // single account
   } catch (err) {
-    console.error("Error fetching MT accounts:", err);
-    return { success: false, data: [] };
+    console.error("Error fetching MT account:", err);
+    return { success: false, data: null };
   }
 },
 
 /**
  * Connect MT account
  */
-async connectMTAccount(login, password, server) {
+async connectMTAccount({ broker, login, password, server, platform, accountType }) {
   try {
-    const response = await fetch(`${BASE_URL}/api/mtaccounts/connect`, { // plural!
+    const response = await fetch(`${BASE_URL}/api/mtaccounts/connect`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       },
-      body: JSON.stringify({ login, password, server }),
+      body: JSON.stringify({ broker, login, password, server, platform, accountType }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      return { success: false, message: data.message || "Failed to connect account" };
+      return { success: false, message: data.message || "Failed to connect MT account" };
     }
 
-    return { success: data.success, message: data.message, currency: data.currency || null };
+    // Correctly pick currency from returned account
+    return {
+      success: data.success,
+      message: data.message,
+      currency: data.account?.currency || null
+    };
   } catch (err) {
     console.error("Error connecting MT account:", err);
     return { success: false, message: "Unexpected error" };
@@ -214,24 +198,25 @@ async connectMTAccount(login, password, server) {
  */
 async deleteMTAccount() {
   try {
-    const response = await fetch(`${BASE_URL}/api/mtaccounts/delete`, { // plural!
+    const response = await fetch(`${BASE_URL}/api/mtaccounts`, { // assume DELETE /api/mtaccounts
       method: "DELETE",
       headers: {
         ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       }
     });
+
     if (!response.ok) {
       const errorData = await response.json();
       return { success: false, message: errorData.message || "Failed to delete account" };
     }
+
     const data = await response.json();
-    return { success: true, message: data.message || "Deleted successfully" };
+    return { success: true, message: data.message || "MT account deleted successfully" };
   } catch (err) {
     console.error("Error deleting MT account:", err);
     return { success: false, message: "Unexpected error" };
   }
 },
-
 
 
   /**
@@ -568,7 +553,7 @@ async fetchDashboardData() {
   this.fetchUserInfo(),
   this.fetchTrades(),
   this.fetchNews(),
-  this.fetchMTAccounts(),       // <- updated function
+  this.fetchMTAccount(),       // <- updated function
   this.fetchPropFirmAccountsData(),
   this.fetchMarketStrength(),
   this.fetchBrainDashboard()

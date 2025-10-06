@@ -1,3 +1,4 @@
+// /controllers/mtaccountController.js
 const {
   getMTAccount: fetchMTAccount,
   connectMTAccount,
@@ -5,12 +6,12 @@ const {
 } = require("../services/mtaccountService.js");
 
 /**
- * GET /api/mtaccount
+ * GET /api/mtaccounts
  */
 async function getMTAccount(req, res) {
   try {
     const account = await fetchMTAccount();
-    res.json({ account });
+    res.json({ data: account }); // frontend expects `data`
   } catch (err) {
     console.error("Error in getMTAccount controller:", err);
     res.status(500).json({ success: false, message: err.message });
@@ -18,7 +19,7 @@ async function getMTAccount(req, res) {
 }
 
 /**
- * POST /api/mtaccount/connect
+ * POST /api/mtaccounts/connect
  */
 async function connectMT(req, res) {
   try {
@@ -29,10 +30,10 @@ async function connectMT(req, res) {
 
     const result = await connectMTAccount({ broker, login, password, server, platform, accountType });
 
-    // Flatten currency for frontend
     res.json({
       success: result.success,
       message: result.message,
+      account: result.account || null, // include full account object
       currency: result.account?.currency || null,
     });
   } catch (err) {
@@ -42,7 +43,7 @@ async function connectMT(req, res) {
 }
 
 /**
- * DELETE /api/mtaccount/delete
+ * DELETE /api/mtaccounts
  */
 async function deleteMT(req, res) {
   try {

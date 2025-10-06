@@ -34,13 +34,14 @@ export default function MTAccountsPage() {
   }, [isAuthenticated]);
 
   const fetchAccount = async () => {
-    try {
-      setLoading(true);
-      const accountsData = await APIControl.fetchMTAccounts();
-if (accountsData.success && accountsData.data.length > 0) {
-  // Pick the first account (or handle multiple accounts as needed)
-  setFormData(accountsData.data[0]);
+  try {
+    setLoading(true);
+    const accountData = await APIControl.fetchMTAccount();
+
+if (accountData.success && accountData.data) {
+  setFormData(accountData.data);
 } else {
+  // No account found, reset form
   setFormData({
     broker: "",
     login: "",
@@ -52,14 +53,15 @@ if (accountsData.success && accountsData.data.length > 0) {
   });
 }
 
-      if (data) setFormData(data);
-      setStatus({ type: "", text: "" });
-    } catch {
-      setStatus({ type: "error", text: "Failed to load account." });
-    } finally {
-      setLoading(false);
-    }
-  };
+
+    setStatus({ type: "", text: "" });
+  } catch {
+    setStatus({ type: "error", text: "Failed to load account." });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -73,11 +75,15 @@ if (accountsData.success && accountsData.data.length > 0) {
     }
     try {
       setLoading(true);
-      const res = await APIControl.connectMTAccount(
-        formData.login,
-        formData.password,
-        formData.server
-      );
+      const res = await APIControl.connectMTAccount({
+  broker: formData.broker,
+  login: formData.login,
+  password: formData.password,
+  server: formData.server,
+  platform: formData.platform,
+  accountType: formData.accountType,
+});
+
       if (res.success) {
         // Update formData with returned currency if available
         setFormData((prev) => ({
