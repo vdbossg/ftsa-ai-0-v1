@@ -537,9 +537,10 @@ async fetchStrongestPair() {
   /**
  * Fetch news from backend
  */
+// src/brain/APIControl.js
 async fetchNews() {
   try {
-    const response = await fetch(`${BASE_URL}/api/news`, {
+    const response = await fetch(`${BASE_URL}/api/news/today`, {  // add /today
       headers: {
         ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       }
@@ -554,7 +555,6 @@ async fetchNews() {
     return { success: false, data: [] };
   }
 },
-
   /**
    * Fetch all dashboard data at once
    */
