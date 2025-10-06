@@ -8,7 +8,7 @@
 const MTConnector = {
   login: async ({ login, password, server }) => {
   return new Promise((resolve, reject) => {
-    const py = spawn("python3", ["server/utils/mt5_connector.py", login, password, server]);
+    const py = spawn("python", [__dirname + "/mt5_connector.py", login, password, server]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));
@@ -24,7 +24,7 @@ const MTConnector = {
 
   getAccountSummary: async (login) => {
   return new Promise((resolve, reject) => {
-    const py = spawn("python3", ["server/utils/mt5_get_summary.py", login]);
+    const py = spawn("python", [__dirname + "/mt5_get_summary.py", login]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));
@@ -39,7 +39,7 @@ const MTConnector = {
 },
   getOpenTrades: async (login) => {
   return new Promise((resolve, reject) => {
-    const py = spawn("python3", ["server/utils/mt5_get_trades.py", login]);
+    const py = spawn("python", [__dirname + "/mt5_get_trades.py", login]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));
