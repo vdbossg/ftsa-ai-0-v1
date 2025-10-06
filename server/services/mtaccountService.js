@@ -2,11 +2,11 @@ const MTAccountModel = require("../models/MTAccountModel");
 const MetaTraderAPI = require("../utils/metaTraderAPI");
 
 /**
- * Get single MT account
+ * Get single MT account (first one in DB)
  */
 async function getMTAccount() {
   try {
-    const account = await MTAccountModel.findOne({});
+    let account = await MTAccountModel.findOne({ login });  // match by login
     return account || null;
   } catch (err) {
     console.error("Error fetching MT account:", err);
@@ -19,22 +19,25 @@ async function getMTAccount() {
  */
 async function connectMTAccount({ broker, login, password, server, platform, accountType }) {
   try {
+    // Connect via Python MT API
     const connected = await MetaTraderAPI.connect({ login, password, server });
     if (!connected.success) {
       return { success: false, message: connected.message || "Failed to connect MT account" };
     }
 
-    let account = await MTAccountModel.findOne({});
+    // Find by login now
+    let account = await MTAccountModel.findOne({ login });
     if (account) {
+      // Update existing
       account.broker = broker;
-      account.login = login;
       account.password = password;
       account.server = server;
       account.platform = platform;
       account.accountType = accountType;
-      account.currency = connected.currency || account.currency;
+      account.currency = connected.currency;
       await account.save();
     } else {
+      // Create new
       account = new MTAccountModel({
         broker,
         login,
@@ -42,7 +45,7 @@ async function connectMTAccount({ broker, login, password, server, platform, acc
         server,
         platform,
         accountType,
-        currency: connected.currency || "",
+        currency: connected.currency,
       });
       await account.save();
     }

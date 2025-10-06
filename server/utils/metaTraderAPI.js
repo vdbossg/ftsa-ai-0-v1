@@ -72,19 +72,31 @@ async function connect({ login, password, server }) {
 
     console.log(`🌐 Connecting to MT account ${login} on server ${server}...`);
 
-    // Replace with real MT login call
     const connected = await MTConnector.login({ login, password, server });
 
+    // If Python failed
     if (!connected.success) {
       return { success: false, message: connected.message || "Failed to connect MT account" };
     }
 
-    return { success: true, currency: connected.currency };
+    // Return all relevant info
+    return {
+      success: true,
+      currency: connected.currency,
+      login: connected.login,
+      balance: connected.balance,
+      equity: connected.equity,
+      margin: connected.margin,
+      freeMargin: connected.freeMargin,
+      marginLevel: connected.marginLevel
+    };
+
   } catch (err) {
     console.error("Error in MetaTraderAPI.connect:", err);
     return { success: false, message: "Failed to connect to MT account" };
   }
 }
+
 
 /**
  * Fetch live account info
