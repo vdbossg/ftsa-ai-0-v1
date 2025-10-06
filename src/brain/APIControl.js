@@ -582,7 +582,28 @@ const accounts = [
     console.error("Error fetching dashboard data:", error);
     return { success: false, error: "Failed to fetch dashboard data" };
   }
-},  
+}, 
+ /**
+ * Fetch news from backend
+ */
+async fetchNews() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/news`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+      }
+    });
+
+    if (!response.ok) return { success: false, data: [] };
+
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("Error fetching news:", err);
+    return { success: false, data: [] };
+  }
+},
+
   /**
    * Fetch all status page data at once
    */
