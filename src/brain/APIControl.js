@@ -165,27 +165,73 @@ async fetchNews() {
 
 
   /**
- * Fetch MT accounts data from backend safely
+ * Fetch single MT account
  */
-async fetchMTAccountsData() {
+async fetchMTAccount() {
   try {
-    const response = await fetch(`${BASE_URL}/api/mtaccounts`, {
+    const response = await fetch(`${BASE_URL}/api/mtaccount`, {
       headers: {
-  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
-}
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+      }
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.account || null; // single account object
+  } catch (err) {
+    console.error("Error fetching MT account:", err);
+    return null;
+  }
+},
 
+/**
+ * Connect single MT account
+ */
+async connectMTAccount(login, password, server) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/mtaccount/connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+      },
+      body: JSON.stringify({ login, password, server }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      console.error("Failed to fetch MT accounts data:", response.statusText);
-      return { success: false, data: [] };
+      return { success: false, message: data.message || "Failed to connect account" };
     }
 
+    // Return currency for frontend
+    return { success: data.success, message: data.message, currency: data.currency || null };
+  } catch (err) {
+    console.error("Error connecting MT account:", err);
+    return { success: false, message: "Unexpected error" };
+  }
+},
+
+
+/**
+ * Delete single MT account
+ */
+async deleteMTAccount() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/mtaccount/delete`, {
+      method: "DELETE",
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+      }
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, message: errorData.message || "Failed to delete account" };
+    }
     const data = await response.json();
-    return { success: true, data: Array.isArray(data) ? data : [] };
-  } catch (error) {
-    console.error("Error fetching MT accounts data:", error);
-    return { success: false, data: [] };
+    return { success: true, message: data.message || "Deleted successfully" };
+  } catch (err) {
+    console.error("Error deleting MT account:", err);
+    return { success: false, message: "Unexpected error" };
   }
 },
 
@@ -531,10 +577,11 @@ async fetchDashboardData() {
     ]);
 
     // Combine MT + PropFirm accounts
-    const accounts = [
-      ...(mtAccountsRes.data || []),
-      ...(propAccountsRes.data || [])
-    ];
+    const mtAccount = mtAccountsRes ? [mtAccountsRes] : [];
+const accounts = [
+  ...mtAccount,
+  ...(propAccountsRes.data || [])
+];
 
     return {
       success: true,

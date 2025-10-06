@@ -1,89 +1,57 @@
-// server/controllers/mtAccountController.js
-const MTConnector = require('../services/mtConnector');
-const MTAccount = require('../models/MTAccount'); // your DB schema
+const {
+  getMTAccount: fetchMTAccount,
+  connectMTAccount,
+  deleteMTAccount,
+} = require("../services/mtaccountService.js");
 
-const mtAccountController = {
-  /**
-   * Login / connect to MT account
-   */
-  async login(req, res) {
-    const { accountId, password, server } = req.body;
-
-    if (!accountId || !password || !server) {
-      return res.status(400).json({ success: false, error: 'Missing accountId, password, or server' });
-    }
-
-    try {
-      // Call service to connect
-      const result = await MTConnector.connect(accountId, password, server);
-
-      if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
-      }
-
-      // Optionally, save account to DB if new
-      // await MTAccount.findOneAndUpdate(
-      //   { accountId },
-      //   { accountId, password, server },
-      //   { upsert: true, new: true }
-      // );
-
-      return res.json(result);
-    } catch (error) {
-      return res.status(500).json({ success: false, error: 'MT login failed' });
-    }
-  },
-
-  /**
-   * Fetch all MT accounts from DB
-   */
-  async getAccounts(req, res) {
-    try {
-      const accounts = await MTAccount.find({});
-      return res.json(accounts);
-    } catch (error) {
-      return res.status(500).json({ success: false, error: 'Failed to fetch MT accounts' });
-    }
-  },
-
-  /**
-   * Delete an MT account by accountId
-   */
-  async deleteAccount(req, res) {
-    const { accountId } = req.params;
-
-    if (!accountId) {
-      return res.status(400).json({ success: false, error: 'Missing accountId' });
-    }
-
-    try {
-      await MTAccount.findOneAndDelete({ accountId: accountId });
-      return res.json({ success: true, message: 'Account deleted' });
-    } catch (error) {
-      return res.status(500).json({ success: false, error: 'Failed to delete MT account' });
-    }
-  },
-  /**
- * Save or update an MT account
+/**
+ * GET /api/mtaccount
  */
-async saveAccount(req, res) {
-  const { accountId, password, server } = req.body;
-  if (!accountId || !password || !server) {
-    return res.status(400).json({ success: false, error: 'Missing accountId, password, or server' });
-  }
-
+async function getMTAccount(req, res) {
   try {
-    const account = await MTAccount.findOneAndUpdate(
-      { accountId },
-      { accountId, password, server },
-      { upsert: true, new: true }
-    );
-    return res.json({ success: true, account });
-  } catch (error) {
-    return res.status(500).json({ success: false, error: 'Failed to save account' });
+    const account = await fetchMTAccount();
+    res.json({ account });
+  } catch (err) {
+    console.error("Error in getMTAccount controller:", err);
+    res.status(500).json({ success: false, message: err.message });
   }
 }
 
-};
+/**
+ * POST /api/mtaccount/connect
+ */
+async function connectMT(req, res) {
+  try {
+    const { broker, login, password, server, platform, accountType } = req.body;
+    if (!login || !password || !server) {
+      return res.status(400).json({ success: false, message: "Login, password, and server are required." });
+    }
 
-module.exports = mtAccountController;
+    const result = await connectMTAccount({ broker, login, password, server, platform, accountType });
+
+    // Flatten currency for frontend
+    res.json({
+      success: result.success,
+      message: result.message,
+      currency: result.account?.currency || null,
+    });
+  } catch (err) {
+    console.error("Error in connectMT controller:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+/**
+ * DELETE /api/mtaccount/delete
+ */
+async function deleteMT(req, res) {
+  try {
+    const result = await deleteMTAccount();
+    res.json(result);
+  } catch (err) {
+    console.error("Error in deleteMT controller:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+module.exports = { getMTAccount, connectMT, deleteMT };

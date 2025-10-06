@@ -6,7 +6,7 @@ const cors = require('cors');
 const config = require('./config');
 const apiRoutes = require('./routes/api');
 const eaRoutes = require('./routes/eaRoutes');
-const mtAccountRoutes = require('./routes/mtAccountRoutes');           // ✅ Added
+const mtaccountRoutes = require("./routes/mtAccountRoutes.js"); // match the file name
 const propFirmRoutes = require('./routes/propFirmAccountRoutes');      // ✅ Added
 const userRoutes = require('./routes/user');   // ✅ correct relative path
 const mpesaRoutes = require('./routes/mpesaRoutes'); // Add this near your other routes
@@ -78,7 +78,7 @@ console.log('✅ /api/user routes mounted');
 app.use('/api', apiRoutes);
 app.use('/api/ea', eaRoutes);                   // Existing
 app.use('/cfa', cfaRoutes);
-app.use('/api/mtaccounts', mtAccountRoutes);    // ✅ Added
+app.use("/api/mtaccounts", mtaccountRoutes);
 app.use('/api/propfirmaccounts', propFirmRoutes); // ✅ Added
 app.use('/api/mpesa', mpesaRoutes);  // ← add this line
 console.log('✅ /api/mpesa routes mounted'); 

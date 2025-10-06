@@ -1,15 +1,13 @@
-// server/routes/mtAccountRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const mtAccountController = require('../controllers/mtAccountController');
+const { getMTAccount, connectMT, deleteMT } = require("../controllers/mtaccountController.js");
 
-// In-memory storage (replace with DB later)
+// Optional auth middleware
+const authMiddleware = (req, res, next) => next();
 
-
-router.get('/', mtAccountController.getAccounts);
-router.post('/save', mtAccountController.saveAccount);
-router.delete('/:accountID', mtAccountController.deleteAccount);
-router.post('/connect', mtAccountController.login);
-router.post('/login', mtAccountController.login);
+// Routes
+router.get("/", authMiddleware, getMTAccount);
+router.post("/connect", authMiddleware, connectMT);
+router.delete("/delete", authMiddleware, deleteMT);
 
 module.exports = router;
