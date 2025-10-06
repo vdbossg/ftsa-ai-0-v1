@@ -36,7 +36,22 @@ export default function MTAccountsPage() {
   const fetchAccount = async () => {
     try {
       setLoading(true);
-      const data = await APIControl.fetchMTAccount(); // fetch single account
+      const accountsData = await APIControl.fetchMTAccounts();
+if (accountsData.success && accountsData.data.length > 0) {
+  // Pick the first account (or handle multiple accounts as needed)
+  setFormData(accountsData.data[0]);
+} else {
+  setFormData({
+    broker: "",
+    login: "",
+    password: "",
+    server: "",
+    platform: "MT4",
+    accountType: "demo",
+    currency: "",
+  });
+}
+
       if (data) setFormData(data);
       setStatus({ type: "", text: "" });
     } catch {
