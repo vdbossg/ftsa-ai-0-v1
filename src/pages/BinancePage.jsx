@@ -61,36 +61,57 @@ if (response.success && response.token) {
   };
 
   // -----------------------------
-  // Fetch Binance Data (after login)
-  // -----------------------------
-  useEffect(() => {
-    if (!authToken) return;
+// Fetch Binance Data (after login)
+// -----------------------------
+useEffect(() => {
+  if (!authToken) return;
 
-    let mounted = true;
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await APIControl.fetchBinanceData();
-if (mounted) {
-  if (response.success) {
-    setBinanceData(response.data || {});
-    setError(null);
+  let mounted = true;
+
+  const fetchData = async () => {
+    console.log("📡 Fetching Binance data...");
+    setLoading(true);
+
+    try {
+      const response = await APIControl.fetchBinanceData();
+console.log("✅ Binance API response:", response);
+
+if (!mounted) return;
+
+if (response?.success) {
+  // Normalize backend shape: ensure we always work with response.data.account
+  const account = response.data?.account || response.data || {};
+  const publicData = response.data?.public || [];
+
+  if (Object.keys(account).length === 0) {
+    setBinanceData(null);
+    setError("No Binance account connected yet.");
   } else {
-    setError(response.error || "Failed to load Binance data.");
+    setBinanceData({ ...account, publicPrices: publicData });
+    setError(null);
   }
+} else {
+  setError(response?.error || "Failed to load Binance data.");
+  setBinanceData(null);
 }
-      } catch (err) {
-        if (mounted) setError(err.message || "Failed to load Binance data.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
 
-    fetchData();
-    return () => {
-      mounted = false;
-    };
-  }, [authToken]);
+    } catch (err) {
+      console.error("❌ Fetch error:", err);
+      if (mounted) setError("Error loading Binance data.");
+    } finally {
+      if (mounted) {
+        console.log("⏹️ Loading complete");
+        setLoading(false);
+      }
+    }
+  };
+
+  fetchData();
+
+  return () => {
+    mounted = false;
+  };
+}, [authToken]);
 
   // -----------------------------
   // Logout Handler
@@ -203,6 +224,9 @@ if (mounted) {
 
       {error && <StatusBadge status="error">{error}</StatusBadge>}
 
+      {!loading && !binanceData && !error && (
+  <StatusBadge status="info">No Binance data available yet.</StatusBadge>
+)}
       {binanceData && !loading && (
         <>
         {/* CONNECT BINANCE ACCOUNT */}

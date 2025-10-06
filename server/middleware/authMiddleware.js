@@ -11,7 +11,8 @@ module.exports = function authMiddleware(req, res, next) {
   try {
     console.log("Auth header:", req.headers.authorization);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // attach user to request
+req.user = { ...decoded, _id: decoded.id }; // ✅ add _id alias
+
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Invalid token' });

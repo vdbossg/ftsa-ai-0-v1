@@ -6,7 +6,6 @@ const {
   fetchAccountWithUsd,
 } = require("../services/binanceService.js");
 
-
 // --- Connect Binance API keys ---
 async function connectBinance(req, res) {
   try {
@@ -19,13 +18,26 @@ async function connectBinance(req, res) {
         .json({ success: false, message: "API Key and Secret required" });
     }
 
-    // Save user’s Binance keys
+    // Save keys
     await saveUserKeys(userId, apiKey, apiSecret);
 
-    // Fetch account data immediately to confirm keys work
+    // Validate keys immediately
     const accountData = await fetchAccountWithUsd(apiKey, apiSecret);
+    console.log("✅ Connected Binance account data:", accountData);
 
-    return res.json({ success: true, data: accountData });
+    // Ensure normalized object
+    // Ensure normalized object
+const normalized = normalizeAccount(accountData);
+
+// ✅ Standardize response shape with /api/binance
+return res.json({
+  success: true,
+  data: {
+    public: {},
+    account: normalized,
+  },
+});
+
   } catch (err) {
     console.error("Error connecting Binance:", err);
     return res
@@ -34,26 +46,32 @@ async function connectBinance(req, res) {
   }
 }
 
-
 // --- Get Binance account data ---
-
 async function fetchBinanceData(req, res) {
   try {
-    // Always fetch public Binance prices
-    const publicData = await fetchPublicPrices();
-
-    // Try to fetch user account data if keys exist
+    let publicData = await fetchPublicPrices();
     let accountData = null;
+
     try {
       const keys = await getUserKeys(req.user._id);
       accountData = await fetchAccountWithUsd(keys.apiKey, keys.apiSecret);
     } catch (err) {
-      console.warn("User has no Binance keys or failed to fetch account:", err.message);
+      console.warn("⚠️ No Binance keys or failed to fetch account:", err.message);
     }
 
-    // Return consistent JSON structure
-    return res.json({ success: true, data: { public: publicData, account: accountData } });
+    // Normalize both sections
+    const normalizedPublic = normalizePublic(publicData);
+    const normalizedAccount = normalizeAccount(accountData);
 
+    const response = { public: normalizedPublic, account: normalizedAccount };
+    console.log("📊 Returning Binance data:", {
+      hasPublic: !!normalizedPublic,
+      hasAccount: !!normalizedAccount,
+      publicKeys: Object.keys(normalizedPublic || {}),
+      accountKeys: Object.keys(normalizedAccount || {}),
+    });
+
+    return res.json({ success: true, data: response });
   } catch (err) {
     console.error("Error fetching Binance data:", err);
     return res
@@ -62,25 +80,31 @@ async function fetchBinanceData(req, res) {
   }
 }
 
-
 // --- Refresh Binance data ---
 async function refreshBinanceData(req, res) {
   try {
-    // Always fetch public Binance prices
-    const publicData = await fetchPublicPrices();
-
-    // Try to fetch user account data if keys exist
+    let publicData = await fetchPublicPrices();
     let accountData = null;
+
     try {
       const keys = await getUserKeys(req.user._id);
       accountData = await fetchAccountWithUsd(keys.apiKey, keys.apiSecret);
     } catch (err) {
-      console.warn("User has no Binance keys or failed to fetch account:", err.message);
+      console.warn("⚠️ User has no Binance keys or failed to fetch account:", err.message);
     }
 
-    // Return consistent JSON structure
-    return res.json({ success: true, data: { public: publicData, account: accountData } });
+    const normalizedPublic = normalizePublic(publicData);
+    const normalizedAccount = normalizeAccount(accountData);
 
+    console.log("📊 Returning refreshed Binance data:", {
+      hasPublic: !!normalizedPublic,
+      hasAccount: !!normalizedAccount,
+    });
+
+    return res.json({
+      success: true,
+      data: { public: normalizedPublic, account: normalizedAccount },
+    });
   } catch (err) {
     console.error("Error refreshing Binance data:", err);
     return res
@@ -89,6 +113,26 @@ async function refreshBinanceData(req, res) {
   }
 }
 
+// --- Helpers for consistent structure ---
+function normalizePublic(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data))
+    return { prices: {}, strongPairs: [] };
+  return data;
+}
+
+function normalizeAccount(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data))
+    return {
+      email: "N/A",
+      totalBalance: 0,
+      availableBalance: 0,
+      dailyPnl: 0,
+      weeklyPnl: 0,
+      holdings: [],
+      wallets: { spots: 0, funding: 0, futures: 0 },
+    };
+  return data;
+}
 
 module.exports = {
   connectBinance,
