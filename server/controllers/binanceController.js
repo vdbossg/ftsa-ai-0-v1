@@ -29,11 +29,15 @@ async function connectBinance(req, res) {
     // Ensure normalized object
 const normalized = normalizeAccount(accountData);
 
+// ✅ Fetch fresh public data to return full structure
+const publicData = await fetchPublicPrices();
+const normalizedPublic = normalizePublic(publicData);
+
 // ✅ Standardize response shape with /api/binance
 return res.json({
   success: true,
   data: {
-    public: {},
+    public: normalizedPublic,
     account: normalized,
   },
 });

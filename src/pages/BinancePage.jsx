@@ -239,11 +239,20 @@ if (response?.success) {
         setLoading(true);
         setError(null);
         const res = await APIControl.connectBinance(apiKey, apiSecret);
-        if (res.success) {
-          alert("✅ Binance account connected!");
-        } else {
-          setError(res.error || "Failed to connect Binance.");
-        }
+         if (res.success) {
+  alert("✅ Binance account connected!");
+  // 🔄 Refresh data immediately
+  const refreshed = await APIControl.fetchBinanceData();
+  if (refreshed?.success) {
+    const account = refreshed.data?.account || {};
+    const publicData = refreshed.data?.public || {};
+    setBinanceData({ ...account, publicPrices: publicData });
+    setError(null);
+  }
+} else {
+  setError(res.error || "Failed to connect Binance.");
+}
+
       } catch (err) {
         setError(err.message || "Connection failed.");
       } finally {
