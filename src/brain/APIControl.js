@@ -183,10 +183,18 @@ async connectMTAccount({ broker, login, password, server, platform, accountType 
 
     // Correctly pick currency from returned account
     return {
-      success: data.success,
-      message: data.message,
-      currency: data.account?.currency || null
-    };
+  success: data.success,
+  message: data.message,
+  account: {
+    broker: data.account?.broker || broker,
+    login: data.account?.login || login,
+    server: data.account?.server || server,
+    platform: data.account?.platform || platform,
+    accountType: data.account?.accountType || accountType,
+    currency: data.account?.currency || null
+  }
+};
+
   } catch (err) {
     console.error("Error connecting MT account:", err);
     return { success: false, message: "Unexpected error" };

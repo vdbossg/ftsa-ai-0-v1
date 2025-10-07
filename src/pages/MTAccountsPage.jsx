@@ -78,11 +78,11 @@ export default function MTAccountsPage() {
   // Construct account object manually using backend response
   const newAccount = {
   broker: formData.broker || "-",
-  login: res.login || formData.login || "-", // fallback if backend fails
+  login: res.account.login || formData.login || "-", // fallback if backend fails
   server: formData.server || "-",
   platform: formData.platform,
   accountType: formData.accountType,
-  currency: res.currency || "USD",
+  currency: res.account.currency || "USD",
   isConnected: true, // new account is always connected
 };
 
@@ -228,10 +228,10 @@ setAccounts((prev) => {
     <td style={{ textAlign: "center" }}>{acc.accountType || "-"}</td>
     <td style={{ textAlign: "center" }}>{acc.currency || "-"}</td>
     <td style={{ textAlign: "center" }}>
-      <StatusBadge status={acc.isConnected ? "success" : "error"}>
-  {acc.isConnected ? "Connected" : "Disconnected"}
-</StatusBadge>
-
+      <StatusBadge 
+  status={acc.isConnected ? "success" : "error"} 
+  label={acc.isConnected ? "Connected" : "Disconnected"} 
+/>
     </td>
     <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
       <NeonButton onClick={() => handleDelete(acc.login)} style={{ backgroundColor: neonColors.neonRed }}>Delete</NeonButton>
