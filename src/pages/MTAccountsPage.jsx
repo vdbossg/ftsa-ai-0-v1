@@ -40,17 +40,15 @@ export default function MTAccountsPage() {
     setLoading(true);
     const res = await APIControl.fetchMTAccount();
     if (res.success && res.data) {
-      // normalize all accounts so each has a proper 'login' key
       const normalizedAccounts = (Array.isArray(res.data) ? res.data : [res.data]).map((acc, index) => ({
-  broker: acc.broker || acc.name || "-",
-  login: acc.login || acc.mt_login || acc.account_id || "-", // ensure login exists
-  server: acc.server || "-",
-  platform: acc.platform || "MT5",
-  accountType: acc.accountType || acc.type || "demo",
-  currency: acc.currency || "USD",
-  isConnected: index === 0 ? true : false, // first account connected by default
-}));
-
+        broker: acc.broker || acc.name || "-",
+        login: acc.login || acc.mt_login || acc.account_id || "-", // ensures login exists
+        server: acc.server || "-",
+        platform: acc.platform || "MT5",
+        accountType: acc.accountType || acc.type || "demo",
+        currency: acc.currency || "USD",
+        isConnected: acc.isConnected ?? (index === 0), // first account connected if not set
+      }));
       setAccounts(normalizedAccounts);
     } else {
       setAccounts([]);
@@ -62,6 +60,7 @@ export default function MTAccountsPage() {
     setLoading(false);
   }
 };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -78,13 +77,15 @@ export default function MTAccountsPage() {
       if (res.success) {
   // Construct account object manually using backend response
   const newAccount = {
-    broker: formData.broker,
-    login: res.login,           // from backend
-    server: formData.server,
-    platform: formData.platform,
-    accountType: formData.accountType,
-    currency: res.currency || "", 
-  };
+  broker: formData.broker || "-",
+  login: res.login || formData.login || "-", // fallback if backend fails
+  server: formData.server || "-",
+  platform: formData.platform,
+  accountType: formData.accountType,
+  currency: res.currency || "USD",
+  isConnected: true, // new account is always connected
+};
+
 
   // Replace the accounts state with only this account as active
   // Add the new account to existing accounts from backend
@@ -218,7 +219,7 @@ setAccounts((prev) => {
               </tr>
             </thead>
             <tbody>
-              {accounts.filter(acc => acc).map((acc) => (
+              {accounts.filter(acc => acc && acc.login).map((acc) => (
   <tr key={acc.login}>
     <td style={{ textAlign: "center" }}>{acc.broker || "-"}</td>
     <td style={{ textAlign: "center" }}>{acc.login || "-"}</td>
