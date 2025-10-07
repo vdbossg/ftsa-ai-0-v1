@@ -67,21 +67,34 @@ export default function MTAccountsPage() {
       setLoading(true);
       const res = await APIControl.connectMTAccount(formData);
       if (res.success) {
-        setAccounts([res.account]); // Only one active account at a time
-        setStatus({ type: "success", text: "Account added successfully!" });
-        setModalOpen(false);
-        setFormData({
-          broker: "",
-          login: "",
-          password: "",
-          server: "",
-          platform: "MT5",
-          accountType: "demo",
-          currency: "",
-        });
-      } else {
-        setStatus({ type: "error", text: res.message || "Failed to add account." });
-      }
+  // Construct account object manually using backend response
+  const newAccount = {
+    broker: formData.broker,
+    login: res.login,           // from backend
+    server: formData.server,
+    platform: formData.platform,
+    accountType: formData.accountType,
+    currency: res.currency || "", 
+  };
+
+  // Replace the accounts state with only this account as active
+  setAccounts([newAccount]);
+
+  setStatus({ type: "success", text: "Account added successfully!" });
+  setModalOpen(false);
+  setFormData({
+    broker: "",
+    login: "",
+    password: "",
+    server: "",
+    platform: "MT5",
+    accountType: "demo",
+    currency: "",
+  });
+} else {
+  setStatus({ type: "error", text: res.message || "Failed to add account." });
+}
+
     } catch (err) {
       console.error(err);
       setStatus({ type: "error", text: err.message || "Unexpected error." });
