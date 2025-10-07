@@ -35,23 +35,29 @@ export default function MTAccountsPage() {
     if (!isAuthenticated) return;
     fetchAccounts();
   }, [isAuthenticated]);
-
   const fetchAccounts = async () => {
-    try {
-      setLoading(true);
-      const res = await APIControl.fetchMTAccount(); // fetch saved accounts from backend
-      if (res.success && res.data) {
-        setAccounts(Array.isArray(res.data) ? res.data : [res.data]);
-      } else {
-        setAccounts([]);
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus({ type: "error", text: "Failed to load accounts." });
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const res = await APIControl.fetchMTAccount(); // fetch saved accounts from backend
+    if (res.success && res.data) {
+      setAccounts(
+        (Array.isArray(res.data) ? res.data : [res.data]).map(acc => ({
+          ...acc,
+          login: acc.login || acc.mt_login || acc.account_id,
+          currency: acc.currency || "USD",
+          isConnected: acc.isConnected || false, // default disconnected
+        }))
+      );
+    } else {
+      setAccounts([]);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: "Failed to load accounts." });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -78,7 +84,13 @@ export default function MTAccountsPage() {
   };
 
   // Replace the accounts state with only this account as active
-  setAccounts([newAccount]);
+  // Add the new account to existing accounts from backend
+setAccounts((prev) => {
+  // Mark all previous accounts as disconnected
+  const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
+  return [...updatedPrev, { ...newAccount, isConnected: true }];
+});
+
 
   setStatus({ type: "success", text: "Account added successfully!" });
   setModalOpen(false);
@@ -108,11 +120,16 @@ export default function MTAccountsPage() {
       setLoading(true);
       const res = await APIControl.deleteMTAccount(); // delete single account
       if (res.success) {
-        setAccounts([]);
-        setStatus({ type: "success", text: "Account deleted successfully!" });
-      } else {
-        setStatus({ type: "error", text: res.message || "Failed to delete account." });
-      }
+  // Remove the deleted account from state
+  const remaining = accounts.filter(a => a.login !== id);
+  // Mark the first remaining account as connected if any
+  if (remaining.length > 0) remaining[0].isConnected = true;
+  setAccounts(remaining);
+  setStatus({ type: "success", text: "Account deleted successfully!" });
+} else {
+  setStatus({ type: "error", text: res.message || "Failed to delete account." });
+}
+
     } catch (err) {
       console.error(err);
       setStatus({ type: "error", text: err.message || "Unexpected error." });
@@ -205,7 +222,10 @@ export default function MTAccountsPage() {
     <td style={{ textAlign: "center" }}>{acc.accountType || "-"}</td>
     <td style={{ textAlign: "center" }}>{acc.currency || "-"}</td>
     <td style={{ textAlign: "center" }}>
-      <StatusBadge status="success">{acc.login === accounts[0]?.login ? "Connected" : "Disconnected"}</StatusBadge>
+      <StatusBadge status={acc.isConnected ? "success" : "error"}>
+  {acc.isConnected ? "Connected" : "Disconnected"}
+</StatusBadge>
+
     </td>
     <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
       <NeonButton onClick={() => handleDelete(acc.login)} style={{ backgroundColor: neonColors.neonRed }}>Delete</NeonButton>
