@@ -18,8 +18,6 @@ export default function MTAccountsPage() {
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", text: "" });
-
-  const [accounts, setAccounts] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     broker: "",
@@ -30,6 +28,8 @@ export default function MTAccountsPage() {
     accountType: "demo",
     currency: "",
   });
+  const [accounts, setAccounts] = useState([]); // store all saved accounts
+
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -183,22 +183,23 @@ export default function MTAccountsPage() {
               </tr>
             </thead>
             <tbody>
-              {accounts.map((acc) => (
-                <tr key={acc.login}>
-                  <td style={{ textAlign: "center" }}>{acc.broker}</td>
-                  <td style={{ textAlign: "center" }}>{acc.login}</td>
-                  <td style={{ textAlign: "center" }}>{acc.server}</td>
-                  <td style={{ textAlign: "center" }}>{acc.platform}</td>
-                  <td style={{ textAlign: "center" }}>{acc.accountType}</td>
-                  <td style={{ textAlign: "center" }}>{acc.currency}</td>
-                  <td style={{ textAlign: "center" }}>
-                    <StatusBadge status="success">{acc.login === accounts[0].login ? "Connected" : "Disconnected"}</StatusBadge>
-                  </td>
-                  <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                    <NeonButton onClick={() => handleDelete(acc.login)} style={{ backgroundColor: neonColors.neonRed }}>Delete</NeonButton>
-                  </td>
-                </tr>
-              ))}
+              {accounts.filter(acc => acc).map((acc) => (
+  <tr key={acc.login}>
+    <td style={{ textAlign: "center" }}>{acc.broker || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.login || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.server || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.platform || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.accountType || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.currency || "-"}</td>
+    <td style={{ textAlign: "center" }}>
+      <StatusBadge status="success">{acc.login === accounts[0]?.login ? "Connected" : "Disconnected"}</StatusBadge>
+    </td>
+    <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+      <NeonButton onClick={() => handleDelete(acc.login)} style={{ backgroundColor: neonColors.neonRed }}>Delete</NeonButton>
+    </td>
+  </tr>
+))}
+
             </tbody>
           </table>
         )}
