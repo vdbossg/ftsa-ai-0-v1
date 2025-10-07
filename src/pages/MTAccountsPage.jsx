@@ -41,15 +41,16 @@ export default function MTAccountsPage() {
     const res = await APIControl.fetchMTAccount();
     if (res.success && res.data) {
       // normalize all accounts so each has a proper 'login' key
-      const normalizedAccounts = (Array.isArray(res.data) ? res.data : [res.data]).map(acc => ({
-        broker: acc.broker || acc.name || "-",
-        login: acc.login || acc.mt_login || acc.account_id || "-",
-        server: acc.server || "-",
-        platform: acc.platform || "MT5",
-        accountType: acc.accountType || acc.type || "demo",
-        currency: acc.currency || "USD",
-        isConnected: acc.isConnected || false,
-      }));
+      const normalizedAccounts = (Array.isArray(res.data) ? res.data : [res.data]).map((acc, index) => ({
+  broker: acc.broker || acc.name || "-",
+  login: acc.login || acc.mt_login || acc.account_id || "-", // ensure login exists
+  server: acc.server || "-",
+  platform: acc.platform || "MT5",
+  accountType: acc.accountType || acc.type || "demo",
+  currency: acc.currency || "USD",
+  isConnected: index === 0 ? true : false, // first account connected by default
+}));
+
       setAccounts(normalizedAccounts);
     } else {
       setAccounts([]);
