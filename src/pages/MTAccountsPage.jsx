@@ -38,16 +38,19 @@ export default function MTAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const res = await APIControl.fetchMTAccount(); // fetch saved accounts from backend
+    const res = await APIControl.fetchMTAccount();
     if (res.success && res.data) {
-      setAccounts(
-        (Array.isArray(res.data) ? res.data : [res.data]).map(acc => ({
-          ...acc,
-          login: acc.login || acc.mt_login || acc.account_id,
-          currency: acc.currency || "USD",
-          isConnected: acc.isConnected || false, // default disconnected
-        }))
-      );
+      // normalize all accounts so each has a proper 'login' key
+      const normalizedAccounts = (Array.isArray(res.data) ? res.data : [res.data]).map(acc => ({
+        broker: acc.broker || acc.name || "-",
+        login: acc.login || acc.mt_login || acc.account_id || "-",
+        server: acc.server || "-",
+        platform: acc.platform || "MT5",
+        accountType: acc.accountType || acc.type || "demo",
+        currency: acc.currency || "USD",
+        isConnected: acc.isConnected || false,
+      }));
+      setAccounts(normalizedAccounts);
     } else {
       setAccounts([]);
     }
@@ -58,8 +61,6 @@ export default function MTAccountsPage() {
     setLoading(false);
   }
 };
-
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -89,8 +90,10 @@ export default function MTAccountsPage() {
 setAccounts((prev) => {
   // Mark all previous accounts as disconnected
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
+  // Add the new account and mark it as connected
   return [...updatedPrev, { ...newAccount, isConnected: true }];
 });
+
 
 
   setStatus({ type: "success", text: "Account added successfully!" });
