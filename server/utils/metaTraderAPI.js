@@ -8,7 +8,8 @@
 const MTConnector = {
   login: async ({ login, password, server }) => {
   return new Promise((resolve, reject) => {
-    const py = spawn("python", [__dirname + "/mt5_connector.py", login, password, server]);
+    const path = require("path");
+const py = spawn("python", [path.join(__dirname, "mt5_connector.py"), login, password, server]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));

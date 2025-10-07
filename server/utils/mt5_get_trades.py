@@ -2,41 +2,49 @@
 import sys
 import json
 import MetaTrader5 as mt5
+from datetime import datetime
 
-# Parse login from args
-login = int(sys.argv[1])
-
-# Initialize MT5
-if not mt5.initialize():
-    print(json.dumps({"success": False, "message": mt5.last_error()}))
+if len(sys.argv) < 4:
+    print(json.dumps({"success": False, "message": "Usage: mt5_get_trades.py <login> <password> <server>"}))
     sys.exit(1)
 
-# Optionally login if needed
-if not mt5.login(login):
-    print(json.dumps({"success": False, "message": mt5.last_error()}))
+login = int(sys.argv[1])
+password = sys.argv[2]
+server = sys.argv[3]
+
+# Initialize MetaTrader 5
+if not mt5.initialize():
+    print(json.dumps({"success": False, "message": f"Initialization failed: {mt5.last_error()}"}))
+    sys.exit(1)
+
+# Attempt login
+if not mt5.login(login, password, server):
+    print(json.dumps({"success": False, "message": f"Login failed: {mt5.last_error()}"}))
     mt5.shutdown()
     sys.exit(1)
 
 # Fetch open positions
-trades = mt5.positions_get()
+positions = mt5.positions_get()
+if positions is None:
+    print(json.dumps({"success": False, "message": f"No positions found or error: {mt5.last_error()}"}))
+    mt5.shutdown()
+    sys.exit(0)
+
+# Format positions into JSON-friendly output
 trade_list = []
+for p in positions:
+    trade_list.append({
+        "ticket": p.ticket,
+        "symbol": p.symbol,
+        "type": "BUY" if p.type == 0 else "SELL",
+        "volume": p.volume,
+        "open_price": p.price_open,
+        "current_price": p.price_current,
+        "sl": p.sl,
+        "tp": p.tp,
+        "profit": p.profit,
+        "time": datetime.fromtimestamp(p.time).strftime("%Y-%m-%d %H:%M:%S")
+    })
 
-if trades is None:
-    print(json.dumps({"success": False, "message": mt5.last_error()}))
-else:
-    for t in trades:
-        trade_list.append({
-            "ticket": t.ticket,
-            "symbol": t.symbol,
-            "type": t.type,
-            "volume": t.volume,
-            "entry_price": t.price_open,
-            "sl": t.sl,
-            "tp": t.tp,
-            "price": t.price_current,
-            "profit": t.profit,
-            "time": t.time  # you can convert: time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(t.time))
-        })
-    print(json.dumps(trade_list))
-
+print(json.dumps({"success": True, "data": trade_list}, indent=2))
 mt5.shutdown()

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import NeonButton from "../components/NeonButton";
 import StatusBadge from "../components/StatusBadge";
 import LoadingSpinner from "../components/LoadingSpinner";
+import Modal from "../components/Modal"; // Create a simple Modal component if not present
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "/src/brain/APIControl.js";
 import "../styles/MTAccountsPage.css";
@@ -18,108 +19,89 @@ export default function MTAccountsPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", text: "" });
 
+  const [accounts, setAccounts] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     broker: "",
     login: "",
     password: "",
     server: "",
-    platform: "MT4",
+    platform: "MT5",
     accountType: "demo",
-    currency: "", // Added currency
+    currency: "",
   });
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchAccount();
+    fetchAccounts();
   }, [isAuthenticated]);
 
-  const fetchAccount = async () => {
-  try {
-    setLoading(true);
-    const accountData = await APIControl.fetchMTAccount();
-
-if (accountData.success && accountData.data) {
-  setFormData(accountData.data);
-} else {
-  // No account found, reset form
-  setFormData({
-    broker: "",
-    login: "",
-    password: "",
-    server: "",
-    platform: "MT4",
-    accountType: "demo",
-    currency: "",
-  });
-}
-
-
-    setStatus({ type: "", text: "" });
-  } catch {
-    setStatus({ type: "error", text: "Failed to load account." });
-  } finally {
-    setLoading(false);
-  }
-};
-
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      const res = await APIControl.fetchMTAccount(); // fetch saved accounts from backend
+      if (res.success && res.data) {
+        setAccounts(Array.isArray(res.data) ? res.data : [res.data]);
+      } else {
+        setAccounts([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus({ type: "error", text: "Failed to load accounts." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleConnect = async () => {
+  const handleAddAccount = async () => {
     if (!formData.login || !formData.password || !formData.server) {
       setStatus({ type: "error", text: "Please fill all fields." });
       return;
     }
     try {
       setLoading(true);
-      const res = await APIControl.connectMTAccount({
-  broker: formData.broker,
-  login: formData.login,
-  password: formData.password,
-  server: formData.server,
-  platform: formData.platform,
-  accountType: formData.accountType,
-});
-
+      const res = await APIControl.connectMTAccount(formData);
       if (res.success) {
-        // Update formData with returned currency if available
-        setFormData((prev) => ({
-          ...prev,
-          currency: res.currency || prev.currency,
-        }));
-        setStatus({ type: "success", text: "Account connected successfully!" });
+        setAccounts([res.account]); // Only one active account at a time
+        setStatus({ type: "success", text: "Account added successfully!" });
+        setModalOpen(false);
+        setFormData({
+          broker: "",
+          login: "",
+          password: "",
+          server: "",
+          platform: "MT5",
+          accountType: "demo",
+          currency: "",
+        });
       } else {
-        setStatus({ type: "error", text: res.message || "Failed to connect account." });
+        setStatus({ type: "error", text: res.message || "Failed to add account." });
       }
     } catch (err) {
+      console.error(err);
       setStatus({ type: "error", text: err.message || "Unexpected error." });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (id) => {
     try {
       setLoading(true);
       const res = await APIControl.deleteMTAccount(); // delete single account
       if (res.success) {
+        setAccounts([]);
         setStatus({ type: "success", text: "Account deleted successfully!" });
-        setFormData({
-          broker: "",
-          login: "",
-          password: "",
-          server: "",
-          platform: "MT4",
-          accountType: "demo",
-          currency: "",
-        });
       } else {
         setStatus({ type: "error", text: res.message || "Failed to delete account." });
       }
     } catch (err) {
+      console.error(err);
       setStatus({ type: "error", text: err.message || "Unexpected error." });
     } finally {
       setLoading(false);
@@ -147,22 +129,13 @@ if (accountData.success && accountData.data) {
         backgroundColor: neonColors.background,
         color: neonColors.neonBlue,
         fontFamily: "'Orbitron', sans-serif",
-        height: "100%",
+        minHeight: "100vh",
         padding: "2rem",
-        maxWidth: 500,
-        margin: "0 auto",
       }}
     >
-      <h2 style={{ textAlign: "center", marginBottom: "1rem" }}>
-        Connect Your MT4/MT5 Account
-      </h2>
+      <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>FTSA AI MTaccount</h1>
 
-      {loading && (
-        <div style={{ textAlign: "center" }}>
-          <LoadingSpinner size={50} color={neonColors.neonBlue} />
-        </div>
-      )}
-
+      {/* Status */}
       {status.text && (
         <StatusBadge
           status={status.type}
@@ -172,102 +145,157 @@ if (accountData.success && accountData.data) {
         </StatusBadge>
       )}
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleConnect();
+      {/* Accounts Table */}
+      <div
+        style={{
+          maxHeight: "250px",
+          overflowY: "auto",
+          marginBottom: "2rem",
+          border: `2px solid ${neonColors.neonBlue}`,
+          borderRadius: "8px",
+          padding: "0.5rem",
         }}
-        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
       >
-        <label>
-          Broker
-          <input
-            name="broker"
-            value={formData.broker}
-            onChange={handleInputChange}
-            style={inputStyle}
-            required
-          />
-        </label>
-
-        <label>
-          Login
-          <input
-            name="login"
-            value={formData.login}
-            onChange={handleInputChange}
-            style={inputStyle}
-            required
-          />
-        </label>
-
-        <label>
-          Password
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            style={inputStyle}
-            required
-          />
-        </label>
-
-        <label>
-          Server
-          <input
-            name="server"
-            value={formData.server}
-            onChange={handleInputChange}
-            style={inputStyle}
-            required
-          />
-        </label>
-
-        <label>
-          Platform
-          <select
-            name="platform"
-            value={formData.platform}
-            onChange={handleInputChange}
-            style={inputStyle}
-          >
-            <option value="MT4">MT4</option>
-            <option value="MT5">MT5</option>
-          </select>
-        </label>
-
-        <label>
-          Account Type
-          <select
-            name="accountType"
-            value={formData.accountType}
-            onChange={handleInputChange}
-            style={inputStyle}
-          >
-            <option value="demo">Demo</option>
-            <option value="live">Live</option>
-          </select>
-        </label>
-
-        {formData.currency && (
-          <p style={{ textAlign: "center", color: neonColors.neonGreen }}>
-            Currency: {formData.currency}
-          </p>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "1rem" }}>
+            <LoadingSpinner size={40} color={neonColors.neonBlue} />
+          </div>
+        ) : accounts.length === 0 ? (
+          <p style={{ textAlign: "center", color: neonColors.neonGreen }}>No saved accounts.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["Broker", "Login ID", "Server", "Platform", "Account Type", "Currency", "Status", "Actions"].map(
+                  (col) => (
+                    <th
+                      key={col}
+                      style={{
+                        borderBottom: `1px solid ${neonColors.neonBlue}`,
+                        padding: "0.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      {col}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {accounts.map((acc) => (
+                <tr key={acc.login}>
+                  <td style={{ textAlign: "center" }}>{acc.broker}</td>
+                  <td style={{ textAlign: "center" }}>{acc.login}</td>
+                  <td style={{ textAlign: "center" }}>{acc.server}</td>
+                  <td style={{ textAlign: "center" }}>{acc.platform}</td>
+                  <td style={{ textAlign: "center" }}>{acc.accountType}</td>
+                  <td style={{ textAlign: "center" }}>{acc.currency}</td>
+                  <td style={{ textAlign: "center" }}>
+                    <StatusBadge status="success">{acc.login === accounts[0].login ? "Connected" : "Disconnected"}</StatusBadge>
+                  </td>
+                  <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                    <NeonButton onClick={() => handleDelete(acc.login)} style={{ backgroundColor: neonColors.neonRed }}>Delete</NeonButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
+      </div>
 
-        <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-          <NeonButton type="submit">Connect</NeonButton>
-          <NeonButton
-            type="button"
-            style={{ backgroundColor: neonColors.neonRed }}
-            onClick={handleDelete}
+      {/* Add Account Button */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <NeonButton onClick={() => setModalOpen(true)}>Add Account</NeonButton>
+      </div>
+
+      {/* Modal for Adding Account */}
+      {modalOpen && (
+        <Modal onClose={() => setModalOpen(false)} title="Add MT Account">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddAccount();
+            }}
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
-            Delete
-          </NeonButton>
-        </div>
-      </form>
+            <label>
+              Broker
+              <input
+                name="broker"
+                value={formData.broker}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Login
+              <input
+                name="login"
+                value={formData.login}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Server
+              <input
+                name="server"
+                value={formData.server}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Platform
+              <select
+                name="platform"
+                value={formData.platform}
+                onChange={handleInputChange}
+                style={inputStyle}
+              >
+                <option value="MT4">MT4</option>
+                <option value="MT5">MT5</option>
+              </select>
+            </label>
+            <label>
+              Account Type
+              <select
+                name="accountType"
+                value={formData.accountType}
+                onChange={handleInputChange}
+                style={inputStyle}
+              >
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+              </select>
+            </label>
 
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+              <NeonButton type="submit">➕ Add</NeonButton>
+              <NeonButton type="button" style={{ backgroundColor: neonColors.neonRed }} onClick={() => setModalOpen(false)}>
+                Cancel
+              </NeonButton>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Footer */}
       <footer
         style={{
           marginTop: "2rem",
