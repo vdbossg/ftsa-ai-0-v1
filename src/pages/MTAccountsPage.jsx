@@ -78,12 +78,13 @@ export default function MTAccountsPage() {
   // Construct account object manually using backend response
   const newAccount = {
   broker: formData.broker || "-",
-  login: res.account.login || formData.login || "-", // fallback if backend fails
+  login: res.account.login || formData.login || "-",
+  password: formData.password || "-", // store password so reconnect works
   server: formData.server || "-",
   platform: formData.platform,
   accountType: formData.accountType,
   currency: res.account.currency || "USD",
-  isConnected: true, // new account is always connected
+  isConnected: true,
 };
 
 
@@ -124,7 +125,7 @@ setAccounts((prev) => {
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      const res = await APIControl.deleteMTAccount(); // delete single account
+      const res = await APIControl.deleteMTAccount(id);
       if (res.success) {
   // Remove the deleted account from state
   const remaining = accounts.filter(a => a.login !== id);

@@ -130,17 +130,24 @@ async function connectMT(req, res) {
 }
 
 /**
- * DELETE /api/mtaccounts
+ * DELETE /api/mtaccounts/:login
  */
 async function deleteMT(req, res) {
   try {
-    const { login } = req.body;
-const result = await deleteMTAccount(login);
+    // Try getting login from either body or URL param
+    const login = req.body?.login || req.params?.login;
+
+    if (!login) {
+      return res.status(400).json({ success: false, message: "Missing login for deletion" });
+    }
+
+    const result = await deleteMTAccount(login);
     res.json(result);
   } catch (err) {
     console.error("❌ Error in deleteMT controller:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 }
+
 
 module.exports = { getMTAccount, connectMT, deleteMT };
