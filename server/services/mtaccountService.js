@@ -92,39 +92,41 @@ async function connectMTAccount({ broker, login, password, server, platform, acc
   }
 }
 
+
 /**
- * Get the first stored MT account
+ * Get all stored MT accounts
  */
 async function getMTAccount() {
   try {
-    const account = await MTAccountModel.findOne({});
-    if (!account) {
-      console.warn("⚠️ No MT account found in MongoDB");
-      return null;
+    const accounts = await MTAccountModel.find({});
+    if (!accounts || accounts.length === 0) {
+      console.warn("⚠️ No MT accounts found in MongoDB");
+      return [];
     }
-    return account;
+    return accounts;
   } catch (err) {
-    console.error("💥 Error fetching MT account:", err);
-    return null;
+    console.error("💥 Error fetching MT accounts:", err);
+    return [];
   }
 }
 
 /**
- * Delete all MT accounts
+ * Delete a specific MT account by login
  */
-async function deleteMTAccount() {
+async function deleteMTAccount(login) {
   try {
-    const result = await MTAccountModel.deleteMany({});
+    const result = await MTAccountModel.deleteOne({ login });
     if (result.deletedCount > 0) {
-      console.log(`🗑️ Deleted ${result.deletedCount} MT accounts`);
-      return { success: true, message: "MT account deleted successfully" };
+      console.log(`🗑️ Deleted MT account ${login}`);
+      return { success: true, message: `MT account ${login} deleted successfully` };
     }
-    return { success: false, message: "No MT account to delete" };
+    return { success: false, message: `No MT account found with login ${login}` };
   } catch (err) {
     console.error("💥 Error deleting MT account:", err);
     return { success: false, message: "Unexpected error" };
   }
 }
+
 
 module.exports = {
   getMTAccount,

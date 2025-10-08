@@ -134,7 +134,8 @@ async function connectMT(req, res) {
  */
 async function deleteMT(req, res) {
   try {
-    const result = await deleteMTAccount();
+    const { login } = req.body;
+const result = await deleteMTAccount(login);
     res.json(result);
   } catch (err) {
     console.error("❌ Error in deleteMT controller:", err);

@@ -143,6 +143,36 @@ setAccounts((prev) => {
       setLoading(false);
     }
   };
+  const handleReconnect = async (acc) => {
+  try {
+    setLoading(true);
+    const res = await APIControl.connectMTAccount({
+      login: acc.login,
+      password: acc.password || "", // backend may not store it, so optional
+      server: acc.server,
+      broker: acc.broker,
+      platform: acc.platform,
+      accountType: acc.accountType,
+    });
+
+    if (res.success) {
+      setAccounts((prev) =>
+        prev.map((a) =>
+          a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
+        )
+      );
+      setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
+    } else {
+      setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (!isAuthenticated) {
     return (
@@ -234,8 +264,22 @@ setAccounts((prev) => {
 />
     </td>
     <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-      <NeonButton onClick={() => handleDelete(acc.login)} style={{ backgroundColor: neonColors.neonRed }}>Delete</NeonButton>
-    </td>
+  {!acc.isConnected && (
+    <NeonButton
+      onClick={() => handleReconnect(acc)}
+      style={{ backgroundColor: neonColors.neonGreen }}
+    >
+      Login
+    </NeonButton>
+  )}
+  <NeonButton
+    onClick={() => handleDelete(acc.login)}
+    style={{ backgroundColor: neonColors.neonRed }}
+  >
+    Delete
+  </NeonButton>
+</td>
+
   </tr>
 ))}
 
