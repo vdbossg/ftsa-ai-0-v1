@@ -129,7 +129,7 @@ async function connectMT4(req, res) {
  */
 async function deleteMT4(req, res) {
   try {
-    const login = req.body?.login || req.params?.login;
+    const login = req.query?.login || req.body?.login || req.params?.login; // safer for query param
 
     if (!login) {
       return res.status(400).json({ success: false, message: "Missing login for deletion" });

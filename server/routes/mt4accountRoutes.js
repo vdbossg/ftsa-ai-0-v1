@@ -12,6 +12,8 @@ const authMiddleware = (req, res, next) => next();
 // ✅ Use MT4 controller functions
 router.get("/", authMiddleware, getMT4Account);
 router.post("/connect", authMiddleware, connectMT4);
-router.delete("/:login?", authMiddleware, deleteMT4);
+// Use query param instead of optional path param
+router.delete("/", authMiddleware, deleteMT4); // /api/mt4accounts?login=12345
+
 
 module.exports = router;
