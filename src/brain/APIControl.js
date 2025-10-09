@@ -160,6 +160,28 @@ async fetchMTAccount() {
     return { success: false, data: null };
   }
 },
+/**
+ * Fetch the single MT4 account
+ */
+async fetchMT4Account() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/mt4accounts`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        }),
+      },
+    });
+
+    if (!response.ok) return { success: false, data: null };
+
+    const data = await response.json();
+    return { success: true, data: data.data || null };
+  } catch (err) {
+    console.error("Error fetching MT4 account:", err);
+    return { success: false, data: null };
+  }
+},
 
 /**
  * Connect MT account
@@ -200,6 +222,46 @@ async connectMTAccount({ broker, login, password, server, platform, accountType 
     return { success: false, message: "Unexpected error" };
   }
 },
+/**
+ * Connect MT4 account
+ */
+async connectMT4Account({ broker, login, password, server, platform, accountType }) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/mt4accounts/connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("authToken") && {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        }),
+      },
+      body: JSON.stringify({ broker, login, password, server, platform, accountType }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, message: data.message || "Failed to connect MT4 account" };
+    }
+
+    return {
+      success: data.success,
+      message: data.message,
+      account: {
+        broker: data.account?.broker || broker,
+        login: data.account?.login || login,
+        server: data.account?.server || server,
+        platform: data.account?.platform || "MT4",
+        accountType: data.account?.accountType || accountType,
+        currency: data.account?.currency || null,
+      },
+    };
+  } catch (err) {
+    console.error("Error connecting MT4 account:", err);
+    return { success: false, message: "Unexpected error" };
+  }
+},
+
 
 /**
  * Delete MT account
@@ -225,8 +287,32 @@ async deleteMTAccount() {
     return { success: false, message: "Unexpected error" };
   }
 },
+/**
+ * Delete MT4 account
+ */
+async deleteMT4Account() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/mt4accounts`, {
+      method: "DELETE",
+      headers: {
+        ...(localStorage.getItem("authToken") && {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        }),
+      },
+    });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, message: errorData.message || "Failed to delete MT4 account" };
+    }
 
+    const data = await response.json();
+    return { success: true, message: data.message || "MT4 account deleted successfully" };
+  } catch (err) {
+    console.error("Error deleting MT4 account:", err);
+    return { success: false, message: "Unexpected error" };
+  }
+},
   /**
  * Fetch PropFirm accounts data from backend safely
  */
@@ -724,6 +810,34 @@ async toggleAutoTrade(start) {
   }
 },
 
+/**
+ * Unified connect handler for MT4 / MT5
+ */
+async connectAccount({ broker, login, password, server, platform, accountType }) {
+  if (platform === "MT4") {
+    return this.connectMT4Account({ broker, login, password, server, platform, accountType });
+  } else {
+    return this.connectMTAccount({ broker, login, password, server, platform, accountType });
+  }
+},
+
+/**
+ * Unified fetch handler for MT4 / MT5
+ */
+async fetchAccount(platform) {
+  return platform === "MT4"
+    ? this.fetchMT4Account()
+    : this.fetchMTAccount();
+},
+
+/**
+ * Unified delete handler for MT4 / MT5
+ */
+async deleteAccount(platform) {
+  return platform === "MT4"
+    ? this.deleteMT4Account()
+    : this.deleteMTAccount();
+},
 
 };
 

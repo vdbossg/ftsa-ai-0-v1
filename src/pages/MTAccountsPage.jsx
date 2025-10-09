@@ -38,21 +38,24 @@ export default function MTAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const res = await APIControl.fetchMTAccount();
-    if (res.success && res.data) {
-      const normalizedAccounts = (Array.isArray(res.data) ? res.data : [res.data]).map((acc, index) => ({
-        broker: acc.broker || acc.name || "-",
-        login: acc.login || acc.mt_login || acc.account_id || "-", // ensures login exists
-        server: acc.server || "-",
-        platform: acc.platform || "MT5",
-        accountType: acc.accountType || acc.type || "demo",
-        currency: acc.currency || "USD",
-        isConnected: acc.isConnected ?? (index === 0), // first account connected if not set
-      }));
-      setAccounts(normalizedAccounts);
-    } else {
-      setAccounts([]);
-    }
+    const mt5Res = await APIControl.fetchAccount("MT5");
+    const mt4Res = await APIControl.fetchAccount("MT4");
+
+    const allAccounts = [
+      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
+      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
+    ].map((acc, index) => ({
+      broker: acc.broker || acc.name || "-",
+      login: acc.login || acc.mt_login || acc.account_id || "-",
+      server: acc.server || "-",
+      platform: acc.platform || "MT5",
+      accountType: acc.accountType || acc.type || "demo",
+      currency: acc.currency || "USD",
+      isConnected: acc.isConnected ?? (index === 0),
+      password: acc.password || "",
+    }));
+
+    setAccounts(allAccounts);
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
@@ -60,7 +63,6 @@ export default function MTAccountsPage() {
     setLoading(false);
   }
 };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -73,31 +75,23 @@ export default function MTAccountsPage() {
     }
     try {
       setLoading(true);
-      const res = await APIControl.connectMTAccount(formData);
-      if (res.success) {
-  // Construct account object manually using backend response
+      const res = await APIControl.connectAccount(formData);
+      if (res.success && res.account) {
   const newAccount = {
-  broker: formData.broker || "-",
-  login: res.account.login || formData.login || "-",
-  password: formData.password || "-", // store password so reconnect works
-  server: formData.server || "-",
-  platform: formData.platform,
-  accountType: formData.accountType,
-  currency: res.account.currency || "USD",
-  isConnected: true,
-};
+    broker: formData.broker || "-",
+    login: res.account.login || formData.login || "-",
+    password: formData.password || "",
+    server: formData.server || "-",
+    platform: formData.platform,
+    accountType: formData.accountType,
+    currency: res.account.currency || "USD",
+    isConnected: true,
+  };
 
-
-  // Replace the accounts state with only this account as active
-  // Add the new account to existing accounts from backend
-setAccounts((prev) => {
-  // Mark all previous accounts as disconnected
-  const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
-  // Add the new account and mark it as connected
-  return [...updatedPrev, { ...newAccount, isConnected: true }];
-});
-
-
+  setAccounts(prev => {
+    const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
+    return [...updatedPrev, newAccount];
+  });
 
   setStatus({ type: "success", text: "Account added successfully!" });
   setModalOpen(false);
@@ -114,28 +108,6 @@ setAccounts((prev) => {
   setStatus({ type: "error", text: res.message || "Failed to add account." });
 }
 
-    } catch (err) {
-      console.error(err);
-      setStatus({ type: "error", text: err.message || "Unexpected error." });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      setLoading(true);
-      const res = await APIControl.deleteMTAccount(id);
-      if (res.success) {
-  // Remove the deleted account from state
-  const remaining = accounts.filter(a => a.login !== id);
-  // Mark the first remaining account as connected if any
-  if (remaining.length > 0) remaining[0].isConnected = true;
-  setAccounts(remaining);
-  setStatus({ type: "success", text: "Account deleted successfully!" });
-} else {
-  setStatus({ type: "error", text: res.message || "Failed to delete account." });
-}
 
     } catch (err) {
       console.error(err);
@@ -144,12 +116,35 @@ setAccounts((prev) => {
       setLoading(false);
     }
   };
+
+  const handleDelete = async (acc) => {
+  try {
+    setLoading(true);
+    const res = await APIControl.deleteAccount(acc.login); // or acc.accountId if available
+
+    if (res.success) {
+      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+      if (remaining.length > 0) remaining[0].isConnected = true;
+      setAccounts(remaining);
+      setStatus({ type: "success", text: "Account deleted successfully!" });
+    } else {
+      setStatus({ type: "error", text: res.message || "Failed to delete account." });
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   const handleReconnect = async (acc) => {
   try {
     setLoading(true);
-    const res = await APIControl.connectMTAccount({
+    const res = await APIControl.connectAccount({
       login: acc.login,
-      password: acc.password || "", // backend may not store it, so optional
+      password: acc.password || prompt(`Enter password for ${acc.login}`),
       server: acc.server,
       broker: acc.broker,
       platform: acc.platform,
@@ -251,7 +246,7 @@ setAccounts((prev) => {
             </thead>
             <tbody>
               {accounts.filter(acc => acc && acc.login).map((acc) => (
-  <tr key={acc.login}>
+                <tr key={acc.platform + "-" + acc.login}>
     <td style={{ textAlign: "center" }}>{acc.broker || "-"}</td>
     <td style={{ textAlign: "center" }}>{acc.login || "-"}</td>
     <td style={{ textAlign: "center" }}>{acc.server || "-"}</td>
@@ -274,11 +269,11 @@ setAccounts((prev) => {
     </NeonButton>
   )}
   <NeonButton
-    onClick={() => handleDelete(acc.login)}
-    style={{ backgroundColor: neonColors.neonRed }}
-  >
-    Delete
-  </NeonButton>
+  onClick={() => handleDelete(acc)} // ✅ pass full account
+  style={{ backgroundColor: neonColors.neonRed }}
+>
+  Delete
+</NeonButton>
 </td>
 
   </tr>
