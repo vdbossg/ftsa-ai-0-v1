@@ -24,7 +24,7 @@ const AboutPage = () => {
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/about/public`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/about/public`, {
   headers: {
     "Content-Type": "application/json"
   }
