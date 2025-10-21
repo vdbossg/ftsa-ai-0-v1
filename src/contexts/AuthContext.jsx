@@ -6,6 +6,7 @@ export { AuthContext };
 
 
 export const AuthProvider = ({ children }) => {
+  const token = localStorage.getItem('authToken'); // get token from localStorage
   const [user, setUser] = useState(() => {
     try {
       const storedUser = localStorage.getItem('authUser');
@@ -43,7 +44,7 @@ const logout = () => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

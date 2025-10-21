@@ -7,46 +7,50 @@ import { AuthContext } from "../contexts/AuthContext";
 import "../styles/AboutPage.css";
 
 const AboutPage = () => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { token, isAuthenticated } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [aboutData, setAboutData] = useState(null);
   const [error, setError] = useState(null);
 
   // Fetch About page data from admin panel
   useEffect(() => {
-    async function fetchAboutData() {
-      try {
-        setLoading(true);
-const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`);
+  async function fetchAboutData() {
+    try {
+      setLoading(true);
 
-
-// read the response once as text
-const text = await response.text(); 
-console.log("Response body:", text); // check if it's HTML or JSON
-let data;
-try {
-  data = JSON.parse(text); // try to convert text to JSON
-} catch (err) {
-  console.error("Expected JSON but got:", text); // if it's HTML or something else, log it
-  throw new Error("Failed to parse about data");
-}
-
-if (!response.ok) {
-  throw new Error("Failed to fetch about data.");
-}
-
-setAboutData(data);
-
-
-      } catch (err) {
-        setError(err.message);
-        console.error(err);
-      } finally {
+      if (!token) { // make sure user is logged in
+        setError("You must be logged in to view this page.");
         setLoading(false);
+        return;
       }
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // send token for auth
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Fetch failed, server response:", errorText);
+        throw new Error(`Failed to fetch about data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setAboutData(data);
+
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    fetchAboutData();
-  }, []);
+  }
+
+  fetchAboutData();
+}, [token]);
+
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="error-msg neon-glow-border">{error}</div>;
