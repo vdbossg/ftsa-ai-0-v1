@@ -21,8 +21,17 @@ const AboutPage = () => {
       // 🔹 DEBUG: check backend URL
       console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
 
+
       // Fetch About page data from backend
-const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/about/public`);
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+console.log("Using backend URL:", backendUrl);
+
+const response = await fetch(`${backendUrl}/api/about/public`, {
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 
 if (!response.ok) {
   throw new Error(`Failed to fetch about data: ${response.status}`);
