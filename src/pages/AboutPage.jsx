@@ -18,6 +18,9 @@ const AboutPage = () => {
     try {
       setLoading(true);
 
+      // 🔹 DEBUG: check backend URL
+      console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
+
       // Fetch About page data from backend
 const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/about/public`);
 
