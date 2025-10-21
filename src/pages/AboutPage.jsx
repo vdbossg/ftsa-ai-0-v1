@@ -25,20 +25,29 @@ const AboutPage = () => {
       }
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/about/`, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // send token for auth
-        }
-      });
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  }
+});
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Fetch failed, server response:", errorText);
-        throw new Error(`Failed to fetch about data: ${response.status}`);
-      }
+// read response as text first
+const text = await response.text();
 
-      const data = await response.json();
-      setAboutData(data);
+let data;
+try {
+  data = JSON.parse(text); // try to parse JSON
+  setAboutData(data);
+} catch {
+  console.error("Expected JSON but got:", text); // log the HTML if any
+  throw new Error("Failed to parse about data (received HTML?)");
+}
+
+// check response status after parsing
+if (!response.ok) {
+  throw new Error(`Failed to fetch about data: ${response.status}`);
+}
+
 
     } catch (err) {
       setError(err.message);
