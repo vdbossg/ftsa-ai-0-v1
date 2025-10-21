@@ -18,35 +18,26 @@ const AboutPage = () => {
     try {
       setLoading(true);
 
-      if (!token) { // make sure user is logged in
-        setError("You must be logged in to view this page.");
-        setLoading(false);
-        return;
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/about/public`, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      const text = await response.text();
+
+      let data;
+      try {
+        data = JSON.parse(text); // parse JSON
+        setAboutData(data);
+      } catch {
+        console.error("Expected JSON but got:", text);
+        throw new Error("Failed to parse about data (received HTML?)");
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/about/public`, {
-  headers: {
-    "Content-Type": "application/json"
-  }
-});
-
-// read response as text first
-const text = await response.text();
-
-let data;
-try {
-  data = JSON.parse(text); // try to parse JSON
-  setAboutData(data);
-} catch {
-  console.error("Expected JSON but got:", text); // log the HTML if any
-  throw new Error("Failed to parse about data (received HTML?)");
-}
-
-// check response status after parsing
-if (!response.ok) {
-  throw new Error(`Failed to fetch about data: ${response.status}`);
-}
-
+      if (!response.ok) {
+        throw new Error(`Failed to fetch about data: ${response.status}`);
+      }
 
     } catch (err) {
       setError(err.message);
@@ -57,7 +48,7 @@ if (!response.ok) {
   }
 
   fetchAboutData();
-}, [token]);
+}, []);
 
 
   if (loading) return <LoadingSpinner />;

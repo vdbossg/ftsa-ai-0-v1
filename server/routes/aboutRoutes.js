@@ -5,6 +5,27 @@ const About = require("../models/About");
 const { body, validationResult } = require("express-validator");
 const { verifyAdmin } = require("../middleware/auth");
 
+
+// Public route for user app
+router.get("/public", async (req, res) => {
+  try {
+    const about = await About.findOne();
+    if (!about) {
+      return res.json({
+        criticalNotices: [],
+        keyFeatures: [],
+        whyExist: "",
+        poweredBy: "",
+        offices: [],
+        team: [],
+        roadmap: [],
+      });
+    }
+    res.json(about);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // GET about data
 router.get("/", async (req, res) => {
   try {
