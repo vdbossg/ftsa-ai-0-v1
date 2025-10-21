@@ -20,9 +20,10 @@ const AboutPage = () => {
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/about/public`, {
         headers: {
-          "Content-Type": "application/json"
-        }
-      });
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  }
+});
 
       const text = await response.text();
 
