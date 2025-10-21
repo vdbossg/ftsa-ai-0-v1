@@ -56,7 +56,13 @@ setAboutData(data);
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="error-msg neon-glow-border">{error}</div>;
 
- const { 
+ if (!aboutData) {
+  return <div className="error-msg neon-glow-border">
+    About page data not available. Please update from admin panel.
+  </div>;
+}
+
+const { 
   keyFeatures, 
   whyExist, 
   poweredBy, 
@@ -64,7 +70,7 @@ setAboutData(data);
   team, 
   roadmap, 
   criticalNotices, 
-} = aboutData || {};
+} = aboutData;
 
   return (
     <div

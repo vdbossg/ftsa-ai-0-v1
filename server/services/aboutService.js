@@ -4,15 +4,8 @@ const About = require("../models/About");
 const getAbout = async () => {
   const about = await About.findOne();
   if (!about) {
-    return {
-      criticalNotices: [],
-      keyFeatures: [],
-      whyExist: "",
-      poweredBy: "",
-      offices: [],
-      team: [],
-      roadmap: [],
-    };
+    // No dummy, throw error so frontend knows no real data exists
+    throw new Error("About page data not found. Please update from admin panel.");
   }
   return about;
 };
