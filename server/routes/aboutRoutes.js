@@ -1,3 +1,4 @@
+//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\server\routes\aboutRoutes.js
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");

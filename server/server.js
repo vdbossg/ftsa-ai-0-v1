@@ -175,6 +175,7 @@ setInterval(async () => {
   }
 }, 5000);
 
+
 // Start server (both Express + WS)
 server.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT} with WS support`);
