@@ -53,31 +53,47 @@ async function runPython(scriptName, args = []) {
  */
 async function getMTAccount(req, res) {
   try {
-    const account = await fetchMTAccount();
-    if (!account) {
-      return res.status(404).json({ success: false, message: "MT account not found" });
+    const accounts = await fetchMTAccount(); // fetch all accounts
+    if (!accounts || accounts.length === 0) {
+      return res.status(404).json({ success: false, message: "MT accounts not found" });
     }
 
-    // ✅ Fetch live summary and trades from MT5
-    const summary = await runPython("mt5_get_summary.py", [account.login, account.password, account.server]);
-    let trades = [];
-    try {
-      trades = await runPython("mt5_get_trades.py", [account.login, account.password, account.server]);
-    } catch (e) {
-      console.warn("⚠️ Could not fetch trades:", e.message);
+    const results = [];
+
+    for (const acc of accounts) {
+      let summary = {};
+      let trades = [];
+
+      if (acc.login && acc.password && acc.server) {
+        try {
+          summary = await runPython("mt5_get_summary.py", [acc.login, acc.password, acc.server]);
+        } catch (e) {
+          console.warn(`⚠️ Could not fetch summary for ${acc.login}:`, e.message);
+        }
+
+        try {
+          trades = await runPython("mt5_get_trades.py", [acc.login, acc.password, acc.server]);
+        } catch (e) {
+          console.warn(`⚠️ Could not fetch trades for ${acc.login}:`, e.message);
+        }
+      } else {
+        console.warn(`⚠️ MT account ${acc.login || "unknown"} has missing login/password/server, skipping Python calls`);
+      }
+
+      results.push({
+        account: acc,
+        summary,
+        trades
+      });
     }
 
-    res.json({
-      success: true,
-      account,
-      summary,
-      trades,
-    });
+    res.json({ success: true, accounts: results });
   } catch (err) {
     console.error("❌ Error in getMTAccount controller:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 }
+
 
 /**
  * POST /api/mtaccounts/connect

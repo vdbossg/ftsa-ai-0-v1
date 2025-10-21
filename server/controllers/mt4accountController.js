@@ -48,25 +48,49 @@ async function runPython(scriptName, args = []) {
  */
 async function getMT4Account(req, res) {
   try {
-    const account = await fetchMT4Account();
-    if (!account) {
-      return res.status(404).json({ success: false, message: "MT4 account not found" });
+    const accounts = await fetchMT4Account();
+    if (!accounts || accounts.length === 0) {
+      return res.status(404).json({ success: false, message: "MT4 accounts not found" });
     }
 
-    // ✅ Fetch live summary and trades from MT4
-    const summary = await runPython("mt4_get_summary.py", [account.login, account.password, account.server]);
-    let trades = [];
-    try {
-      trades = await runPython("mt4_get_trades.py", [account.login, account.password, account.server]);
-    } catch (e) {
-      console.warn("⚠️ Could not fetch MT4 trades:", e.message);
+    const results = [];
+
+    for (const acc of accounts) {
+      let summary = {};
+      let trades = [];
+
+      if (acc.login && acc.password && acc.server) {
+        try {
+          summary = await runPython(
+            "mt4_get_summary.py",
+            [acc.login, acc.password, acc.server]
+          );
+        } catch (e) {
+          console.warn(`⚠️ Could not fetch summary for ${acc.login}:`, e.message);
+        }
+
+        try {
+          trades = await runPython(
+            "mt4_get_trades.py",
+            [acc.login, acc.password, acc.server]
+          );
+        } catch (e) {
+          console.warn(`⚠️ Could not fetch trades for ${acc.login}:`, e.message);
+        }
+      } else {
+        console.warn(`⚠️ MT4 account ${acc.login || "unknown"} has missing login/password/server, skipping Python calls`);
+      }
+
+      results.push({
+        account: acc,
+        summary,
+        trades,
+      });
     }
 
     res.json({
       success: true,
-      account,
-      summary,
-      trades,
+      accounts: results,
     });
   } catch (err) {
     console.error("❌ Error in getMT4Account controller:", err);
@@ -90,7 +114,7 @@ async function connectMT4(req, res) {
 
     console.log(`🌐 Connecting MT4 account ${login} on ${server}...`);
 
-    // ✅ Step 1: Connect and save to DB
+    // Step 1: Connect and save to DB
     const result = await connectMT4Account({
       broker,
       login,
@@ -102,13 +126,20 @@ async function connectMT4(req, res) {
 
     if (!result.success) return res.json(result);
 
-    // ✅ Step 2: Fetch live MT4 summary
-    const summary = await runPython("mt4_get_summary.py", [login, password, server]);
+    // Step 2: Fetch live summary and trades
+    let summary = {};
     let trades = [];
+
+    try {
+      summary = await runPython("mt4_get_summary.py", [login, password, server]);
+    } catch (e) {
+      console.warn(`⚠️ Could not fetch summary for ${login}:`, e.message);
+    }
+
     try {
       trades = await runPython("mt4_get_trades.py", [login, password, server]);
     } catch (e) {
-      console.warn("⚠️ Could not fetch MT4 trades:", e.message);
+      console.warn(`⚠️ Could not fetch trades for ${login}:`, e.message);
     }
 
     res.json({
@@ -129,7 +160,7 @@ async function connectMT4(req, res) {
  */
 async function deleteMT4(req, res) {
   try {
-    const login = req.query?.login || req.body?.login || req.params?.login; // safer for query param
+    const login = req.query?.login || req.body?.login || req.params?.login;
 
     if (!login) {
       return res.status(400).json({ success: false, message: "Missing login for deletion" });

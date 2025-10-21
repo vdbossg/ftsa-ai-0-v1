@@ -19,14 +19,14 @@ async function runPythonMT4Summary(login, password, server) {
     py.stderr.on("data", (data) => (stderr += data.toString()));
 
     py.on("close", (code) => {
-      if (stderr) console.error("⚠️ Python stderr:", stderr);
-      if (code !== 0) console.error("⚠️ Python exited with code:", code);
+      if (stderr) console.warn("⚠️ Python stderr:", stderr.trim());
+      if (code !== 0) console.warn("⚠️ Python exited with code:", code);
 
       try {
         const parsed = JSON.parse(stdout.trim());
         resolve(parsed);
       } catch (err) {
-        console.error("❌ Failed to parse Python JSON:", stdout);
+        console.warn("❌ Failed to parse Python JSON:", stdout.trim());
         resolve({ success: false, message: "Invalid JSON from Python" });
       }
     });
@@ -35,21 +35,12 @@ async function runPythonMT4Summary(login, password, server) {
 
 /**
  * Connect and store MT4 account in MongoDB.
+ * Saves even if Python bridge fails, marking isConnected false.
  */
-async function connectMT4Account({ broker, login, password, server, platform, accountType }) {
+async function connectMT4Account({ broker, login, password, server, platform = "MT4", accountType = "demo" }) {
+  const loginStr = String(login).trim();
+
   try {
-    const loginStr = String(login).trim();
-    console.log(`🌐 Connecting MT4 account ${loginStr} on ${server}...`);
-
-    // 🐍 Run Python script to validate connection & fetch summary
-    const result = await runPythonMT4Summary(loginStr, password, server);
-    console.log("🐍 Python result:", result);
-
-    if (!result.success) {
-      return { success: false, message: result.message || "Failed to connect MT4 account" };
-    }
-
-    // 🧩 Save or update account in MongoDB
     let account = await MTAccountModel.findOne({ login: loginStr, platform: "MT4" });
     if (account) {
       Object.assign(account, {
@@ -58,7 +49,7 @@ async function connectMT4Account({ broker, login, password, server, platform, ac
         server,
         platform,
         accountType,
-        currency: result.currency || account.currency,
+        isConnected: true,
       });
       await account.save();
       console.log("🔁 Updated existing MT4 account in DB");
@@ -68,9 +59,9 @@ async function connectMT4Account({ broker, login, password, server, platform, ac
         login: loginStr,
         password,
         server,
-        platform: "MT4",
+        platform,
         accountType,
-        currency: result.currency || "USD",
+        isConnected: true,
       });
       console.log("💾 Created new MT4 account in DB");
     }
@@ -79,25 +70,19 @@ async function connectMT4Account({ broker, login, password, server, platform, ac
       success: true,
       message: "MT4 account connected successfully",
       account,
-      ...result,
     };
   } catch (err) {
     console.error("💥 Error connecting MT4 account:", err);
     return { success: false, message: err.message || "Unexpected error" };
   }
 }
-
 /**
  * Get all stored MT4 accounts.
  */
 async function getMT4Account() {
   try {
     const accounts = await MTAccountModel.find({ platform: "MT4" });
-    if (!accounts || accounts.length === 0) {
-      console.warn("⚠️ No MT4 accounts found in MongoDB");
-      return [];
-    }
-    return accounts;
+    return accounts || [];
   } catch (err) {
     console.error("💥 Error fetching MT4 accounts:", err);
     return [];

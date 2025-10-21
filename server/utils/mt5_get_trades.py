@@ -4,31 +4,38 @@ import json
 import MetaTrader5 as mt5
 from datetime import datetime
 
-if len(sys.argv) < 4:
-    print(json.dumps({"success": False, "message": "Usage: mt5_get_trades.py <login> <password> <server>"}))
-    sys.exit(1)
+def respond(success, message_or_data):
+    if success:
+        print(json.dumps({"success": True, "data": message_or_data}, indent=2))
+    else:
+        print(json.dumps({"success": False, "message": message_or_data}))
+    sys.exit(0)  # graceful exit
 
-login = int(sys.argv[1])
+if len(sys.argv) < 4:
+    respond(False, "Usage: mt5_get_trades.py <login> <password> <server>")
+
+login_arg = sys.argv[1]
 password = sys.argv[2]
 server = sys.argv[3]
 
+try:
+    login = int(login_arg)
+except ValueError:
+    respond(False, f"Invalid login: {login_arg}")
+
 # Initialize MetaTrader 5
 if not mt5.initialize():
-    print(json.dumps({"success": False, "message": f"Initialization failed: {mt5.last_error()}"}))
-    sys.exit(1)
+    respond(False, f"Initialization failed: {mt5.last_error()}")
 
 # Attempt login
 if not mt5.login(login, password, server):
-    print(json.dumps({"success": False, "message": f"Login failed: {mt5.last_error()}"}))
+    respond(False, f"Login failed: {mt5.last_error()}")
     mt5.shutdown()
-    sys.exit(1)
 
 # Fetch open positions
 positions = mt5.positions_get()
-if positions is None:
-    print(json.dumps({"success": False, "message": f"No positions found or error: {mt5.last_error()}"}))
-    mt5.shutdown()
-    sys.exit(0)
+if positions is None or len(positions) == 0:
+    respond(False, f"No positions found or error: {mt5.last_error()}")
 
 # Format positions into JSON-friendly output
 trade_list = []
@@ -46,5 +53,5 @@ for p in positions:
         "time": datetime.fromtimestamp(p.time).strftime("%Y-%m-%d %H:%M:%S")
     })
 
-print(json.dumps({"success": True, "data": trade_list}, indent=2))
+respond(True, trade_list)
 mt5.shutdown()
