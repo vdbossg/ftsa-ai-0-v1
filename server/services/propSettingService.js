@@ -26,11 +26,22 @@ exports.getAllPropSettings = async () => {
     settings.map(async (setting) => {
       try {
         // Fetch live account info (already provided by your backend)
-        const { data } = await axios.get(`http://localhost:5000/api/mtaccounts/${setting.accountLogin}`);
-        if (!data || !data.data) return setting;
+        // Fetch all MT accounts
+const mtAccountsRes = await axios.get(`http://localhost:5000/api/mtaccounts`);
+const mtAccount = mtAccountsRes.data.accounts.find(
+  acc => String(acc.account.login) === String(setting.accountLogin)
+);
 
-        const { balance, equity } = data.data;
-        return calculateProgress(balance, equity, setting);
+let balance = 0, equity = 0;
+
+if (mtAccount && mtAccount.summary && mtAccount.summary.data) {
+  balance = mtAccount.summary.data.balance;
+  equity = mtAccount.summary.data.equity;
+}
+
+// Return setting with calculated progress
+return calculateProgress(balance, equity, setting);
+
       } catch (err) {
         console.error(`Failed to fetch MT data for ${setting.accountLogin}:`, err.message);
         return setting;

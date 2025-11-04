@@ -9,3 +9,4 @@ router.post("/", propSettingController.addPropSetting);
 router.get("/", propSettingController.getAllPropSettings);
 
 module.exports = router;
+ 
