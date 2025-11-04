@@ -43,24 +43,26 @@ export default function PropFirmAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const mt5Res = await APIControl.fetchAccount("MT5");
-    const mt4Res = await APIControl.fetchAccount("MT4");
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`);
+    const data = await res.json();
 
-    const allAccounts = [
-      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
-      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
-    ].map((acc, index) => ({
-      broker: acc.broker || acc.name || "-",
-      login: acc.login || acc.mt_login || acc.account_id || "-",
-      server: acc.server || "-",
-      platform: acc.platform || "MT5",
-      accountType: acc.accountType || acc.type || "demo",
-      currency: acc.currency || "USD",
-      isConnected: acc.isConnected ?? (index === 0),
-      password: acc.password || "",
-    }));
-
-    setAccounts(allAccounts);
+    if (data.success) {
+      setAccounts(
+        data.data.map((acc) => ({
+          broker: acc.broker || "-",
+          login: acc.accountLogin || "-",
+          server: acc.server || "-",
+          platform: acc.platform || "MT5",
+          accountType: acc.accountType || "demo",
+          currency: acc.currency || "USD",
+          currentProfit: acc.currentProfit ?? 0,
+          status: acc.status ?? "active",
+          isConnected: true, // optional: mark new accounts as connected
+        }))
+      );
+    } else {
+      setStatus({ type: "error", text: data.message || "Failed to load accounts." });
+    }
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
@@ -68,6 +70,7 @@ export default function PropFirmAccountsPage() {
     setLoading(false);
   }
 };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
