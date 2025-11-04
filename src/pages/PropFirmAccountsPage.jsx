@@ -100,10 +100,10 @@ export default function PropFirmAccountsPage() {
 
   // 🔹 Save prop firm settings after successful account creation
 try {
-  await fetch("http://localhost:5000/api/propfirm", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
       accountLogin: res.account.login || formData.login,
       profitTarget: Number(formData.profitTarget),
       dailyDrawdown: Number(formData.dailyDrawdown),
