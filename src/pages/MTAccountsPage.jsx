@@ -341,17 +341,16 @@ export default function MTAccountsPage() {
               />
             </label>
             <label>
-              Platform
-              <select
-                name="platform"
-                value={formData.platform}
-                onChange={handleInputChange}
-                style={inputStyle}
-              >
-                <option value="MT4">MT4</option>
-                <option value="MT5">MT5</option>
-              </select>
-            </label>
+  Platform
+  <input
+    type="text"
+    name="platform"
+    value="MT5"
+    readOnly
+    style={{ ...inputStyle, color: "#00FF00", cursor: "not-allowed" }}
+  />
+</label>
+
             <label>
               Account Type
               <select

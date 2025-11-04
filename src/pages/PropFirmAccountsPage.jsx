@@ -1,50 +1,203 @@
-// src/pages/PropFirmAccountsPage.jsx
 import React, { useEffect, useState } from "react";
 import NeonButton from "../components/NeonButton";
 import StatusBadge from "../components/StatusBadge";
 import LoadingSpinner from "../components/LoadingSpinner";
+import Modal from "../components/Modal"; // Create a simple Modal component if not present
 import { useAuth } from "../contexts/AuthContext";
-import APIControl from '../brain/APIControl';
-import "../styles/PropFirmAccountsPage.css";
+import APIControl from "/src/brain/APIControl.js";
+import "../styles/MTAccountsPage.css";
 
 const neonColors = {
   background: "#000000",
   neonBlue: "#00FFFF",
   neonGreen: "#00FF00",
-  neonOrange: "#FFA500",
   neonRed: "#FF0000",
 };
 
 export default function PropFirmAccountsPage() {
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-  const [selectedPlatform, setSelectedPlatform] = useState("MT4");
+  const [status, setStatus] = useState({ type: "", text: "" });
+  const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    brokerName: "",
-    accountID: "",
-    password: "",
-    serverName: "",
-    propFirmName: "",
-    accountType: "demo",
-    platform: "MT4",
-    currency: "USD",
-  });
+  broker: "",
+  login: "",
+  password: "",
+  server: "",
+  platform: "MT5",
+  accountType: "demo",
+  currency: "",
+  profitTarget: "",
+  dailyDrawdown: "",
+  maxDrawdown: "",
+  phase: "1",
+});
 
-  // Fetch Prop Firm accounts
+  const [accounts, setAccounts] = useState([]); // store all saved accounts
+
+
   useEffect(() => {
     if (!isAuthenticated) return;
-
-    setLoading(true);
-    APIControl.fetchPropFirmAccountsData()
-      .then((data) => {
-        setAccounts(data);
-        setError(null);
-      })
-      .catch(() => setError("Failed to load Prop Firm accounts."))
-      .finally(() => setLoading(false));
+    fetchAccounts();
   }, [isAuthenticated]);
+  const fetchAccounts = async () => {
+  try {
+    setLoading(true);
+    const mt5Res = await APIControl.fetchAccount("MT5");
+    const mt4Res = await APIControl.fetchAccount("MT4");
+
+    const allAccounts = [
+      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
+      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
+    ].map((acc, index) => ({
+      broker: acc.broker || acc.name || "-",
+      login: acc.login || acc.mt_login || acc.account_id || "-",
+      server: acc.server || "-",
+      platform: acc.platform || "MT5",
+      accountType: acc.accountType || acc.type || "demo",
+      currency: acc.currency || "USD",
+      isConnected: acc.isConnected ?? (index === 0),
+      password: acc.password || "",
+    }));
+
+    setAccounts(allAccounts);
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: "Failed to load accounts." });
+  } finally {
+    setLoading(false);
+  }
+};
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddAccount = async () => {
+    if (!formData.login || !formData.password || !formData.server) {
+      setStatus({ type: "error", text: "Please fill all fields." });
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await APIControl.connectAccount(formData);
+      if (res.success && res.account) {
+  const newAccount = {
+    broker: formData.broker || "-",
+    login: res.account.login || formData.login || "-",
+    password: formData.password || "",
+    server: formData.server || "-",
+    platform: formData.platform,
+    accountType: formData.accountType,
+    currency: res.account.currency || "USD",
+    isConnected: true,
+  };
+
+  setAccounts(prev => {
+    const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
+    return [...updatedPrev, newAccount];
+  });
+
+  // 🔹 Save prop firm settings after successful account creation
+try {
+  await fetch("http://localhost:5000/api/propfirm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      accountLogin: res.account.login || formData.login,
+      profitTarget: Number(formData.profitTarget),
+      dailyDrawdown: Number(formData.dailyDrawdown),
+      maxDrawdown: Number(formData.maxDrawdown),
+      phase: Number(formData.phase),
+    }),
+  });
+  console.log("✅ Prop firm settings saved");
+} catch (propErr) {
+  console.error("❌ Failed to save prop settings:", propErr);
+}
+
+
+  setStatus({ type: "success", text: "Account added successfully!" });
+  setModalOpen(false);
+  setFormData({
+  broker: "",
+  login: "",
+  password: "",
+  server: "",
+  platform: "MT5",
+  accountType: "demo",
+  currency: "",
+  profitTarget: "",
+  dailyDrawdown: "",
+  maxDrawdown: "",
+  phase: "1",
+});
+
+} else {
+  setStatus({ type: "error", text: res.message || "Failed to add account." });
+}
+
+
+    } catch (err) {
+      console.error(err);
+      setStatus({ type: "error", text: err.message || "Unexpected error." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (acc) => {
+  try {
+    setLoading(true);
+    const res = await APIControl.deleteAccount(acc.login); // or acc.accountId if available
+
+    if (res.success) {
+      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+      if (remaining.length > 0) remaining[0].isConnected = true;
+      setAccounts(remaining);
+      setStatus({ type: "success", text: "Account deleted successfully!" });
+    } else {
+      setStatus({ type: "error", text: res.message || "Failed to delete account." });
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  const handleReconnect = async (acc) => {
+  try {
+    setLoading(true);
+    const res = await APIControl.connectAccount({
+      login: acc.login,
+      password: acc.password || prompt(`Enter password for ${acc.login}`),
+      server: acc.server,
+      broker: acc.broker,
+      platform: acc.platform,
+      accountType: acc.accountType,
+    });
+
+    if (res.success) {
+      setAccounts((prev) =>
+        prev.map((a) =>
+          a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
+        )
+      );
+      setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
+    } else {
+      setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (!isAuthenticated) {
     return (
@@ -56,65 +209,10 @@ export default function PropFirmAccountsPage() {
           marginTop: "5rem",
         }}
       >
-        Please login to view Prop Firm accounts.
+        Please login to manage your Prop Firm account.
       </div>
     );
   }
-
-  const handlePlatformClick = (platform) => {
-    setSelectedPlatform(platform);
-    setFormData((prev) => ({ ...prev, platform }));
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // ---- FIXED: Fully connected functions ----
-  const handleSaveAccount = async () => {
-    try {
-      setLoading(true);
-      const updatedAccounts = await APIControl.savePropFirmAccount(formData);
-      setAccounts(updatedAccounts);
-      setError(null);
-    } catch (err) {
-      setError("Failed to save Prop Firm account.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async (accountID) => {
-    try {
-      setLoading(true);
-      const updatedAccounts = await APIControl.deletePropFirmAccount(accountID);
-      setAccounts(updatedAccounts);
-      setError(null);
-    } catch (err) {
-      setError("Failed to delete Prop Firm account.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleConnectAccount = async (accountID) => {
-    try {
-      setLoading(true);
-      await APIControl.connectPropFirmAccount(accountID);
-      setError(null);
-      alert(`Prop Firm account ${accountID} connected successfully`);
-    } catch (err) {
-      setError("Failed to connect Prop Firm account.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  // ----------------------------------------
-
-  const filteredAccounts = Array.isArray(accounts)
-  ? accounts.filter((acc) => acc.platform === selectedPlatform)
-  : [];
 
   return (
     <div
@@ -122,258 +220,247 @@ export default function PropFirmAccountsPage() {
         backgroundColor: neonColors.background,
         color: neonColors.neonBlue,
         fontFamily: "'Orbitron', sans-serif",
-        height: "100%",
-        padding: "1rem",
-        overflowY: "auto",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1rem",
+        minHeight: "100vh",
+        padding: "2rem",
       }}
     >
-      <header
-        style={{
-          fontSize: "1.8rem",
-          fontWeight: "bold",
-          borderBottom: `2px solid ${neonColors.neonBlue}`,
-          paddingBottom: "0.5rem",
-          textAlign: "center",
-        }}
-      >
-        FTSA AI - Prop Firm Accounts
-      </header>
+      <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>FTSA AI Prop Firm Account</h1>
 
-      <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-        {["MT4", "MT5"].map((platform) => (
-          <NeonButton
-            key={platform}
-            style={{
-              border:
-                selectedPlatform === platform
-                  ? `2px solid ${neonColors.neonGreen}`
-                  : `2px solid ${neonColors.neonBlue}`,
-              backgroundColor:
-                selectedPlatform === platform ? "#002200" : "transparent",
-              minWidth: 100,
-            }}
-            onClick={() => handlePlatformClick(platform)}
-          >
-            {platform}
-          </NeonButton>
-        ))}
-      </div>
 
-      {loading && (
-        <div style={{ textAlign: "center" }}>
-          <LoadingSpinner size={50} color={neonColors.neonBlue} />
-        </div>
-      )}
-
-      {error && (
+      {/* Status */}
+      {status.text && (
         <StatusBadge
-          status="error"
-          className="glow-red"
-          style={{ margin: "1rem auto", maxWidth: 400 }}
+          status={status.type}
+          style={{ marginBottom: "1rem", display: "block", textAlign: "center" }}
         >
-          {error}
+          {status.text}
         </StatusBadge>
       )}
 
-      {filteredAccounts.length > 0 ? (
-        filteredAccounts.map((acc) => (
-          <section
-            key={acc.accountID}
-            style={{
-              border: `2px solid ${neonColors.neonBlue}`,
-              borderRadius: "12px",
-              padding: "1rem",
-              boxShadow: `0 0 10px ${neonColors.neonBlue}`,
-              backgroundColor: "#111",
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
-            <h3>
-              {acc.brokerName} - {acc.accountID}{" "}
-              <StatusBadge
-                status={acc.isActive ? "success" : "error"}
-                style={{ marginLeft: "1rem" }}
-              >
-                {acc.isActive ? "ACTIVE" : "INACTIVE"}
-              </StatusBadge>
-            </h3>
-            <p>Prop Firm: {acc.propFirmName}</p>
-            <p>Account Type: {acc.accountType}</p>
-            <p>Currency: {acc.currency}</p>
-            <p>Balance: ${acc.balance.toFixed(2)}</p>
-            <p>Equity: ${acc.equity.toFixed(2)}</p>
-            <p>Free Margin: ${acc.freeMargin.toFixed(2)}</p>
-            <p>Margin Level %: {acc.marginLevelPct.toFixed(2)}%</p>
-            <p>Open Trades: {acc.openTrades}</p>
-            <p>Pending Orders: {acc.pendingOrders}</p>
-            <p>Max Daily Loss Limit: ${acc.maxDailyLossLimit.toFixed(2)}</p>
-            <p>Max Overall Loss Limit: ${acc.maxOverallLossLimit.toFixed(2)}</p>
-            <p>
-              Profit Target: {acc.profitTargetAmount} USD / {acc.profitTargetPercent}%
-            </p>
-            <p>Days Remaining: {acc.daysRemaining}</p>
-
-            <div style={{ marginTop: "0.5rem" }}>
-              <NeonButton onClick={() => handleConnectAccount(acc.accountID)}>
-                Connect Account
-              </NeonButton>
-              <NeonButton
-                style={{ marginLeft: "1rem" }}
-                onClick={() => handleDeleteAccount(acc.accountID)}
-              >
-                Delete Account
-              </NeonButton>
-            </div>
-          </section>
-        ))
-      ) : (
-        <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
-          No {selectedPlatform} Prop Firm accounts found.
-        </p>
-      )}
-
-      <section
+      {/* Accounts Table */}
+      <div
         style={{
+          maxHeight: "250px",
+          overflowY: "auto",
+          marginBottom: "2rem",
           border: `2px solid ${neonColors.neonBlue}`,
-          borderRadius: "12px",
-          padding: "1rem",
-          boxShadow: `0 0 10px ${neonColors.neonBlue}`,
-          backgroundColor: "#111",
-          maxWidth: 600,
-          margin: "0 auto",
+          borderRadius: "8px",
+          padding: "0.5rem",
         }}
       >
-        <h2>Add / Edit Prop Firm Account</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSaveAccount();
-          }}
-          style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
-        >
-          <label>
-            Broker Name
-            <input
-              name="brokerName"
-              value={formData.brokerName}
-              onChange={handleInputChange}
-              style={inputStyle}
-              required
-            />
-          </label>
-
-          <label>
-            Account ID/Login
-            <input
-              name="accountID"
-              value={formData.accountID}
-              onChange={handleInputChange}
-              style={inputStyle}
-              required
-            />
-          </label>
-
-          <label>
-            Password
-            <input
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              style={inputStyle}
-              required
-            />
-          </label>
-
-          <label>
-            Server Name
-            <input
-              name="serverName"
-              value={formData.serverName}
-              onChange={handleInputChange}
-              style={inputStyle}
-              required
-            />
-          </label>
-
-          <label>
-            Prop Firm Name
-            <input
-              name="propFirmName"
-              value={formData.propFirmName}
-              onChange={handleInputChange}
-              style={inputStyle}
-              required
-            />
-          </label>
-
-          <label>
-            Account Type
-            <select
-              name="accountType"
-              value={formData.accountType}
-              onChange={handleInputChange}
-              style={inputStyle}
-            >
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-            </select>
-          </label>
-
-          <label>
-            Platform
-            <select
-              name="platform"
-              value={formData.platform}
-              onChange={handleInputChange}
-              style={inputStyle}
-            >
-              <option value="MT4">MT4</option>
-              <option value="MT5">MT5</option>
-            </select>
-          </label>
-
-          <label>
-            Account Currency
-            <select
-              name="currency"
-              value={formData.currency}
-              onChange={handleInputChange}
-              style={inputStyle}
-            >
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="KES">KES</option>
-            </select>
-          </label>
-
-          <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
-            <NeonButton type="submit">Save Prop Account</NeonButton>
-            <NeonButton
-              type="button"
-              onClick={() => handleDeleteAccount(formData.accountID)}
-              style={{ backgroundColor: neonColors.neonRed }}
-            >
-              Delete Account
-            </NeonButton>
-            <NeonButton
-              type="button"
-              onClick={() => handleConnectAccount(formData.accountID)}
-            >
-              Connect Account
-            </NeonButton>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "1rem" }}>
+            <LoadingSpinner size={40} color={neonColors.neonBlue} />
           </div>
-        </form>
-      </section>
+        ) : accounts.length === 0 ? (
+          <p style={{ textAlign: "center", color: neonColors.neonGreen }}>No saved accounts.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["Broker", "Login ID", "Server", "Platform", "Account Type", "Currency", "Status", "Actions"].map(
+                  (col) => (
+                    <th
+                      key={col}
+                      style={{
+                        borderBottom: `1px solid ${neonColors.neonBlue}`,
+                        padding: "0.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      {col}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {accounts.filter(acc => acc && acc.login).map((acc) => (
+                <tr key={acc.platform + "-" + acc.login}>
+    <td style={{ textAlign: "center" }}>{acc.broker || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.login || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.server || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.platform || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.accountType || "-"}</td>
+    <td style={{ textAlign: "center" }}>{acc.currency || "-"}</td>
+    <td style={{ textAlign: "center" }}>
+      <StatusBadge 
+  status={acc.isConnected ? "success" : "error"} 
+  label={acc.isConnected ? "Connected" : "Disconnected"} 
+/>
+    </td>
+    <td style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+  {!acc.isConnected && (
+    <NeonButton
+      onClick={() => handleReconnect(acc)}
+      style={{ backgroundColor: neonColors.neonGreen }}
+    >
+      Login
+    </NeonButton>
+  )}
+  <NeonButton
+  onClick={() => handleDelete(acc)} // ✅ pass full account
+  style={{ backgroundColor: neonColors.neonRed }}
+>
+  Delete
+</NeonButton>
+</td>
 
+  </tr>
+))}
+
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Add Account Button */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <NeonButton onClick={() => setModalOpen(true)}>Add Account</NeonButton>
+      </div>
+
+      {/* Modal for Adding Account */}
+      {modalOpen && (
+        <Modal onClose={() => setModalOpen(false)} title="Add Prop Firm Account">
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddAccount();
+            }}
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
+            <label>
+              Broker
+              <input
+                name="broker"
+                value={formData.broker}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Login
+              <input
+                name="login"
+                value={formData.login}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+              Server
+              <input
+                name="server"
+                value={formData.server}
+                onChange={handleInputChange}
+                style={inputStyle}
+                required
+              />
+            </label>
+            <label>
+  Platform
+  <input
+    type="text"
+    name="platform"
+    value="MT5"
+    readOnly
+    style={{ ...inputStyle, color: "#00FF00", cursor: "not-allowed" }}
+  />
+</label>
+
+            <label>
+              Account Type
+              <select
+                name="accountType"
+                value={formData.accountType}
+                onChange={handleInputChange}
+                style={inputStyle}
+              >
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+              </select>
+            </label>
+<hr style={{ borderColor: neonColors.neonBlue }} />
+
+<h3 style={{ color: neonColors.neonGreen, textAlign: "center" }}>Prop Firm Settings</h3>
+
+<label>
+  Profit Target (%)
+  <input
+    type="number"
+    name="profitTarget"
+    value={formData.profitTarget}
+    onChange={handleInputChange}
+    style={inputStyle}
+    required
+  />
+</label>
+
+<label>
+  Daily Drawdown (%)
+  <input
+    type="number"
+    name="dailyDrawdown"
+    value={formData.dailyDrawdown}
+    onChange={handleInputChange}
+    style={inputStyle}
+    required
+  />
+</label>
+
+<label>
+  Max Drawdown (%)
+  <input
+    type="number"
+    name="maxDrawdown"
+    value={formData.maxDrawdown}
+    onChange={handleInputChange}
+    style={inputStyle}
+    required
+  />
+</label>
+
+<label>
+  Phase
+  <select
+    name="phase"
+    value={formData.phase}
+    onChange={handleInputChange}
+    style={inputStyle}
+  >
+    <option value="1">Phase 1</option>
+    <option value="2">Phase 2</option>
+  </select>
+</label>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+              <NeonButton type="submit">➕ Add</NeonButton>
+              <NeonButton type="button" style={{ backgroundColor: neonColors.neonRed }} onClick={() => setModalOpen(false)}>
+                Cancel
+              </NeonButton>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Footer */}
       <footer
         style={{
-          marginTop: "auto",
+          marginTop: "2rem",
           paddingTop: "1rem",
           borderTop: `1px solid ${neonColors.neonBlue}`,
           fontSize: "0.9rem",
