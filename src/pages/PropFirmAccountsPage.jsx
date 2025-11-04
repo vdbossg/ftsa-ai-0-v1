@@ -101,12 +101,12 @@ export default function PropFirmAccountsPage() {
 
 
   // 🔹 Save prop firm settings after successful account creation
-try {
-  await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`, {
     //await fetch("http://localhost:5000/api/propfirm", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
+  try {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
       accountLogin: res.account.login || formData.login,
       profitTarget: Number(formData.profitTarget),
       dailyDrawdown: Number(formData.dailyDrawdown),
@@ -114,10 +114,22 @@ try {
       phase: Number(formData.phase),
     }),
   });
-  console.log("✅ Prop firm settings saved");
+
+  const data = await response.json();
+
+  if (!response.ok || !data) {
+    throw new Error(data?.message || "Failed to save prop settings.");
+  }
+
+  console.log("✅ Prop firm settings saved:", data);
+
 } catch (propErr) {
   console.error("❌ Failed to save prop settings:", propErr);
+  setStatus({ type: "error", text: propErr.message });
+  setLoading(false);
+  return; // stop the function if saving fails
 }
+
 
 
   setStatus({ type: "success", text: "Account added successfully!" });
