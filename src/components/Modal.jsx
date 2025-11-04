@@ -2,13 +2,18 @@ import React from "react";
 
 const Modal = ({ title, children, onClose }) => {
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
+    <div style={styles.overlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <header style={styles.header}>
           <h2>{title}</h2>
           <button onClick={onClose} style={styles.closeButton}>×</button>
         </header>
-        <div style={styles.content}>{children}</div>
+
+        {/* Content */}
+        <div style={styles.content}>
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -32,7 +37,11 @@ const styles = {
     color: "#0FF",
     padding: "1rem",
     borderRadius: "10px",
-    minWidth: "300px",
+    width: "90%",        // responsive width
+    maxWidth: "600px",   // max width for larger screens
+    maxHeight: "80vh",   // ✅ prevents modal from exceeding viewport
+    overflowY: "auto",   // ✅ allows scrolling when content is tall
+    boxShadow: "0 0 20px #0FF",
   },
   header: {
     display: "flex",
@@ -45,7 +54,7 @@ const styles = {
   closeButton: {
     background: "none",
     border: "none",
-    color: "#0FF",
+    color: "#FF0000",   // better contrast for close button
     fontSize: "1.5rem",
     cursor: "pointer",
   },
