@@ -74,77 +74,85 @@ export default function PropFirmAccountsPage() {
   };
 
   const handleAddAccount = async () => {
-    if (!formData.login || !formData.password || !formData.server) {
-      setStatus({ type: "error", text: "Please fill all fields." });
-      return;
+  if (!formData.login || !formData.password || !formData.server) {
+    setStatus({ type: "error", text: "Please fill all fields." });
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const res = await APIControl.connectAccount(formData);
+
+    if (res.success && res.account) {
+      // Add account to state
+      const newAccount = {
+        broker: formData.broker || "-",
+        login: res.account.login || formData.login,
+        password: formData.password || "",
+        server: formData.server || "-",
+        platform: formData.platform,
+        accountType: formData.accountType,
+        currency: res.account.currency || "USD",
+        isConnected: true,
+        summary: res.account.summary?.data || null, // keep actual summary if exists
+      };
+
+      setAccounts((prev) => {
+        const updatedPrev = prev.map((acc) => ({ ...acc, isConnected: false }));
+        return [...updatedPrev, newAccount];
+      });
+
+      // Attempt to save Prop Firm settings but don't block on failure
+      try {
+        const propRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accountLogin: res.account.login || formData.login,
+            profitTarget: Number(formData.profitTarget),
+            dailyDrawdown: Number(formData.dailyDrawdown),
+            maxDrawdown: Number(formData.maxDrawdown),
+            phase: Number(formData.phase),
+          }),
+        });
+
+        if (!propRes.ok) {
+          console.warn("⚠ Prop Firm settings failed to save:", await propRes.text());
+        } else {
+          console.log("✅ Prop Firm settings saved successfully");
+        }
+      } catch (propErr) {
+        console.warn("⚠ Prop Firm POST failed, but account added:", propErr);
+      }
+
+      setStatus({ type: "success", text: "Account added successfully!" });
+      setModalOpen(false);
+
+      // Reset form
+      setFormData({
+        broker: "",
+        login: "",
+        password: "",
+        server: "",
+        platform: "MT5",
+        accountType: "demo",
+        currency: "",
+        profitTarget: "",
+        dailyDrawdown: "",
+        maxDrawdown: "",
+        phase: "1",
+      });
+    } else {
+      setStatus({ type: "error", text: res.message || "Failed to add account." });
     }
-    try {
-      setLoading(true);
-      const res = await APIControl.connectAccount(formData);
-      if (res.success && res.account) {
-  const newAccount = {
-    broker: formData.broker || "-",
-    login: res.account.login || formData.login || "-",
-    password: formData.password || "",
-    server: formData.server || "-",
-    platform: formData.platform,
-    accountType: formData.accountType,
-    currency: res.account.currency || "USD",
-    isConnected: true,
-  };
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
+  } finally {
+    setLoading(false);
+  }
+};
 
-  setAccounts(prev => {
-    const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
-    return [...updatedPrev, newAccount];
-  });
-
-  // 🔹 Save prop firm settings after successful account creation
-try {
-  await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-      accountLogin: res.account.login || formData.login,
-      profitTarget: Number(formData.profitTarget),
-      dailyDrawdown: Number(formData.dailyDrawdown),
-      maxDrawdown: Number(formData.maxDrawdown),
-      phase: Number(formData.phase),
-    }),
-  });
-  console.log("✅ Prop firm settings saved");
-} catch (propErr) {
-  console.error("❌ Failed to save prop settings:", propErr);
-}
-
-
-  setStatus({ type: "success", text: "Account added successfully!" });
-  setModalOpen(false);
-  setFormData({
-  broker: "",
-  login: "",
-  password: "",
-  server: "",
-  platform: "MT5",
-  accountType: "demo",
-  currency: "",
-  profitTarget: "",
-  dailyDrawdown: "",
-  maxDrawdown: "",
-  phase: "1",
-});
-
-} else {
-  setStatus({ type: "error", text: res.message || "Failed to add account." });
-}
-
-
-    } catch (err) {
-      console.error(err);
-      setStatus({ type: "error", text: err.message || "Unexpected error." });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async (acc) => {
   try {
