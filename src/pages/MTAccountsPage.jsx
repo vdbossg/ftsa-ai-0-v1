@@ -51,7 +51,8 @@ export default function MTAccountsPage() {
       platform: acc.platform || "MT5",
       accountType: acc.accountType || acc.type || "demo",
       currency: acc.currency || "USD",
-      isConnected: acc.isConnected ?? (index === 0),
+      //isConnected: acc.isConnected ?? (index === 0),
+      isConnected: acc.isConnected || false,
       password: acc.password || "",
     }));
 
@@ -88,10 +89,14 @@ export default function MTAccountsPage() {
     isConnected: true,
   };
 
-  setAccounts(prev => {
-    const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
-    return [...updatedPrev, newAccount];
-  });
+  // Ensure only the new account is connected in the backend
+await APIControl.setConnectedAccount(newAccount.login, newAccount.platform);
+
+setAccounts(prev => prev.map(acc => ({ ...acc, isConnected: false })).concat({
+  ...newAccount,
+  isConnected: true
+}));
+
 
   setStatus({ type: "success", text: "Account added successfully!" });
   setModalOpen(false);
@@ -152,11 +157,15 @@ export default function MTAccountsPage() {
     });
 
     if (res.success) {
-      setAccounts((prev) =>
-        prev.map((a) =>
-          a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
-        )
-      );
+      // Persist the connected account in backend
+await APIControl.setConnectedAccount(acc.login, acc.platform);
+
+setAccounts(prev =>
+  prev.map(a =>
+    a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
+  )
+);
+
       setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
     } else {
       setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
