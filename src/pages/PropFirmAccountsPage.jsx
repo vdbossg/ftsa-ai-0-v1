@@ -322,7 +322,13 @@ try {
       {/* Modal for Adding Account */}
       {modalOpen && (
         <Modal onClose={() => setModalOpen(false)} title="Add Prop Firm Account">
-
+          <div
+           style={{
+            maxHeight: "70vh",  // modal content max height
+            overflowY: "auto",  // scroll if content is taller
+            paddingRight: "10px" // optional, to prevent scrollbar overlap
+           }}
+         ></div>
           <form
             onSubmit={(e) => {
               e.preventDefault();
