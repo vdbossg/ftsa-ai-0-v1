@@ -86,6 +86,8 @@ export default function PropFirmAccountsPage() {
       setLoading(true);
       const res = await APIControl.connectAccount(formData);
       if (res.success && res.account) {
+        console.log("connectAccount result:", res);
+
   const newAccount = {
     broker: formData.broker || "-",
     login: res.account.login || formData.login || "-",
@@ -106,6 +108,7 @@ export default function PropFirmAccountsPage() {
 
   // 🔹 Save prop firm settings after successful account creation
   try {
+    console.log("Saving prop settings with accountLogin =", res?.account?.login, "and formData.login =", formData.login);
    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propsetting`, {
  
     method: "POST",
