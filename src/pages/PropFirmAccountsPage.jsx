@@ -53,18 +53,20 @@ export default function PropFirmAccountsPage() {
 
     if (data.success) {
       setAccounts(
-        data.data.map((acc) => ({
-          broker: acc.accountBroker || "-",
-          login: acc.accountLogin || "-",
-          server: acc.accountServer || "-",
-          platform: acc.platform || "MT5",
-          accountType: acc.accountType || "demo",
-          currency: acc.currency || "USD",
-          currentProfit: acc.currentProfit ?? 0,
-          status: acc.status ?? "active",
-          isConnected: true, // optional: mark new accounts as connected
-        }))
-      );
+  data.accounts.map((item) => ({
+    broker: item.account.broker || "-",
+    login: item.account.login || "-",
+    password: item.account.password || "",
+    server: item.account.server || "-",
+    platform: item.account.platform || "MT5",
+    accountType: item.account.accountType || "demo",
+    currency: item.account.currency || "USD",
+    currentProfit: item.summary?.data?.balance ?? 0,
+    status: "active",
+    isConnected: true,
+  }))
+);
+
     } else {
       setStatus({ type: "error", text: data.message || "Failed to load accounts." });
     }
