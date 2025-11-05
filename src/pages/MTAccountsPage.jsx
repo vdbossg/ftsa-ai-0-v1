@@ -46,11 +46,11 @@ export default function MTAccountsPage() {
     const res = await fetch(`${BACKEND_URL}/api/mtaccounts`);
 const data = await res.json();
 
-if (data.success) {
+if (data.success && Array.isArray(data.data)) {
   setAccounts(
     data.data.map((acc, index) => ({
       broker: acc.broker || "-",
-      login: acc.accountLogin || "-",   // << use accountLogin instead of login
+      login: acc.accountLogin || "-",
       server: acc.server || "-",
       platform: acc.platform || "MT5",
       accountType: acc.accountType || "demo",
@@ -60,6 +60,7 @@ if (data.success) {
     }))
   );
 } else {
+  setAccounts([]); // safely set empty array
   setStatus({ type: "error", text: data.message || "Failed to load accounts." });
 }
 
