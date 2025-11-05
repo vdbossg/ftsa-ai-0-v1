@@ -43,7 +43,6 @@ export default function PropFirmAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    //const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`);
     const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propsetting`);
 
     const data = await res.json();
@@ -106,9 +105,7 @@ export default function PropFirmAccountsPage() {
 
 
   // 🔹 Save prop firm settings after successful account creation
-    //await fetch("http://localhost:5000/api/propfirm", {
   try {
-  //const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propfirm`, {
    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propsetting`, {
  
     method: "POST",

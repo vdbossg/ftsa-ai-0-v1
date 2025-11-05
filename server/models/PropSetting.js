@@ -11,4 +11,5 @@ const PropSettingSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("PropSetting", PropSettingSchema);
+module.exports = mongoose.model("PropSetting", PropSettingSchema, "propsettings");
+//module.exports = mongoose.model("PropSetting", PropSettingSchema);

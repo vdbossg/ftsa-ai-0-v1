@@ -94,7 +94,6 @@ app.use("/api/auth", authRoutes);
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
 app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
 app.use('/api/brain/strength', strengthRoutes);
-//app.use("/api/propfirm", propSettingRoutes);
 app.use("/api/propsetting", propSettingRoutes);
 app.use("/api/binance", binanceRoutes);
 console.log("✅ /api/binance routes mounted");
