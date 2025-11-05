@@ -54,9 +54,9 @@ export default function PropFirmAccountsPage() {
     if (data.success) {
       setAccounts(
         data.data.map((acc) => ({
-          broker: acc.broker || "-",
+          broker: acc.accountBroker || "-",
           login: acc.accountLogin || "-",
-          server: acc.server || "-",
+          server: acc.accountServer || "-",
           platform: acc.platform || "MT5",
           accountType: acc.accountType || "demo",
           currency: acc.currency || "USD",
