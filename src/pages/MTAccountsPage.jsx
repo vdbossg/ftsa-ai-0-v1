@@ -38,21 +38,22 @@ export default function MTAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
+
     const mt5Res = await APIControl.fetchAccount("MT5");
     const mt4Res = await APIControl.fetchAccount("MT4");
 
     const allAccounts = [
-      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
-      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
-    ].map((acc, index) => ({
-      broker: acc.broker || acc.name || "-",
-      login: acc.login || acc.mt_login || acc.account_id || "-",
-      server: acc.server || "-",
-      platform: acc.platform || "MT5",
-      accountType: acc.accountType || acc.type || "demo",
-      currency: acc.currency || "USD",
-      isConnected: acc.isConnected ?? (index === 0),
-      password: acc.password || "",
+      ...(mt5Res.accounts || []),
+      ...(mt4Res.accounts || [])
+    ].map((accObj, index) => ({
+      broker: accObj.account.broker || "-",
+      login: accObj.account.login || "-",
+      server: accObj.account.server || "-",
+      platform: accObj.account.platform || "MT5",
+      accountType: accObj.account.accountType || "demo",
+      currency: accObj.account.currency || "USD",
+      password: accObj.account.password || "",
+      isConnected: accObj.account.isConnected ?? false, // preserve connected status if needed
     }));
 
     setAccounts(allAccounts);
@@ -63,6 +64,7 @@ export default function MTAccountsPage() {
     setLoading(false);
   }
 };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
