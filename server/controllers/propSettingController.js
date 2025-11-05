@@ -1,3 +1,4 @@
+//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\server\controllers\propSettingController.js
 const propSettingService = require("../services/propSettingService");
 
 exports.getAllPropSettings = async (req, res) => {
