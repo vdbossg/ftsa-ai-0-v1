@@ -7,6 +7,9 @@ import { useAuth } from "../contexts/AuthContext";
 import APIControl from "/src/brain/APIControl.js";
 import "../styles/MTAccountsPage.css";
 
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const neonColors = {
   background: "#000000",
   neonBlue: "#00FFFF",
@@ -36,27 +39,30 @@ export default function MTAccountsPage() {
     fetchAccounts();
   }, [isAuthenticated]);
   const fetchAccounts = async () => {
+  if (!isAuthenticated) return;
+
   try {
     setLoading(true);
+    const res = await fetch(`${BACKEND_URL}/api/mtaccounts`);
+const data = await res.json();
 
-    const mt5Res = await APIControl.fetchAccount("MT5");
-    const mt4Res = await APIControl.fetchAccount("MT4");
+if (data.success) {
+  setAccounts(
+    data.data.map((acc, index) => ({
+      broker: acc.broker || "-",
+      login: acc.accountLogin || "-",   // << use accountLogin instead of login
+      server: acc.server || "-",
+      platform: acc.platform || "MT5",
+      accountType: acc.accountType || "demo",
+      currency: acc.currency || "USD",
+      isConnected: acc.isConnected ?? (index === 0),
+      password: acc.password || "",
+    }))
+  );
+} else {
+  setStatus({ type: "error", text: data.message || "Failed to load accounts." });
+}
 
-    const mt5Accounts = (mt5Res.accounts || mt5Res.data || []);
-    const mt4Accounts = (mt4Res.accounts || mt4Res.data || []);
-
-    const allAccounts = [...mt5Accounts, ...mt4Accounts].map((accObj) => ({
-      broker: accObj.account?.broker || "-",
-      login: accObj.account?.login || "-",
-      server: accObj.account?.server || "-",
-      platform: accObj.account?.platform || "MT5",
-      accountType: accObj.account?.accountType || "demo",
-      currency: accObj.account?.currency || "USD",
-      password: accObj.account?.password || "",
-      isConnected: accObj.account?.isConnected ?? false,
-    }));
-
-    setAccounts(allAccounts);
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
@@ -64,7 +70,6 @@ export default function MTAccountsPage() {
     setLoading(false);
   }
 };
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -91,10 +96,33 @@ export default function MTAccountsPage() {
     isConnected: true,
   };
 
-  setAccounts(prev => {
+  // Mark other accounts as disconnected and add new one locally
+setAccounts(prev => {
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
   return [...updatedPrev, newAccount];
 });
+
+// Save the new account to backend
+try {
+  await fetch(`${BACKEND_URL}/api/mtaccounts`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    accountLogin: newAccount.login,  // backend expects accountLogin
+    broker: newAccount.broker,
+    server: newAccount.server,
+    platform: newAccount.platform,
+    accountType: newAccount.accountType,
+    currency: newAccount.currency,
+  }),
+});
+
+} catch (err) {
+  console.error("Failed to save account to backend:", err);
+  setStatus({ type: "error", text: "Failed to save account to backend." });
+  return;
+}
+
 
 
   setStatus({ type: "success", text: "Account added successfully!" });
