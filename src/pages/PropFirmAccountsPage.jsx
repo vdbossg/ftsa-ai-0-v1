@@ -7,6 +7,9 @@ import { useAuth } from "../contexts/AuthContext";
 import APIControl from "/src/brain/APIControl.js";
 import "../styles/MTAccountsPage.css";
 
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const neonColors = {
   background: "#000000",
   neonBlue: "#00FFFF",
@@ -43,7 +46,8 @@ export default function PropFirmAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propsetting`);
+    const res = await fetch(`${BACKEND_URL}/api/propsetting`);
+
 
     const data = await res.json();
 
@@ -109,18 +113,21 @@ export default function PropFirmAccountsPage() {
   // 🔹 Save prop firm settings after successful account creation
   try {
     console.log("Saving prop settings with accountLogin =", res?.account?.login, "and formData.login =", formData.login);
-   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propsetting`, {
- 
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      accountLogin: res.account.login || formData.login,
-      profitTarget: Number(formData.profitTarget),
-      dailyDrawdown: Number(formData.dailyDrawdown),
-      maxDrawdown: Number(formData.maxDrawdown),
-      phase: Number(formData.phase),
-    }),
-  });
+   const response = await fetch(`${BACKEND_URL}/api/propsetting`, {
+
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    accountLogin: res.account.login || formData.login,
+    profitTarget: Number(formData.profitTarget),
+    dailyDrawdown: Number(formData.dailyDrawdown),
+    maxDrawdown: Number(formData.maxDrawdown),
+    phase: Number(formData.phase),
+  }),
+});
+
+     
+     
 
   const data = await response.json();
 
