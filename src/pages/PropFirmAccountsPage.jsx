@@ -51,25 +51,26 @@ export default function PropFirmAccountsPage() {
 
     const data = await res.json();
 
-    if (data.success) {
-      setAccounts(
-  data.accounts.map((item) => ({
-    broker: item.account.broker || "-",
-    login: item.account.login || "-",
-    password: item.account.password || "",
-    server: item.account.server || "-",
-    platform: item.account.platform || "MT5",
-    accountType: item.account.accountType || "demo",
-    currency: item.account.currency || "USD",
-    currentProfit: item.summary?.data?.balance ?? 0,
-    status: "active",
-    isConnected: true,
-  }))
-);
+    if (data.success && Array.isArray(data.accounts)) {
+  setAccounts(
+    data.accounts.map((item) => ({
+      broker: item.account?.broker || "-",
+      login: item.account?.login || "-",
+      password: item.account?.password || "",
+      server: item.account?.server || "-",
+      platform: item.account?.platform || "MT5",
+      accountType: item.account?.accountType || "demo",
+      currency: item.account?.currency || "USD",
+      currentProfit: item.summary?.data?.balance ?? 0,
+      status: "active",
+      isConnected: true,
+    }))
+  );
+} else {
+  setAccounts([]); // ensures no accounts if data is empty
+  setStatus({ type: "error", text: data.message || "Failed to load accounts." });
+}
 
-    } else {
-      setStatus({ type: "error", text: data.message || "Failed to load accounts." });
-    }
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
