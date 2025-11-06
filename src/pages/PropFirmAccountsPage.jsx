@@ -51,7 +51,7 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
-      const formatted = data.data.map((acc, index) => {
+      const formatted = data.data.map((acc) => {
         const account = acc.account || acc;
         return {
           broker: account.broker || "-",
@@ -66,7 +66,7 @@ const fetchAccounts = async () => {
           dailyDrawdown: acc.dailyDrawdown ?? 0,
           maxDrawdown: acc.maxDrawdown ?? 0,
           phase: acc.phase ?? "1",
-          isConnected: index === 0, // ✅ only first one connected
+          isConnected: true,
         };
       });
       setAccounts(formatted);
@@ -80,7 +80,6 @@ const fetchAccounts = async () => {
     setLoading(false);
   }
 };
-
 
 
   const handleInputChange = (e) => {
@@ -205,20 +204,20 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-
-    // ✅ Include login in URL
-    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
-      method: "DELETE",
-    });
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+  method: "DELETE",
+});
+// or acc.accountId if available
 
     const result = await res.json();
-    if (result.success) {
+if (result.success) {
+
       const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+      setStatus({ type: "error", text: res.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
@@ -227,8 +226,6 @@ try {
     setLoading(false);
   }
 };
-
-
 
 
   const handleReconnect = async (acc) => {
