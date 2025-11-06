@@ -12,6 +12,7 @@ const authMiddleware = (req, res, next) => next();
 // ✅ Use controller functions directly
 router.get("/", authMiddleware, getMTAccount);
 router.post("/connect", authMiddleware, connectMT);
-router.delete("/", authMiddleware, deleteMT);
+router.delete("/:login", authMiddleware, deleteMT);
+
 
 module.exports = router;

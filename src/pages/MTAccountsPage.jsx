@@ -36,16 +36,15 @@ export default function MTAccountsPage() {
     fetchAccounts();
   }, [isAuthenticated]);
   // ✅ FIXED fetchAccounts - pulls from backend so data persists
+// ✅ FIXED fetchAccounts - only one stays connected (the first one)
 const fetchAccounts = async () => {
   try {
     setLoading(true);
-
-    // Fetch from your backend API
     const res = await fetch("http://localhost:5000/api/mtaccounts");
     const data = await res.json();
 
     if (data.success && Array.isArray(data.accounts)) {
-      const allAccounts = data.accounts.map((item) => {
+      const allAccounts = data.accounts.map((item, index) => {
         const acc = item.account || item;
         return {
           broker: acc.broker || "-",
@@ -54,7 +53,7 @@ const fetchAccounts = async () => {
           platform: acc.platform || "MT5",
           accountType: acc.accountType || "demo",
           currency: acc.currency || "USD",
-          isConnected: true,
+          isConnected: index === 0, // ✅ only first is active
           password: acc.password || "",
         };
       });
@@ -135,23 +134,25 @@ try {
     }
   };
 
-  const handleDelete = async (acc) => {
+  // ✅ FIXED Delete (matches backend)
+const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await fetch(`http://localhost:5000/api/mtaccounts/${acc.login}`, {
-  method: "DELETE",
-});
-// or acc.accountId if available
+    const res = await fetch(`http://localhost:5000/api/mtaccounts`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login: acc.login }), // ✅ backend expects body
+    });
 
     const result = await res.json();
-if (result.success) {
-
-      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+    if (result.success) {
+      const remaining = accounts.filter(a => a.login !== acc.login);
+      // ✅ ensure one stays connected
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: res.message || "Failed to delete account." });
+      setStatus({ type: "error", text: result.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
@@ -162,7 +163,9 @@ if (result.success) {
 };
 
 
-  const handleReconnect = async (acc) => {
+
+  // ✅ FIXED Login (switch)
+const handleReconnect = async (acc) => {
   try {
     setLoading(true);
     const res = await APIControl.connectAccount({
@@ -175,20 +178,16 @@ if (result.success) {
     });
 
     if (res.success) {
-      // Persist the connected account in backend
-await APIControl.setConnectedAccount(acc.login, acc.platform);
+      // ✅ Mark only this one connected
+      setAccounts(prev =>
+        prev.map(a =>
+          a.login === acc.login
+            ? { ...a, isConnected: true }
+            : { ...a, isConnected: false }
+        )
+      );
 
-setAccounts((prev) =>
-  prev.map((a) =>
-    a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
-  )
-);
-
-
-
-
-
-      setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
+      setStatus({ type: "success", text: `Switched to account ${acc.login}` });
     } else {
       setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
     }
@@ -199,6 +198,7 @@ setAccounts((prev) =>
     setLoading(false);
   }
 };
+
 
 
   if (!isAuthenticated) {
