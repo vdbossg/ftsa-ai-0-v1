@@ -29,52 +29,47 @@ export default function MTAccountsPage() {
     currency: "",
   });
   const [accounts, setAccounts] = useState([]); // store all saved accounts
-  // ✅ Load accounts from localStorage when the component mounts
-useEffect(() => {
-  const savedAccounts = localStorage.getItem("ftsa_accounts");
-  if (savedAccounts) {
-    try {
-      setAccounts(JSON.parse(savedAccounts));
-    } catch (e) {
-      console.error("Failed to parse saved accounts", e);
-    }
-  }
-}, []);
-
 
 
   useEffect(() => {
     if (!isAuthenticated) return;
     fetchAccounts();
   }, [isAuthenticated]);
-  const fetchAccounts = async () => {
+  // ✅ FIXED fetchAccounts - pulls from backend so data persists
+const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const mt5Res = await APIControl.fetchAccount("MT5");
-    const mt4Res = await APIControl.fetchAccount("MT4");
 
-    const allAccounts = [
-      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
-      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
-    ].map((acc, index) => ({
-      broker: acc.broker || acc.name || "-",
-      login: acc.login || acc.mt_login || acc.account_id || "-",
-      server: acc.server || "-",
-      platform: acc.platform || "MT5",
-      accountType: acc.accountType || acc.type || "demo",
-      currency: acc.currency || "USD",
-      isConnected: acc.isConnected ?? (index === 0),
-      password: acc.password || "",
-    }));
+    // Fetch from your backend API
+    const res = await fetch("http://localhost:5000/api/mtaccounts");
+    const data = await res.json();
 
-    setAccounts(allAccounts);
+    if (data.success && Array.isArray(data.accounts)) {
+      const allAccounts = data.accounts.map((item) => {
+        const acc = item.account || item;
+        return {
+          broker: acc.broker || "-",
+          login: acc.login || "-",
+          server: acc.server || "-",
+          platform: acc.platform || "MT5",
+          accountType: acc.accountType || "demo",
+          currency: acc.currency || "USD",
+          isConnected: true,
+          password: acc.password || "",
+        };
+      });
+      setAccounts(allAccounts);
+    } else {
+      setAccounts([]);
+    }
   } catch (err) {
-    console.error(err);
+    console.error("Fetch Accounts Error:", err);
     setStatus({ type: "error", text: "Failed to load accounts." });
   } finally {
     setLoading(false);
   }
 };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -104,6 +99,16 @@ useEffect(() => {
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
   return [...updatedPrev, newAccount];
 });
+// ✅ Save the new account to backend so it persists after refresh
+try {
+  await fetch("http://localhost:5000/api/mtaccounts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newAccount),
+  });
+} catch (err) {
+  console.error("Failed to persist account:", err);
+}
 
 
   setStatus({ type: "success", text: "Account added successfully!" });
@@ -133,9 +138,14 @@ useEffect(() => {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await APIControl.deleteAccount(acc.login); // or acc.accountId if available
+    const res = await fetch(`http://localhost:5000/api/mtaccounts/${acc.login}`, {
+  method: "DELETE",
+});
+// or acc.accountId if available
 
-    if (res.success) {
+    const result = await res.json();
+if (result.success) {
+
       const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
@@ -190,14 +200,6 @@ setAccounts((prev) =>
   }
 };
 
-// ✅ Save accounts to localStorage whenever the accounts array changes
-useEffect(() => {
-  if (accounts && accounts.length > 0) {
-    localStorage.setItem("ftsa_accounts", JSON.stringify(accounts));
-  } else {
-    localStorage.removeItem("ftsa_accounts");
-  }
-}, [accounts]);
 
   if (!isAuthenticated) {
     return (
