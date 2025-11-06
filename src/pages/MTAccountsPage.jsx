@@ -42,18 +42,19 @@ export default function MTAccountsPage() {
     const mt4Res = await APIControl.fetchAccount("MT4");
 
     const allAccounts = [
-      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
-      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
-    ].map((acc, index) => ({
-      broker: acc.broker || acc.name || "-",
-      login: acc.login || acc.mt_login || acc.account_id || "-",
-      server: acc.server || "-",
-      platform: acc.platform || "MT5",
-      accountType: acc.accountType || acc.type || "demo",
-      currency: acc.currency || "USD",
-      isConnected: acc.isConnected ?? (index === 0),
-      password: acc.password || "",
-    }));
+  ...(mt5Res.accounts ? mt5Res.accounts.map(a => a.account) : []),
+  ...(mt4Res.accounts ? mt4Res.accounts.map(a => a.account) : []),
+].map((acc, index) => ({
+  broker: acc.broker || "-",
+  login: acc.login || "-",
+  server: acc.server || "-",
+  platform: acc.platform || "MT5",
+  accountType: acc.accountType || "demo",
+  currency: acc.currency || "USD",
+  isConnected: index === 0, // Mark the first as connected
+  password: acc.password || "",
+}));
+
 
     setAccounts(allAccounts);
   } catch (err) {
