@@ -51,6 +51,9 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
+      // 👇 Get currently connected account from backend (adjust backend to return this)
+      const connectedAccountLogin = data.connectedAccountLogin; 
+
       const formatted = data.data.map((acc) => {
         const account = acc.account || acc;
         return {
@@ -66,7 +69,8 @@ const fetchAccounts = async () => {
           dailyDrawdown: acc.dailyDrawdown ?? 0,
           maxDrawdown: acc.maxDrawdown ?? 0,
           phase: acc.phase ?? "1",
-          isConnected: true,
+          // ✅ mark only the actual connected account
+          isConnected: account.accountLogin === connectedAccountLogin,
         };
       });
       setAccounts(formatted);
@@ -80,6 +84,7 @@ const fetchAccounts = async () => {
     setLoading(false);
   }
 };
+
 
 
   const handleInputChange = (e) => {
@@ -211,14 +216,14 @@ try {
 
     const result = await res.json();
 if (result.success) {
+  // ✅ remove deleted account
+  const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+  setAccounts(remaining);
+  setStatus({ type: "success", text: "Account deleted successfully!" });
+} else {
+  setStatus({ type: "error", text: result.message || "Failed to delete account." });
+}
 
-      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
-      if (remaining.length > 0) remaining[0].isConnected = true;
-      setAccounts(remaining);
-      setStatus({ type: "success", text: "Account deleted successfully!" });
-    } else {
-      setStatus({ type: "error", text: res.message || "Failed to delete account." });
-    }
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: err.message || "Unexpected error." });
