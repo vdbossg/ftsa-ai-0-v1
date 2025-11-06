@@ -42,37 +42,33 @@ export default function MTAccountsPage() {
     const mt5Res = await APIControl.fetchAccount("MT5");
     const mt4Res = await APIControl.fetchAccount("MT4");
 
-    console.log("MT5 Response:", mt5Res);
-    console.log("MT4 Response:", mt4Res);
+    const extractAccounts = (res) => {
+      if (!res) return [];
+      // Handle different possible response shapes
+      if (Array.isArray(res.accounts)) {
+        return res.accounts.map((a) => a.account || a);
+      } else if (Array.isArray(res.data)) {
+        return res.data;
+      } else if (res.account) {
+        return [res.account];
+      }
+      return [];
+    };
 
-    // Fix: properly extract nested structure
-    const allAccounts = [
-      ...(mt5Res?.accounts
-        ? mt5Res.accounts.map((a) => a.account)
-        : mt5Res?.data
-        ? Array.isArray(mt5Res.data)
-          ? mt5Res.data
-          : [mt5Res.data]
-        : []),
-      ...(mt4Res?.accounts
-        ? mt4Res.accounts.map((a) => a.account)
-        : mt4Res?.data
-        ? Array.isArray(mt4Res.data)
-          ? mt4Res.data
-          : [mt4Res.data]
-        : []),
-    ].map((acc, index) => ({
+    const mt5Accounts = extractAccounts(mt5Res);
+    const mt4Accounts = extractAccounts(mt4Res);
+
+    const allAccounts = [...mt5Accounts, ...mt4Accounts].map((acc, index) => ({
       broker: acc.broker || "-",
-      login: acc.login || acc.mt_login || "-",
+      login: acc.login || "-",
       server: acc.server || "-",
       platform: acc.platform || "MT5",
-      accountType: acc.accountType || acc.type || "demo",
+      accountType: acc.accountType || "demo",
       currency: acc.currency || "USD",
       isConnected: index === 0,
       password: acc.password || "",
     }));
 
-    console.log("Parsed Accounts:", allAccounts);
     setAccounts(allAccounts);
   } catch (err) {
     console.error(err);
