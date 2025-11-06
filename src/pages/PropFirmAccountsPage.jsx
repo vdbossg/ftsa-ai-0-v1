@@ -205,16 +205,16 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await fetch(`${BACKEND_URL}/api/propaccounts`, {
+
+    // ✅ Include login in URL
+    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login: acc.login }), // ✅ backend expects JSON body
     });
 
     const result = await res.json();
     if (result.success) {
-      const remaining = accounts.filter(a => a.login !== acc.login);
-      if (remaining.length > 0) remaining[0].isConnected = true; // ✅ keep one connected
+      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+      if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
@@ -227,6 +227,7 @@ try {
     setLoading(false);
   }
 };
+
 
 
 
