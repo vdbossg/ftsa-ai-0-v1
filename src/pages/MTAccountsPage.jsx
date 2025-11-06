@@ -89,12 +89,11 @@ export default function MTAccountsPage() {
   };
 
   // ✅ Persist the new account to backend first
+// ✅ Persist the new account to backend first
 await APIControl.saveAccountToBackend(newAccount);
 
-setAccounts(prev => {
-  const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
-  return [...updatedPrev, newAccount];
-});
+// ✅ Fetch all accounts fresh from backend so UI updates
+await fetchAccounts();
 
 
 
