@@ -43,38 +43,44 @@ export default function PropFirmAccountsPage() {
     if (!isAuthenticated) return;
     fetchAccounts();
   }, [isAuthenticated]);
-  const fetchAccounts = async () => {
+  // ✅ FIXED fetchAccounts: pull all saved Prop Firm accounts from backend
+const fetchAccounts = async () => {
   try {
     setLoading(true);
     const res = await fetch(`${BACKEND_URL}/api/propsetting`);
-
-
     const data = await res.json();
 
-    if (data.success) {
-      setAccounts(
-        data.data.map((acc) => ({
-          broker: acc.broker || "-",
-          login: acc.accountLogin || "-",
-          server: acc.server || "-",
-          platform: acc.platform || "MT5",
-          accountType: acc.accountType || "demo",
-          currency: acc.currency || "USD",
-          currentProfit: acc.currentProfit ?? 0,
-          status: acc.status ?? "active",
-          isConnected: true, // optional: mark new accounts as connected
-        }))
-      );
+    if (data.success && Array.isArray(data.data)) {
+      const formatted = data.data.map((acc) => {
+        const account = acc.account || acc;
+        return {
+          broker: account.broker || "-",
+          login: account.accountLogin || "-",
+          server: account.server || "-",
+          platform: account.platform || "MT5",
+          accountType: account.accountType || "demo",
+          currency: account.currency || "USD",
+          currentProfit: account.currentProfit ?? 0,
+          status: account.status ?? "active",
+          profitTarget: acc.profitTarget ?? 0,
+          dailyDrawdown: acc.dailyDrawdown ?? 0,
+          maxDrawdown: acc.maxDrawdown ?? 0,
+          phase: acc.phase ?? "1",
+          isConnected: true,
+        };
+      });
+      setAccounts(formatted);
     } else {
-      setStatus({ type: "error", text: data.message || "Failed to load accounts." });
+      setAccounts([]);
     }
   } catch (err) {
-    console.error(err);
+    console.error("Fetch Accounts Error:", err);
     setStatus({ type: "error", text: "Failed to load accounts." });
   } finally {
     setLoading(false);
   }
 };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -136,6 +142,26 @@ export default function PropFirmAccountsPage() {
   }
 
   console.log("✅ Prop firm settings saved:", data);
+  // ✅ Save the full Prop Firm account itself (so it persists)
+try {
+  await fetch(`${BACKEND_URL}/api/propaccounts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      broker: formData.broker,
+      login: res.account.login || formData.login,
+      password: formData.password,
+      server: formData.server,
+      platform: formData.platform,
+      accountType: formData.accountType,
+      currency: res.account.currency || formData.currency || "USD",
+    }),
+  });
+  console.log("✅ Prop firm account saved to backend");
+} catch (saveErr) {
+  console.error("❌ Failed to persist prop account:", saveErr);
+}
+
 
 } catch (propErr) {
   console.error("❌ Failed to save prop settings:", propErr);
@@ -178,9 +204,14 @@ export default function PropFirmAccountsPage() {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await APIControl.deleteAccount(acc.login); // or acc.accountId if available
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+  method: "DELETE",
+});
+// or acc.accountId if available
 
-    if (res.success) {
+    const result = await res.json();
+if (result.success) {
+
       const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
