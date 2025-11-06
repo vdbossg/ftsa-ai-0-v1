@@ -50,22 +50,18 @@ useEffect(() => {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const mt5Res = await APIControl.fetchAccount("MT5");
-    const mt4Res = await APIControl.fetchAccount("MT4");
+    const allRes = await APIControl.fetchMTAccount();
 
-    const allAccounts = [
-      ...(mt5Res?.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
-      ...(mt4Res?.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
-    ].map((acc, index) => ({
-      broker: acc.broker || acc.name || "-",
-      login: acc.login || acc.mt_login || acc.account_id || "-",
-      server: acc.server || "-",
-      platform: acc.platform || "MT5",
-      accountType: acc.accountType || acc.type || "demo",
-      currency: acc.currency || "USD",
-      isConnected: acc.isConnected ?? (index === 0),
-      password: acc.password || "",
-    }));
+const allAccounts = (allRes?.data || []).map((acc, index) => ({
+  broker: acc.account?.broker || "-",
+  login: acc.account?.login || "-",
+  server: acc.account?.server || "-",
+  platform: acc.account?.platform || "MT5",
+  accountType: acc.account?.accountType || "demo",
+  currency: acc.account?.currency || "USD",
+  isConnected: index === 0, // mark first as connected
+  password: acc.account?.password || "",
+}));
 
     // Merge backend accounts with localStorage ones (avoid duplicates)
     setAccounts(prev => {
