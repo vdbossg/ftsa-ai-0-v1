@@ -51,26 +51,26 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
-      const formatted = data.data.map((acc) => {
-        const account = acc.account || acc;
-        return {
-          broker: account.broker || "-",
-          login: account.accountLogin || "-",
-          server: account.server || "-",
-          platform: account.platform || "MT5",
-          accountType: account.accountType || "demo",
-          currency: account.currency || "USD",
-          currentProfit: account.currentProfit ?? 0,
-          status: account.status ?? "active",
-          profitTarget: acc.profitTarget ?? 0,
-          dailyDrawdown: acc.dailyDrawdown ?? 0,
-          maxDrawdown: acc.maxDrawdown ?? 0,
-          phase: acc.phase ?? "1",
-          isConnected: index === 0, // only first account connected
-          password: account.password || "", // store password for reconnect
+      const formatted = data.data.map((acc, index) => {
+  const account = acc.account || acc;
+  return {
+    broker: account.broker || "-",
+    login: account.accountLogin || "-",
+    server: account.server || "-",
+    platform: account.platform || "MT5",
+    accountType: account.accountType || "demo",
+    currency: account.currency || "USD",
+    currentProfit: account.currentProfit ?? 0,
+    status: account.status ?? "active",
+    profitTarget: acc.profitTarget ?? 0,
+    dailyDrawdown: acc.dailyDrawdown ?? 0,
+    maxDrawdown: acc.maxDrawdown ?? 0,
+    phase: acc.phase ?? "1",
+    isConnected: index === 0, // only first account connected
+    password: account.password || "", // store password for reconnect
+  };
+});
 
-        };
-      });
       setAccounts(formatted);
     } else {
       setAccounts([]);
@@ -111,10 +111,13 @@ const fetchAccounts = async () => {
     isConnected: true,
   };
 
-  setAccounts(prev => {
+  
+setAccounts(prev => {
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
   return [...updatedPrev, newAccount];
 });
+await APIControl.setConnectedAccount(newAccount.login, newAccount.platform); // persist active account
+
 
 
 
@@ -214,12 +217,15 @@ try {
     const result = await res.json();
 if (result.success) {
 
-      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+      const remaining = accounts.filter(a => !(a.login === acc.login && a.platform === acc.platform));
 if (remaining.length > 0) {
   remaining[0].isConnected = true;
   await APIControl.setConnectedAccount(remaining[0].login, remaining[0].platform); // persist active
+} else {
+  await APIControl.clearConnectedAccount(); // if no accounts left
 }
 setAccounts(remaining);
+
 
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
