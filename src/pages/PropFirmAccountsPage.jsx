@@ -51,10 +51,7 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
-      // 👇 Get currently connected account from backend (adjust backend to return this)
-      const connectedAccountLogin = data.connectedAccountLogin; 
-
-      const formatted = data.data.map((acc) => {
+      const formatted = data.data.map((acc, index) => {
         const account = acc.account || acc;
         return {
           broker: account.broker || "-",
@@ -69,8 +66,7 @@ const fetchAccounts = async () => {
           dailyDrawdown: acc.dailyDrawdown ?? 0,
           maxDrawdown: acc.maxDrawdown ?? 0,
           phase: acc.phase ?? "1",
-          // ✅ mark only the actual connected account
-          isConnected: account.accountLogin === connectedAccountLogin,
+          isConnected: index === 0, // ✅ only first one connected
         };
       });
       setAccounts(formatted);
@@ -209,21 +205,21 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
-  method: "DELETE",
-});
-// or acc.accountId if available
+    const res = await fetch(`${BACKEND_URL}/api/propaccounts`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login: acc.login }), // ✅ backend expects JSON body
+    });
 
     const result = await res.json();
-if (result.success) {
-  // ✅ remove deleted account
-  const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
-  setAccounts(remaining);
-  setStatus({ type: "success", text: "Account deleted successfully!" });
-} else {
-  setStatus({ type: "error", text: result.message || "Failed to delete account." });
-}
-
+    if (result.success) {
+      const remaining = accounts.filter(a => a.login !== acc.login);
+      if (remaining.length > 0) remaining[0].isConnected = true; // ✅ keep one connected
+      setAccounts(remaining);
+      setStatus({ type: "success", text: "Account deleted successfully!" });
+    } else {
+      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+    }
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: err.message || "Unexpected error." });
@@ -231,6 +227,7 @@ if (result.success) {
     setLoading(false);
   }
 };
+
 
 
   const handleReconnect = async (acc) => {
