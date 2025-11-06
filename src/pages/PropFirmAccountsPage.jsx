@@ -242,7 +242,7 @@ const handleDelete = async (acc) => {
       setLoading(true);
       const res = await APIControl.connectAccount({
         login: acc.login,
-        password: acc.password || prompt(`Enter password for ${acc.login}`),
+        password: acc.password,
         server: acc.server,
         broker: acc.broker,
         platform: acc.platform,
