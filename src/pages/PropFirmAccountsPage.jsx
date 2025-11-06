@@ -54,6 +54,7 @@ const fetchAccounts = async () => {
       const formatted = data.data.map((acc, index) => {
   const account = acc.account || acc;
   return {
+    _id: acc._id || account._id || account.accountLogin, // <- NEW
     broker: account.broker || "-",
     login: account.accountLogin || "-",
     server: account.server || "-",
@@ -66,10 +67,11 @@ const fetchAccounts = async () => {
     dailyDrawdown: acc.dailyDrawdown ?? 0,
     maxDrawdown: acc.maxDrawdown ?? 0,
     phase: acc.phase ?? "1",
-    isConnected: index === 0, // only first account connected
-    password: account.password || "", // store password for reconnect
+    isConnected: index === 0,
+    password: account.password || "",
   };
 });
+
 
       setAccounts(formatted);
     } else {
@@ -210,11 +212,10 @@ try {
 const handleDelete = async (acc) => {
   try {
     setLoading(true);
-     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc._id}`, { // <- use _id
   method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login: acc.login }), // ✅ backend expects body
-    });
+});
+
 
     const result = await res.json();
     if (result.success) {
@@ -241,13 +242,14 @@ const handleDelete = async (acc) => {
     try {
       setLoading(true);
       const res = await APIControl.connectAccount({
-        login: acc.login,
-        password: acc.password,
-        server: acc.server,
-        broker: acc.broker,
-        platform: acc.platform,
-        accountType: acc.accountType,
-      });
+  login: Number(acc.login), // <- convert to number
+  password: acc.password,
+  server: acc.server,
+  broker: acc.broker,
+  platform: acc.platform,
+  // accountType: acc.accountType, <- remove if backend doesn't need
+});
+
   
       if (res.success) {
         // ✅ Mark only this one connected
