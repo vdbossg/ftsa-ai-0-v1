@@ -6,6 +6,7 @@ import Modal from "../components/Modal"; // Create a simple Modal component if n
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "/src/brain/APIControl.js";
 import "../styles/MTAccountsPage.css";
+import React, { useEffect, useState } from "react";
 
 const neonColors = {
   background: "#000000",
@@ -28,7 +29,18 @@ export default function MTAccountsPage() {
     accountType: "demo",
     currency: "",
   });
-  const [accounts, setAccounts] = useState([]); // store all saved accounts
+ 
+const [accounts, setAccounts] = useState(() => {
+  // Load from localStorage on initial render
+  const saved = localStorage.getItem("ftsa_mt_accounts");
+  return saved ? JSON.parse(saved) : [];
+});
+
+// Whenever accounts change, save to localStorage
+useEffect(() => {
+  localStorage.setItem("ftsa_mt_accounts", JSON.stringify(accounts));
+}, [accounts]);
+
 
 
   useEffect(() => {
@@ -38,38 +50,33 @@ export default function MTAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-
     const mt5Res = await APIControl.fetchAccount("MT5");
     const mt4Res = await APIControl.fetchAccount("MT4");
 
-    const extractAccounts = (res) => {
-      if (!res) return [];
-      // Handle different possible response shapes
-      if (Array.isArray(res.accounts)) {
-        return res.accounts.map((a) => a.account || a);
-      } else if (Array.isArray(res.data)) {
-        return res.data;
-      } else if (res.account) {
-        return [res.account];
-      }
-      return [];
-    };
-
-    const mt5Accounts = extractAccounts(mt5Res);
-    const mt4Accounts = extractAccounts(mt4Res);
-
-    const allAccounts = [...mt5Accounts, ...mt4Accounts].map((acc, index) => ({
-      broker: acc.broker || "-",
-      login: acc.login || "-",
+    const allAccounts = [
+      ...(mt5Res?.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
+      ...(mt4Res?.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
+    ].map((acc, index) => ({
+      broker: acc.broker || acc.name || "-",
+      login: acc.login || acc.mt_login || acc.account_id || "-",
       server: acc.server || "-",
       platform: acc.platform || "MT5",
-      accountType: acc.accountType || "demo",
+      accountType: acc.accountType || acc.type || "demo",
       currency: acc.currency || "USD",
-      isConnected: index === 0,
+      isConnected: acc.isConnected ?? (index === 0),
       password: acc.password || "",
     }));
 
-    setAccounts(allAccounts);
+    // Merge backend accounts with localStorage ones (avoid duplicates)
+    setAccounts(prev => {
+      const merged = [...prev];
+      for (const acc of allAccounts) {
+        if (!merged.some(a => a.login === acc.login && a.platform === acc.platform)) {
+          merged.push(acc);
+        }
+      }
+      return merged;
+    });
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
