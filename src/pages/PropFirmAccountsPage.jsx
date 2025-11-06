@@ -44,7 +44,6 @@ export default function PropFirmAccountsPage() {
     fetchAccounts();
   }, [isAuthenticated]);
   // ✅ FIXED fetchAccounts: pull all saved Prop Firm accounts from backend
-// ✅ FIXED fetchAccounts - only one account stays connected (first one)
 const fetchAccounts = async () => {
   try {
     setLoading(true);
@@ -52,7 +51,7 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
-      const formatted = data.data.map((acc, index) => {
+      const formatted = data.data.map((acc) => {
         const account = acc.account || acc;
         return {
           broker: account.broker || "-",
@@ -67,7 +66,7 @@ const fetchAccounts = async () => {
           dailyDrawdown: acc.dailyDrawdown ?? 0,
           maxDrawdown: acc.maxDrawdown ?? 0,
           phase: acc.phase ?? "1",
-          isConnected: index === 0, // ✅ only first is connected
+          isConnected: index === 0, // only the first account is connected
         };
       });
       setAccounts(formatted);
@@ -81,6 +80,7 @@ const fetchAccounts = async () => {
     setLoading(false);
   }
 };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -201,25 +201,32 @@ try {
     }
   };
 
-  // ✅ FIXED Delete (backend expects body)
-const handleDelete = async (acc) => {
+  const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await fetch(`${BACKEND_URL}/api/propaccounts`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login: acc.login }),
-    });
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts`, {
+  method: "DELETE",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    broker: acc.broker,
+    login: acc.login,
+    platform: acc.platform,
+  }),
+});
+
+// or acc.accountId if available
 
     const result = await res.json();
-    if (result.success) {
-      const remaining = accounts.filter(a => a.login !== acc.login);
-      // ✅ ensure one stays connected
-      if (remaining.length > 0) remaining[0].isConnected = true;
-      setAccounts(remaining);
+if (result.success) {
+
+      
+      const remaining = accounts.filter(a => !(a.login === acc.login && a.platform === acc.platform));
+if (remaining.length > 0) remaining[0].isConnected = true; // keep one account connected
+setAccounts(remaining);
+
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+      setStatus({ type: "error", text: res.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
@@ -229,8 +236,8 @@ const handleDelete = async (acc) => {
   }
 };
 
-// ✅ FIXED Login (switch)
-const handleReconnect = async (acc) => {
+
+  const handleReconnect = async (acc) => {
   try {
     setLoading(true);
     const res = await APIControl.connectAccount({
@@ -243,16 +250,21 @@ const handleReconnect = async (acc) => {
     });
 
     if (res.success) {
-      // ✅ Mark only this one connected
-      setAccounts(prev =>
-        prev.map(a =>
-          a.login === acc.login
-            ? { ...a, isConnected: true }
-            : { ...a, isConnected: false }
-        )
-      );
+      // Persist the connected account in backend
+await APIControl.setConnectedAccount(acc.login, acc.platform);
 
-      setStatus({ type: "success", text: `Switched to account ${acc.login}` });
+setAccounts(prev =>
+  prev.map(a => ({
+    ...a,
+    isConnected: a.login === acc.login && a.platform === acc.platform
+  }))
+);
+
+
+
+
+
+      setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
     } else {
       setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
     }
