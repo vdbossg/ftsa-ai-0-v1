@@ -163,9 +163,9 @@ async fetchMTAccount() {
 /**
  * Fetch the single MT4 account
  */
-async fetchMTAccount() {
+async fetchMT4Account() {
   try {
-    const response = await fetch(`${BASE_URL}/api/mtaccounts`, {
+    const response = await fetch(`${BASE_URL}/api/mt4accounts`, {
       headers: {
         ...(localStorage.getItem("authToken") && {
           "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -173,18 +173,13 @@ async fetchMTAccount() {
       },
     });
 
-    if (!response.ok) return { success: false, data: [] };
+    if (!response.ok) return { success: false, data: null };
 
-    const result = await response.json();
-
-    // Backend returns { success: true, accounts: [...] }
-    return {
-      success: result.success,
-      data: result.accounts || [],
-    };
+    const data = await response.json();
+    return { success: true, data: data.data || null };
   } catch (err) {
-    console.error("Error fetching MT account:", err);
-    return { success: false, data: [] };
+    console.error("Error fetching MT4 account:", err);
+    return { success: false, data: null };
   }
 },
 

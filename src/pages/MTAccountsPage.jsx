@@ -6,7 +6,6 @@ import Modal from "../components/Modal"; // Create a simple Modal component if n
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "/src/brain/APIControl.js";
 import "../styles/MTAccountsPage.css";
-import React, { useEffect, useState } from "react";
 
 const neonColors = {
   background: "#000000",
@@ -29,17 +28,18 @@ export default function MTAccountsPage() {
     accountType: "demo",
     currency: "",
   });
- 
-const [accounts, setAccounts] = useState(() => {
-  // Load from localStorage on initial render
-  const saved = localStorage.getItem("ftsa_mt_accounts");
-  return saved ? JSON.parse(saved) : [];
-});
-
-// Whenever accounts change, save to localStorage
+  const [accounts, setAccounts] = useState([]); // store all saved accounts
+  // ✅ Load accounts from localStorage when the component mounts
 useEffect(() => {
-  localStorage.setItem("ftsa_mt_accounts", JSON.stringify(accounts));
-}, [accounts]);
+  const savedAccounts = localStorage.getItem("ftsa_accounts");
+  if (savedAccounts) {
+    try {
+      setAccounts(JSON.parse(savedAccounts));
+    } catch (e) {
+      console.error("Failed to parse saved accounts", e);
+    }
+  }
+}, []);
 
 
 
@@ -50,29 +50,24 @@ useEffect(() => {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const allRes = await APIControl.fetchMTAccount();
+    const mt5Res = await APIControl.fetchAccount("MT5");
+    const mt4Res = await APIControl.fetchAccount("MT4");
 
-const allAccounts = (allRes?.data || []).map((acc, index) => ({
-  broker: acc.account?.broker || "-",
-  login: acc.account?.login || "-",
-  server: acc.account?.server || "-",
-  platform: acc.account?.platform || "MT5",
-  accountType: acc.account?.accountType || "demo",
-  currency: acc.account?.currency || "USD",
-  isConnected: index === 0, // mark first as connected
-  password: acc.account?.password || "",
-}));
+    const allAccounts = [
+      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
+      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
+    ].map((acc, index) => ({
+      broker: acc.broker || acc.name || "-",
+      login: acc.login || acc.mt_login || acc.account_id || "-",
+      server: acc.server || "-",
+      platform: acc.platform || "MT5",
+      accountType: acc.accountType || acc.type || "demo",
+      currency: acc.currency || "USD",
+      isConnected: acc.isConnected ?? (index === 0),
+      password: acc.password || "",
+    }));
 
-    // Merge backend accounts with localStorage ones (avoid duplicates)
-    setAccounts(prev => {
-      const merged = [...prev];
-      for (const acc of allAccounts) {
-        if (!merged.some(a => a.login === acc.login && a.platform === acc.platform)) {
-          merged.push(acc);
-        }
-      }
-      return merged;
-    });
+    setAccounts(allAccounts);
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
@@ -80,7 +75,6 @@ const allAccounts = (allRes?.data || []).map((acc, index) => ({
     setLoading(false);
   }
 };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -196,6 +190,14 @@ setAccounts((prev) =>
   }
 };
 
+// ✅ Save accounts to localStorage whenever the accounts array changes
+useEffect(() => {
+  if (accounts && accounts.length > 0) {
+    localStorage.setItem("ftsa_accounts", JSON.stringify(accounts));
+  } else {
+    localStorage.removeItem("ftsa_accounts");
+  }
+}, [accounts]);
 
   if (!isAuthenticated) {
     return (
