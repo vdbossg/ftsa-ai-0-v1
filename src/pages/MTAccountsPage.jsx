@@ -30,11 +30,24 @@ export default function MTAccountsPage() {
   });
   const [accounts, setAccounts] = useState([]); // store all saved accounts
 
+// Persist accounts to localStorage whenever accounts change
+useEffect(() => {
+  localStorage.setItem('mtAccounts', JSON.stringify(accounts));
+}, [accounts]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+  if (!isAuthenticated) return;
+
+  // Load accounts from localStorage first
+  const savedAccounts = JSON.parse(localStorage.getItem('mtAccounts') || '[]');
+  if (savedAccounts.length > 0) {
+    setAccounts(savedAccounts);
+  } else {
+    // Fallback: fetch from backend if nothing saved
     fetchAccounts();
-  }, [isAuthenticated]);
+  }
+}, [isAuthenticated]);
+
   const fetchAccounts = async () => {
   try {
     setLoading(true);
