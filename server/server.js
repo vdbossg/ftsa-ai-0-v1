@@ -8,7 +8,6 @@ const apiRoutes = require('./routes/api');
 const eaRoutes = require('./routes/eaRoutes');
 const mt4Routes = require("./routes/mt4accountRoutes");
 const mtaccountRoutes = require("./routes/mtAccountRoutes.js"); // match the file name
-const propFirmRoutes = require('./routes/propFirmAccountRoutes');      // ✅ Added
 const userRoutes = require('./routes/user');   // ✅ correct relative path
 const mpesaRoutes = require('./routes/mpesaRoutes'); // Add this near your other routes
 const cfaRoutes = require('./routes/cfaRoutes');
@@ -82,7 +81,6 @@ app.use('/api/ea', eaRoutes);                   // Existing
 app.use('/cfa', cfaRoutes);
 app.use("/api/mt4accounts", mt4Routes);
 app.use("/api/mtaccounts", mtaccountRoutes);
-app.use('/api/propfirmaccounts', propFirmRoutes); // ✅ Added
 app.use('/api/mpesa', mpesaRoutes);  // ← add this line
 console.log('✅ /api/mpesa routes mounted'); 
 app.use("/api/support", supportRoutes);

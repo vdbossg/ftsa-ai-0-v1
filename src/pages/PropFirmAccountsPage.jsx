@@ -66,7 +66,9 @@ const fetchAccounts = async () => {
           dailyDrawdown: acc.dailyDrawdown ?? 0,
           maxDrawdown: acc.maxDrawdown ?? 0,
           phase: acc.phase ?? "1",
-          isConnected: true,
+          isConnected: index === 0, // only first account connected
+          password: account.password || "", // store password for reconnect
+
         };
       });
       setAccounts(formatted);
@@ -213,8 +215,12 @@ try {
 if (result.success) {
 
       const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
-      if (remaining.length > 0) remaining[0].isConnected = true;
-      setAccounts(remaining);
+if (remaining.length > 0) {
+  remaining[0].isConnected = true;
+  await APIControl.setConnectedAccount(remaining[0].login, remaining[0].platform); // persist active
+}
+setAccounts(remaining);
+
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
       setStatus({ type: "error", text: res.message || "Failed to delete account." });
@@ -233,7 +239,7 @@ if (result.success) {
     setLoading(true);
     const res = await APIControl.connectAccount({
       login: acc.login,
-      password: acc.password || prompt(`Enter password for ${acc.login}`),
+      password: acc.password, // use saved password
       server: acc.server,
       broker: acc.broker,
       platform: acc.platform,
