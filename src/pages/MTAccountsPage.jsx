@@ -7,9 +7,6 @@ import { useAuth } from "../contexts/AuthContext";
 import APIControl from "/src/brain/APIControl.js";
 import "../styles/MTAccountsPage.css";
 
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
 const neonColors = {
   background: "#000000",
   neonBlue: "#00FFFF",
@@ -41,25 +38,24 @@ export default function MTAccountsPage() {
   const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const res = await fetch(`${BACKEND_URL}/api/mtaccounts`);
-    const data = await res.json();
+    const mt5Res = await APIControl.fetchAccount("MT5");
+    const mt4Res = await APIControl.fetchAccount("MT4");
 
-    if (data.success) {
-      setAccounts(
-        data.data.map((acc) => ({
-          broker: acc.broker || acc.name || "-",
-          login: acc.login || acc.mt_login || acc.account_id || "-",
-          server: acc.server || "-",
-          platform: acc.platform || "MT5",
-          accountType: acc.accountType || acc.type || "demo",
-          currency: acc.currency || "USD",
-          isConnected: acc.isConnected ?? true,
-          password: acc.password || "",
-        }))
-      );
-    } else {
-      setStatus({ type: "error", text: data.message || "Failed to load accounts." });
-    }
+    const allAccounts = [
+      ...(mt5Res.data ? (Array.isArray(mt5Res.data) ? mt5Res.data : [mt5Res.data]) : []),
+      ...(mt4Res.data ? (Array.isArray(mt4Res.data) ? mt4Res.data : [mt4Res.data]) : []),
+    ].map((acc, index) => ({
+      broker: acc.broker || acc.name || "-",
+      login: acc.login || acc.mt_login || acc.account_id || "-",
+      server: acc.server || "-",
+      platform: acc.platform || "MT5",
+      accountType: acc.accountType || acc.type || "demo",
+      currency: acc.currency || "USD",
+      isConnected: acc.isConnected ?? (index === 0),
+      password: acc.password || "",
+    }));
+
+    setAccounts(allAccounts);
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: "Failed to load accounts." });
@@ -67,72 +63,60 @@ export default function MTAccountsPage() {
     setLoading(false);
   }
 };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddAccount = async () => {
-  if (!formData.login || !formData.password || !formData.server) {
-    setStatus({ type: "error", text: "Please fill all fields." });
-    return;
-  }
-  try {
-    setLoading(true);
-    const res = await APIControl.connectAccount(formData);
-
-    if (res.success && res.account) {
-      const newAccount = {
-        broker: formData.broker || "-",
-        login: res.account.login || formData.login || "-",
-        password: formData.password || "",
-        server: formData.server || "-",
-        platform: formData.platform,
-        accountType: formData.accountType,
-        currency: res.account.currency || "USD",
-        isConnected: true,
-      };
-
-      // Update frontend state
-      setAccounts((prev) => {
-        const updatedPrev = prev.map((acc) => ({ ...acc, isConnected: false }));
-        return [...updatedPrev, newAccount];
-      });
-
-      // Persist to backend
-      const response = await fetch(`${BACKEND_URL}/api/mtaccounts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newAccount),
-      });
-      const savedData = await response.json();
-      if (!response.ok || !savedData.success) {
-        throw new Error(savedData?.message || "Failed to save account to backend.");
-      }
-
-      setStatus({ type: "success", text: "Account added successfully!" });
-      setModalOpen(false);
-      setFormData({
-        broker: "",
-        login: "",
-        password: "",
-        server: "",
-        platform: "MT5",
-        accountType: "demo",
-        currency: "",
-      });
-    } else {
-      setStatus({ type: "error", text: res.message || "Failed to add account." });
+    if (!formData.login || !formData.password || !formData.server) {
+      setStatus({ type: "error", text: "Please fill all fields." });
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    setStatus({ type: "error", text: err.message || "Unexpected error." });
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      const res = await APIControl.connectAccount(formData);
+      if (res.success && res.account) {
+  const newAccount = {
+    broker: formData.broker || "-",
+    login: res.account.login || formData.login || "-",
+    password: formData.password || "",
+    server: formData.server || "-",
+    platform: formData.platform,
+    accountType: formData.accountType,
+    currency: res.account.currency || "USD",
+    isConnected: true,
+  };
 
+  setAccounts(prev => {
+  const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
+  return [...updatedPrev, newAccount];
+});
+
+
+  setStatus({ type: "success", text: "Account added successfully!" });
+  setModalOpen(false);
+  setFormData({
+    broker: "",
+    login: "",
+    password: "",
+    server: "",
+    platform: "MT5",
+    accountType: "demo",
+    currency: "",
+  });
+} else {
+  setStatus({ type: "error", text: res.message || "Failed to add account." });
+}
+
+
+    } catch (err) {
+      console.error(err);
+      setStatus({ type: "error", text: err.message || "Unexpected error." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (acc) => {
   try {
