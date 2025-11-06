@@ -30,24 +30,11 @@ export default function MTAccountsPage() {
   });
   const [accounts, setAccounts] = useState([]); // store all saved accounts
 
-// Persist accounts to localStorage whenever accounts change
-useEffect(() => {
-  localStorage.setItem('mtAccounts', JSON.stringify(accounts));
-}, [accounts]);
 
   useEffect(() => {
-  if (!isAuthenticated) return;
-
-  // Load accounts from localStorage first
-  const savedAccounts = JSON.parse(localStorage.getItem('mtAccounts') || '[]');
-  if (savedAccounts.length > 0) {
-    setAccounts(savedAccounts);
-  } else {
-    // Fallback: fetch from backend if nothing saved
+    if (!isAuthenticated) return;
     fetchAccounts();
-  }
-}, [isAuthenticated]);
-
+  }, [isAuthenticated]);
   const fetchAccounts = async () => {
   try {
     setLoading(true);
@@ -101,10 +88,14 @@ useEffect(() => {
     isConnected: true,
   };
 
-  setAccounts(prev => {
+  // ✅ Persist the new account to backend first
+await APIControl.saveAccountToBackend(newAccount);
+
+setAccounts(prev => {
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
   return [...updatedPrev, newAccount];
 });
+
 
 
   setStatus({ type: "success", text: "Account added successfully!" });
