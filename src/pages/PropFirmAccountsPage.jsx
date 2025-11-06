@@ -66,7 +66,7 @@ const fetchAccounts = async () => {
           dailyDrawdown: acc.dailyDrawdown ?? 0,
           maxDrawdown: acc.maxDrawdown ?? 0,
           phase: acc.phase ?? "1",
-          isConnected: index === 0, // only the first account is connected
+          isConnected: true,
         };
       });
       setAccounts(formatted);
@@ -204,26 +204,17 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-     const res = await fetch(`${BACKEND_URL}/api/propaccounts`, {
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
   method: "DELETE",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    broker: acc.broker,
-    login: acc.login,
-    platform: acc.platform,
-  }),
 });
-
 // or acc.accountId if available
 
     const result = await res.json();
 if (result.success) {
 
-      
-      const remaining = accounts.filter(a => !(a.login === acc.login && a.platform === acc.platform));
-if (remaining.length > 0) remaining[0].isConnected = true; // keep one account connected
-setAccounts(remaining);
-
+      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+      if (remaining.length > 0) remaining[0].isConnected = true;
+      setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
       setStatus({ type: "error", text: res.message || "Failed to delete account." });
@@ -253,13 +244,11 @@ setAccounts(remaining);
       // Persist the connected account in backend
 await APIControl.setConnectedAccount(acc.login, acc.platform);
 
-setAccounts(prev =>
-  prev.map(a => ({
-    ...a,
-    isConnected: a.login === acc.login && a.platform === acc.platform
-  }))
+setAccounts((prev) =>
+  prev.map((a) =>
+    a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
+  )
 );
-
 
 
 
