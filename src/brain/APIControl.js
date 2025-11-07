@@ -182,6 +182,40 @@ async fetchMT4Account() {
     return { success: false, data: null };
   }
 },
+async connectPropFirmAccount({ broker, login, password, server, platform = "MT5", accountType = "demo" }) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/propaccounts/connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+      },
+      body: JSON.stringify({ broker, login, password, server, platform, accountType }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return { success: false, message: data.message || "Failed to connect PropFirm account" };
+    }
+
+    return {
+      success: true,
+      message: data.message,
+      account: {
+        broker: data.account?.broker || broker,
+        login: data.account?.login || login,
+        server: data.account?.server || server,
+        platform: data.account?.platform || platform,
+        accountType: data.account?.accountType || accountType,
+        currency: data.account?.currency || "USD"
+      }
+    };
+  } catch (err) {
+    console.error("Error connecting PropFirm account:", err);
+    return { success: false, message: "Unexpected error" };
+  }
+},
 
 /**
  * Connect MT account
@@ -288,6 +322,33 @@ async deleteMTAccount() {
   }
 },
 /**
+ * Delete PropFirm account
+ */
+async deletePropFirmAccount(accountID) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/propaccounts/${accountID}`, {
+      method: "DELETE",
+      headers: {
+        ...(localStorage.getItem("authToken") && { 
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
+        })
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, message: errorData.message || "Failed to delete PropFirm account" };
+    }
+
+    const data = await response.json();
+    return { success: true, message: data.message || "PropFirm account deleted successfully" };
+  } catch (err) {
+    console.error("Error deleting PropFirm account:", err);
+    return { success: false, message: "Unexpected error" };
+  }
+},
+
+/**
  * Delete MT4 account
  */
 async deleteMT4Account() {
@@ -318,7 +379,8 @@ async deleteMT4Account() {
  */
 async fetchPropFirmAccountsData() {
   try {
-    const response = await fetch(`${BASE_URL}/api/propfirmaccounts`, {
+    const response = await fetch(`${BASE_URL}/api/propaccounts`, {
+
       headers: {
   ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
 }

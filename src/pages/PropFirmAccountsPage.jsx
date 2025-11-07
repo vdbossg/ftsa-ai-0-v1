@@ -94,7 +94,8 @@ const fetchAccounts = async () => {
     }
     try {
       setLoading(true);
-      const res = await APIControl.connectAccount(formData);
+      const res = await APIControl.connectPropFirmAccount(formData);
+
       if (res.success && res.account) {
         console.log("connectAccount result:", res);
 
@@ -231,14 +232,15 @@ if (result.success) {
   const handleReconnect = async (acc) => {
   try {
     setLoading(true);
-    const res = await APIControl.connectAccount({
-      login: acc.login,
-      password: acc.password || prompt(`Enter password for ${acc.login}`),
-      server: acc.server,
-      broker: acc.broker,
-      platform: acc.platform,
-      accountType: acc.accountType,
-    });
+    const res = await APIControl.connectPropFirmAccount({
+  login: acc.login,
+  password: acc.password || prompt(`Enter password for ${acc.login}`),
+  server: acc.server,
+  broker: acc.broker,
+  platform: acc.platform,
+  accountType: acc.accountType,
+});
+
 
     if (res.success) {
       // Persist the connected account in backend
