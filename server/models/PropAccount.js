@@ -9,6 +9,9 @@ const PropAccountSchema = new mongoose.Schema(
     platform: { type: String, enum: ["MT4", "MT5"], default: "MT5" },
     accountType: { type: String, enum: ["demo", "live"], default: "demo" },
     currency: { type: String, default: "USD" },
+
+    // ✅ Add this field to track the active/connected account
+    isConnected: { type: Boolean, default: false },
   },
   {
     timestamps: true,

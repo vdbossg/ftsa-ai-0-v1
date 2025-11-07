@@ -45,32 +45,40 @@ async function connectPropAccount({ broker, login, password, server, platform = 
 
     const result = await runPythonPropMT5Summary(loginStr, password, server); // <--- updated
 
-    let account = await PropAccountModel.findOne({ login: loginStr, platform: "MT5" });
-    if (account) {
-      Object.assign(account, {
-        broker,
-        password,
-        server,
-        platform,
-        accountType,
-        currency: result.data?.currency || account.currency || "USD",
-        isConnected: result.success || false,
-      });
-      await account.save();
-      console.log("🔁 Updated existing Prop MT5 account in DB");
-    } else {
-      account = await PropAccountModel.create({
-        broker,
-        login: loginStr,
-        password,
-        server,
-        platform,
-        accountType,
-        currency: result.data?.currency || "USD",
-        isConnected: result.success || false,
-      });
-      console.log("💾 Created new Prop MT5 account in DB");
-    }
+    // 1️⃣ Disconnect all other accounts first
+await PropAccountModel.updateMany(
+  { platform: "MT5", login: { $ne: loginStr } },
+  { $set: { isConnected: false } }
+);
+
+// 2️⃣ Find or create the current account
+let account = await PropAccountModel.findOne({ login: loginStr, platform: "MT5" });
+if (account) {
+  Object.assign(account, {
+    broker,
+    password,
+    server,
+    platform,
+    accountType,
+    currency: result.data?.currency || account.currency || "USD",
+    isConnected: result.success || false, // connect this account
+  });
+  await account.save();
+  console.log("🔁 Updated existing Prop MT5 account in DB");
+} else {
+  account = await PropAccountModel.create({
+    broker,
+    login: loginStr,
+    password,
+    server,
+    platform,
+    accountType,
+    currency: result.data?.currency || "USD",
+    isConnected: result.success || false, // connect this account
+  });
+  console.log("💾 Created new Prop MT5 account in DB");
+}
+
 
     return {
       success: true,

@@ -51,24 +51,26 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
-      const formatted = data.data.map((acc) => {
-        const account = acc.account || acc;
-        return {
-          broker: account.broker || "-",
-          login: account.accountLogin || "-",
-          server: account.server || "-",
-          platform: account.platform || "MT5",
-          accountType: account.accountType || "demo",
-          currency: account.currency || "USD",
-          currentProfit: account.currentProfit ?? 0,
-          status: account.status ?? "active",
-          profitTarget: acc.profitTarget ?? 0,
-          dailyDrawdown: acc.dailyDrawdown ?? 0,
-          maxDrawdown: acc.maxDrawdown ?? 0,
-          phase: acc.phase ?? "1",
-          isConnected: true,
-        };
-      });
+      const allAccounts = data.accounts.map((acc) => {
+  const account = acc.account || acc;
+  return {
+    broker: account.broker || "-",
+    login: account.accountLogin || "-",
+    server: account.server || "-",
+    platform: account.platform || "MT5",
+    accountType: account.accountType || "demo",
+    currency: account.currency || "USD",
+    currentProfit: account.currentProfit ?? 0,
+    status: account.status ?? "active",
+    profitTarget: acc.profitTarget ?? 0,
+    dailyDrawdown: acc.dailyDrawdown ?? 0,
+    maxDrawdown: acc.maxDrawdown ?? 0,
+    phase: acc.phase ?? "1",
+    isConnected: account.isConnected ?? false, // ✅ use backend connection
+  };
+});
+
+
       setAccounts(formatted);
     } else {
       setAccounts([]);
@@ -110,7 +112,8 @@ const fetchAccounts = async () => {
     isConnected: true,
   };
 
-  setAccounts(prev => {
+  
+setAccounts(prev => {
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
   return [...updatedPrev, newAccount];
 });
@@ -205,24 +208,23 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
-  method: "DELETE",
-});
-// or acc.accountId if available
+    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+      method: "DELETE",
+    });
 
     const result = await res.json();
-if (result.success) {
-
-      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+    if (result.success) {
+      const remaining = accounts.filter(a => a.login !== acc.login);
+      // Make sure one stays connected
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: res.message || "Failed to delete account." });
+      setStatus({ type: "error", text: result.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
-    setStatus({ type: "error", text: err.message || "Unexpected error." });
+    setStatus({ type: "error", text: err.message || "Unexpected error" });
   } finally {
     setLoading(false);
   }
