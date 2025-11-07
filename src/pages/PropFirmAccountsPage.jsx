@@ -52,23 +52,25 @@ const fetchAccounts = async () => {
 
     if (data.success && Array.isArray(data.data)) {
       const formatted = data.data.map((acc) => {
-        const account = acc.account || acc;
-        return {
-          broker: account.broker || "-",
-          login: account.accountLogin || "-",
-          server: account.server || "-",
-          platform: account.platform || "MT5",
-          accountType: account.accountType || "demo",
-          currency: account.currency || "USD",
-          currentProfit: account.currentProfit ?? 0,
-          status: account.status ?? "active",
-          profitTarget: acc.profitTarget ?? 0,
-          dailyDrawdown: acc.dailyDrawdown ?? 0,
-          maxDrawdown: acc.maxDrawdown ?? 0,
-          phase: acc.phase ?? "1",
-          isConnected: true,
-        };
-      });
+  const account = acc.account || acc;
+  return {
+    id: acc._id || account._id, // <-- add this line
+    broker: account.broker || "-",
+    login: account.accountLogin || "-",
+    server: account.server || "-",
+    platform: account.platform || "MT5",
+    accountType: account.accountType || "demo",
+    currency: account.currency || "USD",
+    currentProfit: account.currentProfit ?? 0,
+    status: account.status ?? "active",
+    profitTarget: acc.profitTarget ?? 0,
+    dailyDrawdown: acc.dailyDrawdown ?? 0,
+    maxDrawdown: acc.maxDrawdown ?? 0,
+    phase: acc.phase ?? "1",
+    isConnected: true,
+  };
+});
+
       setAccounts(formatted);
     } else {
       setAccounts([]);
@@ -205,23 +207,24 @@ try {
   try {
     setLoading(true);
 
-    // Use a unique identifier your backend expects
-    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+    // Use the backend _id for deletion
+    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.id}`, {
       method: "DELETE",
     });
 
-    const result = await res.json();
+    let result;
+    try {
+      result = await res.json(); // try parsing JSON
+    } catch (parseErr) {
+      // If parsing fails, fallback to text
+      const text = await res.text();
+      throw new Error(`Server error: ${text}`);
+    }
 
-    if (result.success) {
-      // Remove deleted account and ensure only one connected remains
-      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+    if (res.ok && result.success) {
+      const remaining = accounts.filter(a => a.id !== acc.id);
 
-      // If the deleted account was connected, connect the first remaining account if exists
-      if (acc.isConnected && remaining.length > 0) {
-        remaining[0].isConnected = true;
-      }
-
-      // Ensure no more than one connected
+      // Ensure only one connected account
       let connectedSet = false;
       const updatedAccounts = remaining.map(a => {
         if (a.isConnected) {
@@ -238,7 +241,7 @@ try {
       setAccounts(updatedAccounts);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+      throw new Error(result?.message || "Failed to delete account.");
     }
   } catch (err) {
     console.error(err);
@@ -247,6 +250,7 @@ try {
     setLoading(false);
   }
 };
+
 
 
 
