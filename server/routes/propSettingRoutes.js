@@ -9,5 +9,7 @@ router.post("/", propSettingController.addPropSetting);
 // GET - all prop settings (auto-calculated)
 router.get("/", propSettingController.getAllPropSettings);
 
+// 🆕 DELETE - delete a prop setting by accountLogin or ID
+router.delete("/:accountLogin", propSettingController.deletePropSetting);
+
 module.exports = router;
- 

@@ -17,6 +17,16 @@ const calculateProgress = (balance, equity, setting) => {
     status,
   };
 };
+// Delete prop setting by account login
+exports.deletePropSetting = async (accountLogin) => {
+  try {
+    const deletedSetting = await PropSetting.findOneAndDelete({ accountLogin });
+    return deletedSetting;
+  } catch (err) {
+    console.error("❌ Failed to delete prop setting:", err.message);
+    throw new Error("Failed to delete prop setting: " + err.message);
+  }
+};
 
 // Fetch all prop firm accounts and update their progress
 exports.getAllPropSettings = async () => {

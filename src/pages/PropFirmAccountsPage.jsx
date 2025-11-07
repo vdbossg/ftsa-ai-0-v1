@@ -268,28 +268,31 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
-      method: "DELETE",
-    });
 
-    const result = await res.json();
-    if (result.success) {
+    // delete both account and settings
+    const [res1, res2] = await Promise.all([
+      fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, { method: "DELETE" }),
+      fetch(`${BACKEND_URL}/api/propsetting/${acc.login}`, { method: "DELETE" }),
+    ]);
+
+    const ok1 = res1.ok;
+    const ok2 = res2.ok;
+
+    if (ok1 || ok2) {
       const remaining = accounts.filter(a => a.login !== acc.login);
-      // Make sure one stays connected
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
-      setStatus({ type: "success", text: "Account deleted successfully!" });
+      setStatus({ type: "success", text: "Account and settings deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+      setStatus({ type: "error", text: "Failed to delete from one or both endpoints." });
     }
   } catch (err) {
-    console.error(err);
-    setStatus({ type: "error", text: err.message || "Unexpected error" });
+    console.error("Delete error:", err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
   } finally {
     setLoading(false);
   }
 };
-
 
   // Replace the entire handleReconnect function with this
 const handleReconnect = async (acc) => {

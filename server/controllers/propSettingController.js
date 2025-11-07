@@ -20,3 +20,19 @@ exports.addPropSetting = async (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+exports.deletePropSetting = async (req, res) => {
+  try {
+    const { accountLogin } = req.params;
+
+    const deletedSetting = await propSettingService.deletePropSetting(accountLogin);
+
+    if (!deletedSetting) {
+      return res.status(404).json({ success: false, message: "Prop setting not found" });
+    }
+
+    res.json({ success: true, message: "Prop setting deleted successfully" });
+  } catch (err) {
+    console.error("❌ deletePropSetting error:", err);
+    res.status(500).json({ success: false, message: "Server error deleting prop setting" });
+  }
+};

@@ -326,27 +326,42 @@ async deleteMTAccount() {
  */
 async deletePropFirmAccount(accountID) {
   try {
-    const response = await fetch(`${BASE_URL}/api/propaccounts/${accountID}`, {
-      method: "DELETE",
-      headers: {
-        ...(localStorage.getItem("authToken") && { 
-          "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
-        })
-      }
-    });
+    // Delete from BOTH /api/propaccounts and /api/propsetting
+    const [res1, res2] = await Promise.all([
+      fetch(`${BASE_URL}/api/propaccounts/${accountID}`, {
+        method: "DELETE",
+        headers: {
+          ...(localStorage.getItem("authToken") && { 
+            "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
+          })
+        }
+      }),
+      fetch(`${BASE_URL}/api/propsetting/${accountID}`, {
+        method: "DELETE",
+        headers: {
+          ...(localStorage.getItem("authToken") && { 
+            "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
+          })
+        }
+      }),
+    ]);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      return { success: false, message: errorData.message || "Failed to delete PropFirm account" };
+    if (res1.ok || res2.ok) {
+      console.log(`✅ Deleted account ${accountID} from both collections.`);
+      return { success: true, message: "Account and settings deleted successfully." };
+    } else {
+      const msg1 = await res1.text();
+      const msg2 = await res2.text();
+      console.warn("⚠️ Delete failed:", msg1, msg2);
+      return { success: false, message: "Failed to delete one or both records." };
     }
 
-    const data = await response.json();
-    return { success: true, message: data.message || "PropFirm account deleted successfully" };
   } catch (err) {
-    console.error("Error deleting PropFirm account:", err);
-    return { success: false, message: "Unexpected error" };
+    console.error("❌ Delete error:", err);
+    return { success: false, message: err.message || "Unexpected delete error." };
   }
 },
+
 
 /**
  * Delete MT4 account
