@@ -301,8 +301,12 @@ const handleReconnect = async (acc) => {
   try {
     setLoading(true);
 
-    let password = acc.password;
-    if (!password) {
+    // ✅ Always find the freshest account info from state
+    const currentAcc = accounts.find(a => a.login === acc.login) || acc;
+    let password = currentAcc.password;
+
+    if (!password || password.trim() === "") {
+      console.warn("⚠️ Missing password in state for", acc.login);
       const userPassword = window.prompt(`Please enter password for account ${acc.login}`);
       if (!userPassword) {
         setStatus({ type: "error", text: "Password is required to reconnect." });
@@ -310,6 +314,8 @@ const handleReconnect = async (acc) => {
       }
       password = userPassword;
     }
+
+    console.log(`🔐 Using saved password for ${acc.login}`);
 
     const res = await APIControl.connectPropFirmAccount({
       login: acc.login,
@@ -325,7 +331,13 @@ const handleReconnect = async (acc) => {
       return;
     }
 
-    await fetchAccounts();
+    // ✅ Update the password and connection status in local state immediately
+    setAccounts(prev =>
+      prev.map(a =>
+        a.login === acc.login ? { ...a, isConnected: true, password } : a
+      )
+    );
+
     setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
   } catch (err) {
     console.error("Reconnect error:", err);
@@ -334,6 +346,7 @@ const handleReconnect = async (acc) => {
     setLoading(false);
   }
 };
+
 
 
 
