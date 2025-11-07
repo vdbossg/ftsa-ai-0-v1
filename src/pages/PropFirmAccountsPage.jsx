@@ -117,6 +117,7 @@ const fetchAccounts = async () => {
     const onlyAccounts = Object.values(accountByLogin).map(a => ({
       broker: a.broker && a.broker !== "-" ? a.broker : "",
       login: a.login || "-",
+      password: a.password || "", // ✅ add this line
       server: a.server && a.server !== "-" ? a.server : "",
       platform: a.platform || "MT5",
       accountType: a.accountType || "demo",
