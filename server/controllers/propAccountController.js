@@ -50,6 +50,7 @@ async function getPropAccount(req, res) {
 
     if (!accounts || accounts.length === 0) {
       return res.json({ success: true, data: [] }); // return empty array for frontend
+
     }
 
     // Optional: fetch summaries if needed
@@ -70,7 +71,8 @@ async function getPropAccount(req, res) {
       });
     }
 
-    res.json({ success: true, data: results });
+    res.json({ success: true, accounts: results });
+
   } catch (err) {
     console.error("❌ Error in getPropAccount controller:", err);
     res.status(500).json({ success: false, message: err.message });

@@ -12,7 +12,8 @@ const authMiddleware = (req, res, next) => next();
 
 // ✅ Routes for Prop MT5 accounts
 router.get("/", authMiddleware, getPropAccount);
-router.post("/connect", authMiddleware, connectPropAccount);
+router.post("/", authMiddleware, connectPropAccount); // ✅ added to match frontend
+router.post("/connect", authMiddleware, connectPropAccount); // keep old one (compatibility)
 router.delete("/:login", authMiddleware, deletePropAccount);
 
 module.exports = router;
