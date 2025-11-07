@@ -44,44 +44,59 @@ export default function PropFirmAccountsPage() {
     fetchAccounts();
   }, [isAuthenticated]);
   // ✅ FIXED fetchAccounts: pull all saved Prop Firm accounts from backend
+ // ✅ FIXED fetchAccounts: load both settings + prop accounts
 const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const res = await fetch(`${BACKEND_URL}/api/propsetting`);
-    const data = await res.json();
 
-    if (data.success && Array.isArray(data.data)) {
-      const allAccounts = data.accounts.map((acc) => {
-  const account = acc.account || acc;
-  return {
-    broker: account.broker || "-",
-    login: account.accountLogin || "-",
-    server: account.server || "-",
-    platform: account.platform || "MT5",
-    accountType: account.accountType || "demo",
-    currency: account.currency || "USD",
-    currentProfit: account.currentProfit ?? 0,
-    status: account.status ?? "active",
-    profitTarget: acc.profitTarget ?? 0,
-    dailyDrawdown: acc.dailyDrawdown ?? 0,
-    maxDrawdown: acc.maxDrawdown ?? 0,
-    phase: acc.phase ?? "1",
-    isConnected: account.isConnected ?? false, // ✅ use backend connection
-  };
-});
+    // 1️⃣ Get all saved Prop Accounts
+    const accountsRes = await fetch(`${BACKEND_URL}/api/propaccounts`);
+    const accountsData = await accountsRes.json();
 
+    // 2️⃣ Get Prop Firm Settings
+    const settingsRes = await fetch(`${BACKEND_URL}/api/propsetting`);
+    const settingsData = await settingsRes.json();
 
-      setAccounts(formatted);
-    } else {
-      setAccounts([]);
-    }
+    // 3️⃣ Combine both results
+    const allAccounts =
+      Array.isArray(accountsData?.accounts) && accountsData.accounts.length > 0
+        ? accountsData.accounts.map((acc) => {
+            const account = acc.account || acc;
+
+            // Match settings for this account login (if exists)
+            const matchSetting = settingsData?.data?.find(
+              (s) =>
+                s.accountLogin === account.accountLogin ||
+                s.accountLogin === account.login
+            );
+
+            return {
+              broker: account.broker || "-",
+              login: account.accountLogin || account.login || "-",
+              server: account.server || "-",
+              platform: account.platform || "MT5",
+              accountType: account.accountType || "demo",
+              currency: account.currency || "USD",
+              currentProfit: account.currentProfit ?? 0,
+              status: account.status ?? "active",
+              profitTarget: matchSetting?.profitTarget ?? 0,
+              dailyDrawdown: matchSetting?.dailyDrawdown ?? 0,
+              maxDrawdown: matchSetting?.maxDrawdown ?? 0,
+              phase: matchSetting?.phase ?? "1",
+              isConnected: account.isConnected ?? false,
+            };
+          })
+        : [];
+
+    setAccounts(allAccounts);
   } catch (err) {
-    console.error("Fetch Accounts Error:", err);
+    console.error("❌ Fetch Accounts Error:", err);
     setStatus({ type: "error", text: "Failed to load accounts." });
   } finally {
     setLoading(false);
   }
 };
+
 
 
   const handleInputChange = (e) => {
