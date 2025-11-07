@@ -1,7 +1,8 @@
 // server/services/propAccountService.js
 const { spawn } = require("child_process");
 const path = require("path");
-const PropAccountModel = require("../models/PropAccountModel");
+const PropAccountModel = require("../models/PropAccount");
+
 
 /**
  * Executes the PropFirm Python script to fetch MT5 account summary.
