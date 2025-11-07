@@ -66,7 +66,13 @@ const fetchAccounts = async () => {
 
     // Normalize arrays (handle different shapes)
     const propSettingsArray = (propsettingJson && (Array.isArray(propsettingJson.data) ? propsettingJson.data : Array.isArray(propsettingJson.accounts) ? propsettingJson.accounts : [])) || [];
-    const propAccountsArray = (propaccountsJson && (Array.isArray(propaccountsJson.data) ? propaccountsJson.data : Array.isArray(propaccountsJson) ? propaccountsJson : [])) || [];
+     const propAccountsArray =
+  (Array.isArray(propaccountsJson?.accounts)
+    ? propaccountsJson.accounts
+    : Array.isArray(propaccountsJson?.data)
+    ? propaccountsJson.data
+    : []);
+
 
     // Build a map of propAccount by login from propAccounts endpoint (so we get isConnected, password, server etc.)
     const accountByLogin = {};
