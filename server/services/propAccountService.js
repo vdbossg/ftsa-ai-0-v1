@@ -55,27 +55,29 @@ await PropAccountModel.updateMany(
 let account = await PropAccountModel.findOne({ login: loginStr, platform: "MT5" });
 if (account) {
   Object.assign(account, {
-    broker,
-    password,
-    server,
-    platform,
-    accountType,
-    currency: result.data?.currency || account.currency || "USD",
-    isConnected: result.success || false, // connect this account
-  });
+  broker: broker?.trim() || "Unknown Broker",
+  password,
+  server: server?.trim() || "Unknown Server",
+  platform,
+  accountType,
+  currency: result.data?.currency || account.currency || "USD",
+  isConnected: result.success || false,
+});
+
   await account.save();
   console.log("🔁 Updated existing Prop MT5 account in DB");
 } else {
-  account = await PropAccountModel.create({
-    broker,
-    login: loginStr,
-    password,
-    server,
-    platform,
-    accountType,
-    currency: result.data?.currency || "USD",
-    isConnected: result.success || false, // connect this account
-  });
+ account = await PropAccountModel.create({
+  broker: broker?.trim() || "Unknown Broker",
+  login: loginStr,
+  password,
+  server: server?.trim() || "Unknown Server",
+  platform,
+  accountType,
+  currency: result.data?.currency || "USD",
+  isConnected: result.success || false,
+});
+
   console.log("💾 Created new Prop MT5 account in DB");
 }
 
@@ -99,13 +101,18 @@ if (account) {
  */
 async function getPropAccount() {
   try {
-    const accounts = await PropAccountModel.find({ platform: "MT5" });
-    return accounts || [];
+    const accounts = await PropAccountModel.find({ platform: "MT5" }).lean();
+    return accounts.map(a => ({
+      ...a,
+      broker: a.broker?.trim() || "Unknown Broker",
+      server: a.server?.trim() || "Unknown Server",
+    }));
   } catch (err) {
     console.error("💥 Error fetching Prop MT5 accounts:", err);
     return [];
   }
 }
+
 
 /**
  * Delete a specific Prop MT5 account by login.
