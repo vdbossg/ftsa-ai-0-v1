@@ -72,20 +72,18 @@ const fetchAccounts = async () => {
     const accountByLogin = {};
     propAccountsArray.forEach(item => {
       // controller returns { account: {...}, summary: {...} } in some cases
-      const a = item?.account || item;
-      if (!a || !a.login) return;
-      accountByLogin[String(a.login)] = {
-        broker: a.broker || "",
-        login: String(a.login),
-        password: a.password || "",
-        server: a.server || "",
-        platform: a.platform || "MT5",
-        accountType: a.accountType || "demo",
-        currency: a.currency || "USD",
-        isConnected: !!a.isConnected
-      };
-    });
-
+      const acc = item.account || item;
+        return {
+          broker: acc.broker || "-",
+          login: acc.login || "-",
+          server: acc.server || "-",
+          platform: acc.platform || "MT5",
+          accountType: acc.accountType || "demo",
+          currency: acc.currency || "USD",
+          isConnected: index === 0, // ✅ only first is active
+          password: acc.password || "",
+        };
+      });
     // Merge propSettings with accounts: propsettings may reference accountLogin
     const merged = propSettingsArray.map((ps, idx) => {
       const setting = ps || {};
@@ -274,14 +272,10 @@ try {
 
     const result = await res.json();
     if (result.success) {
-      const remaining = accounts.filter(a => a.login !== acc.login);
-      // Make sure one stays connected
-      if (remaining.length > 0) remaining[0].isConnected = true;
-      setAccounts(remaining);
-      setStatus({ type: "success", text: "Account deleted successfully!" });
-    } else {
-      setStatus({ type: "error", text: result.message || "Failed to delete account." });
-    }
+  setStatus({ type: "success", text: "Account deleted successfully!" });
+  await fetchAccounts();  // 🔁 Refresh from backend
+}
+
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: err.message || "Unexpected error" });
@@ -292,13 +286,11 @@ try {
 
 
   // Replace the entire handleReconnect function with this
+// ✅ FIXED Login (switch)
 const handleReconnect = async (acc) => {
   try {
     setLoading(true);
-
-    // Try to connect via APIControl (this will call backend connect endpoint which
-    // in your server service already sets isConnected=true and clears others)
-    const res = await APIControl.connectPropFirmAccount({
+    const res = await APIControl.connectAccount({
       login: acc.login,
       password: acc.password || prompt(`Enter password for ${acc.login}`),
       server: acc.server,
@@ -307,24 +299,27 @@ const handleReconnect = async (acc) => {
       accountType: acc.accountType,
     });
 
-    if (!res.success) {
+    if (res.success) {
+      // ✅ Mark only this one connected
+      setAccounts(prev =>
+        prev.map(a =>
+          a.login === acc.login
+            ? { ...a, isConnected: true }
+            : { ...a, isConnected: false }
+        )
+      );
+
+      setStatus({ type: "success", text: `Switched to account ${acc.login}` });
+    } else {
       setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
-      return;
     }
-
-    // After successful connect, re-fetch accounts from backend to get authoritative state
-    await fetchAccounts();
-
-    setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
   } catch (err) {
-    console.error("Reconnect error:", err);
+    console.error(err);
     setStatus({ type: "error", text: err.message || "Unexpected error." });
   } finally {
     setLoading(false);
   }
 };
-
-
 
   if (!isAuthenticated) {
     return (
