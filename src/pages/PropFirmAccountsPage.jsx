@@ -52,25 +52,23 @@ const fetchAccounts = async () => {
 
     if (data.success && Array.isArray(data.data)) {
       const formatted = data.data.map((acc) => {
-  const account = acc.account || acc;
-  return {
-    id: acc._id || account._id, // <-- add this line
-    broker: account.broker || "-",
-    login: account.accountLogin || "-",
-    server: account.server || "-",
-    platform: account.platform || "MT5",
-    accountType: account.accountType || "demo",
-    currency: account.currency || "USD",
-    currentProfit: account.currentProfit ?? 0,
-    status: account.status ?? "active",
-    profitTarget: acc.profitTarget ?? 0,
-    dailyDrawdown: acc.dailyDrawdown ?? 0,
-    maxDrawdown: acc.maxDrawdown ?? 0,
-    phase: acc.phase ?? "1",
-    isConnected: true,
-  };
-});
-
+        const account = acc.account || acc;
+        return {
+          broker: account.broker || "-",
+          login: account.accountLogin || "-",
+          server: account.server || "-",
+          platform: account.platform || "MT5",
+          accountType: account.accountType || "demo",
+          currency: account.currency || "USD",
+          currentProfit: account.currentProfit ?? 0,
+          status: account.status ?? "active",
+          profitTarget: acc.profitTarget ?? 0,
+          dailyDrawdown: acc.dailyDrawdown ?? 0,
+          maxDrawdown: acc.maxDrawdown ?? 0,
+          phase: acc.phase ?? "1",
+          isConnected: true,
+        };
+      });
       setAccounts(formatted);
     } else {
       setAccounts([]);
@@ -206,42 +204,20 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+  method: "DELETE",
+});
+// or acc.accountId if available
 
-    // Use the backend _id for deletion
-    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.id}`, {
-      method: "DELETE",
-    });
+    const result = await res.json();
+if (result.success) {
 
-    let result;
-    try {
-      result = await res.json(); // try parsing JSON
-    } catch (parseErr) {
-      // If parsing fails, fallback to text
-      const text = await res.text();
-      throw new Error(`Server error: ${text}`);
-    }
-
-    if (res.ok && result.success) {
-      const remaining = accounts.filter(a => a.id !== acc.id);
-
-      // Ensure only one connected account
-      let connectedSet = false;
-      const updatedAccounts = remaining.map(a => {
-        if (a.isConnected) {
-          if (!connectedSet) {
-            connectedSet = true;
-            return a;
-          } else {
-            return { ...a, isConnected: false };
-          }
-        }
-        return a;
-      });
-
-      setAccounts(updatedAccounts);
+      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
+      if (remaining.length > 0) remaining[0].isConnected = true;
+      setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      throw new Error(result?.message || "Failed to delete account.");
+      setStatus({ type: "error", text: res.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
@@ -250,8 +226,6 @@ try {
     setLoading(false);
   }
 };
-
-
 
 
   const handleReconnect = async (acc) => {

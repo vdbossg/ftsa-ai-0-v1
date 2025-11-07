@@ -27,6 +27,7 @@ const aboutRoutes = require("./routes/aboutRoutes");
 const binanceRoutes = require("./routes/binanceRoutes");
 const authRoutes = require("./routes/auth");
 const propSettingRoutes = require("./routes/propSettingRoutes");
+const propAccountRoutes = require("./routes/propAccountRoutes");
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -95,6 +96,8 @@ app.use('/api/brain/strength', strengthRoutes);
 app.use("/api/propsetting", propSettingRoutes);
 app.use("/api/binance", binanceRoutes);
 console.log("✅ /api/binance routes mounted");
+app.use("/api/propaccounts", propAccountRoutes);
+console.log("✅ /api/propaccounts routes mounted");
 
 
 
