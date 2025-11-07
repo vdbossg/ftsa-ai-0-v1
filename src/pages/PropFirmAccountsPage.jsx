@@ -44,54 +44,99 @@ export default function PropFirmAccountsPage() {
     fetchAccounts();
   }, [isAuthenticated]);
   // ✅ FIXED fetchAccounts: pull all saved Prop Firm accounts from backend
- // ✅ FIXED fetchAccounts: load both settings + prop accounts
+// Replace the entire fetchAccounts function with this
 const fetchAccounts = async () => {
   try {
     setLoading(true);
 
-    // 1️⃣ Get all saved Prop Accounts
-    const accountsRes = await fetch(`${BACKEND_URL}/api/propaccounts`);
-    const accountsData = await accountsRes.json();
+    // fetch prop settings and prop accounts in parallel
+    const [propsettingRes, propaccountsRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/api/propsetting`),
+      fetch(`${BACKEND_URL}/api/propaccounts`)
+    ]);
 
-    // 2️⃣ Get Prop Firm Settings
-    const settingsRes = await fetch(`${BACKEND_URL}/api/propsetting`);
-    const settingsData = await settingsRes.json();
+    const [propsettingJson, propaccountsJson] = await Promise.all([
+      (async () => {
+        try { return await propsettingRes.json(); } catch { return null; }
+      })(),
+      (async () => {
+        try { return await propaccountsRes.json(); } catch { return null; }
+      })()
+    ]);
 
-    // 3️⃣ Combine both results
-    const allAccounts =
-      Array.isArray(accountsData?.accounts) && accountsData.accounts.length > 0
-        ? accountsData.accounts.map((acc) => {
-            const account = acc.account || acc;
+    // Normalize arrays (handle different shapes)
+    const propSettingsArray = (propsettingJson && (Array.isArray(propsettingJson.data) ? propsettingJson.data : Array.isArray(propsettingJson.accounts) ? propsettingJson.accounts : [])) || [];
+    const propAccountsArray = (propaccountsJson && (Array.isArray(propaccountsJson.data) ? propaccountsJson.data : Array.isArray(propaccountsJson) ? propaccountsJson : [])) || [];
 
-            // Match settings for this account login (if exists)
-            const matchSetting = settingsData?.data?.find(
-              (s) =>
-                s.accountLogin === account.accountLogin ||
-                s.accountLogin === account.login
-            );
+    // Build a map of propAccount by login from propAccounts endpoint (so we get isConnected, password, server etc.)
+    const accountByLogin = {};
+    propAccountsArray.forEach(item => {
+      // controller returns { account: {...}, summary: {...} } in some cases
+      const a = item?.account || item;
+      if (!a || !a.login) return;
+      accountByLogin[String(a.login)] = {
+        broker: a.broker || "",
+        login: String(a.login),
+        password: a.password || "",
+        server: a.server || "",
+        platform: a.platform || "MT5",
+        accountType: a.accountType || "demo",
+        currency: a.currency || "USD",
+        isConnected: !!a.isConnected
+      };
+    });
 
-            return {
-              broker: account.broker || "-",
-              login: account.accountLogin || account.login || "-",
-              server: account.server || "-",
-              platform: account.platform || "MT5",
-              accountType: account.accountType || "demo",
-              currency: account.currency || "USD",
-              currentProfit: account.currentProfit ?? 0,
-              status: account.status ?? "active",
-              profitTarget: matchSetting?.profitTarget ?? 0,
-              dailyDrawdown: matchSetting?.dailyDrawdown ?? 0,
-              maxDrawdown: matchSetting?.maxDrawdown ?? 0,
-              phase: matchSetting?.phase ?? "1",
-              isConnected: account.isConnected ?? false,
-            };
-          })
-        : [];
+    // Merge propSettings with accounts: propsettings may reference accountLogin
+    const merged = propSettingsArray.map((ps, idx) => {
+      const setting = ps || {};
+      // setting may contain account (or accountLogin)
+      const accRef = setting.account || {};
+      const accountLogin = setting.accountLogin || accRef.accountLogin || accRef.login || accRef?.login;
+      const acct = accountByLogin[String(accountLogin)] || accRef || {};
+      const accountObj = acct || {};
 
-    setAccounts(allAccounts);
+      return {
+        broker: accountObj.broker || accountObj.broker || "-",
+        login: accountLogin || accountObj.login || "-",
+        server: accountObj.server || accountObj.server || "-",
+        platform: accountObj.platform || "MT5",
+        accountType: accountObj.accountType || "demo",
+        currency: accountObj.currency || "USD",
+        currentProfit: setting.currentProfit ?? accountObj.currentProfit ?? 0,
+        status: setting.status ?? "active",
+        profitTarget: setting.profitTarget ?? 0,
+        dailyDrawdown: setting.dailyDrawdown ?? 0,
+        maxDrawdown: setting.maxDrawdown ?? 0,
+        phase: setting.phase ?? "1",
+        isConnected: !!(accountObj.isConnected) // prefer backend isConnected flag
+      };
+    });
+
+    // If there were no prop settings but there are raw prop accounts, show them too
+    const onlyAccounts = Object.values(accountByLogin).map(a => ({
+      broker: a.broker || "-",
+      login: a.login || "-",
+      server: a.server || "-",
+      platform: a.platform || "MT5",
+      accountType: a.accountType || "demo",
+      currency: a.currency || "USD",
+      currentProfit: 0,
+      status: "active",
+      profitTarget: 0,
+      dailyDrawdown: 0,
+      maxDrawdown: 0,
+      phase: "1",
+      isConnected: !!a.isConnected
+    }));
+
+    // Prefer merged (propsettings) when present, else fallback to accounts-only
+    const finalAccounts = merged.length > 0 ? merged : onlyAccounts;
+
+    setAccounts(finalAccounts);
   } catch (err) {
-    console.error("❌ Fetch Accounts Error:", err);
+    console.error("Fetch Accounts Error:", err);
     setStatus({ type: "error", text: "Failed to load accounts." });
+    setAccounts([]); // ensure state cleared on error
   } finally {
     setLoading(false);
   }
@@ -246,43 +291,39 @@ try {
 };
 
 
-  const handleReconnect = async (acc) => {
+  // Replace the entire handleReconnect function with this
+const handleReconnect = async (acc) => {
   try {
     setLoading(true);
+
+    // Try to connect via APIControl (this will call backend connect endpoint which
+    // in your server service already sets isConnected=true and clears others)
     const res = await APIControl.connectPropFirmAccount({
-  login: acc.login,
-  password: acc.password || prompt(`Enter password for ${acc.login}`),
-  server: acc.server,
-  broker: acc.broker,
-  platform: acc.platform,
-  accountType: acc.accountType,
-});
+      login: acc.login,
+      password: acc.password || prompt(`Enter password for ${acc.login}`),
+      server: acc.server,
+      broker: acc.broker,
+      platform: acc.platform,
+      accountType: acc.accountType,
+    });
 
-
-    if (res.success) {
-      // Persist the connected account in backend
-await APIControl.setConnectedAccount(acc.login, acc.platform);
-
-setAccounts((prev) =>
-  prev.map((a) =>
-    a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
-  )
-);
-
-
-
-
-      setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
-    } else {
+    if (!res.success) {
       setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
+      return;
     }
+
+    // After successful connect, re-fetch accounts from backend to get authoritative state
+    await fetchAccounts();
+
+    setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
   } catch (err) {
-    console.error(err);
+    console.error("Reconnect error:", err);
     setStatus({ type: "error", text: err.message || "Unexpected error." });
   } finally {
     setLoading(false);
   }
 };
+
 
 
   if (!isAuthenticated) {
