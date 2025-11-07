@@ -111,21 +111,21 @@ const fetchAccounts = async () => {
 
     // If there were no prop settings but there are raw prop accounts, show them too
     const onlyAccounts = Object.values(accountByLogin).map(a => ({
-      broker: a.broker && a.broker !== "-" ? a.broker : "",
-      login: a.login || "-",
-      password: a.password || "", // ✅ add this line
-      server: a.server && a.server !== "-" ? a.server : "",
-      platform: a.platform || "MT5",
-      accountType: a.accountType || "demo",
-      currency: a.currency || "USD",
-      currentProfit: 0,
-      status: "active",
-      profitTarget: 0,
-      dailyDrawdown: 0,
-      maxDrawdown: 0,
-      phase: "1",
-      isConnected: !!a.isConnected
-    }));
+  broker: a.broker?.trim() || "Unknown Broker",
+  login: a.login || "-",
+  password: a.password || "",
+  server: a.server?.trim() || "Unknown Server",
+  platform: a.platform || "MT5",
+  accountType: a.accountType || "demo",
+  currency: a.currency || "USD",
+  currentProfit: 0,
+  status: "active",
+  profitTarget: 0,
+  dailyDrawdown: 0,
+  maxDrawdown: 0,
+  phase: "1",
+  isConnected: !!a.isConnected
+}));
 
     // Prefer merged (propsettings) when present, else fallback to accounts-only
     const finalAccounts = merged.length > 0 ? merged : onlyAccounts;
