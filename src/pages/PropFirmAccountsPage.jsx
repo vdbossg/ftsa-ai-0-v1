@@ -204,20 +204,41 @@ try {
   const handleDelete = async (acc) => {
   try {
     setLoading(true);
-     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
-  method: "DELETE",
-});
-// or acc.accountId if available
+
+    // Use a unique identifier your backend expects
+    const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
+      method: "DELETE",
+    });
 
     const result = await res.json();
-if (result.success) {
 
+    if (result.success) {
+      // Remove deleted account and ensure only one connected remains
       const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
-      if (remaining.length > 0) remaining[0].isConnected = true;
-      setAccounts(remaining);
+
+      // If the deleted account was connected, connect the first remaining account if exists
+      if (acc.isConnected && remaining.length > 0) {
+        remaining[0].isConnected = true;
+      }
+
+      // Ensure no more than one connected
+      let connectedSet = false;
+      const updatedAccounts = remaining.map(a => {
+        if (a.isConnected) {
+          if (!connectedSet) {
+            connectedSet = true;
+            return a;
+          } else {
+            return { ...a, isConnected: false };
+          }
+        }
+        return a;
+      });
+
+      setAccounts(updatedAccounts);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: res.message || "Failed to delete account." });
+      setStatus({ type: "error", text: result.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
@@ -226,6 +247,7 @@ if (result.success) {
     setLoading(false);
   }
 };
+
 
 
   const handleReconnect = async (acc) => {
