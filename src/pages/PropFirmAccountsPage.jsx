@@ -87,31 +87,27 @@ const fetchAccounts = async () => {
     });
 
     // Merge propSettings with accounts: propsettings may reference accountLogin
-    const merged = propSettingsArray.map((ps, idx) => {
-      const setting = ps || {};
-      // setting may contain account (or accountLogin)
-      const accRef = setting.account || {};
-      const accountLogin = setting.accountLogin || accRef.accountLogin || accRef.login || accRef?.login;
-      const acct = accountByLogin[String(accountLogin)] || accRef || {};
-      const accountObj = acct || {};
+    const merged = propSettingsArray.map((ps) => {
+  const accountLogin = ps.accountLogin || ps.account?.login;
+  const accountObj = accountByLogin[String(accountLogin)] || {};
 
-      return {
-        broker: accountObj.broker || accountObj.broker || "-",
-        login: accountLogin || accountObj.login || "-",
-        password: accountObj.password || "",
-        server: accountObj.server || accountObj.server || "-",
-        platform: accountObj.platform || "MT5",
-        accountType: accountObj.accountType || "demo",
-        currency: accountObj.currency || "USD",
-        currentProfit: setting.currentProfit ?? accountObj.currentProfit ?? 0,
-        status: setting.status ?? "active",
-        profitTarget: setting.profitTarget ?? 0,
-        dailyDrawdown: setting.dailyDrawdown ?? 0,
-        maxDrawdown: setting.maxDrawdown ?? 0,
-        phase: setting.phase ?? "1",
-        isConnected: !!(accountObj.isConnected) // prefer backend isConnected flag
-      };
-    });
+  return {
+    broker: accountObj?.broker || "-",     
+    login: accountObj?.login || accountLogin || "-",
+    password: accountObj?.password || "",
+    server: accountObj?.server || "-",     
+    platform: accountObj?.platform || "MT5",
+    accountType: accountObj?.accountType || "demo",
+    currency: accountObj?.currency || "USD",
+    currentProfit: ps.currentProfit ?? 0,
+    status: ps.status ?? "active",
+    profitTarget: ps.profitTarget ?? 0,
+    dailyDrawdown: ps.dailyDrawdown ?? 0,
+    maxDrawdown: ps.maxDrawdown ?? 0,
+    phase: ps.phase ?? "1",
+    isConnected: !!accountObj?.isConnected
+  };
+});
 
     // If there were no prop settings but there are raw prop accounts, show them too
     const onlyAccounts = Object.values(accountByLogin).map(a => ({
