@@ -98,6 +98,7 @@ const fetchAccounts = async () => {
       return {
         broker: accountObj.broker || accountObj.broker || "-",
         login: accountLogin || accountObj.login || "-",
+        password: accountObj.password || "",
         server: accountObj.server || accountObj.server || "-",
         platform: accountObj.platform || "MT5",
         accountType: accountObj.accountType || "demo",
