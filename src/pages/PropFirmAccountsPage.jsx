@@ -72,18 +72,20 @@ const fetchAccounts = async () => {
     const accountByLogin = {};
     propAccountsArray.forEach(item => {
       // controller returns { account: {...}, summary: {...} } in some cases
-      const acc = item.account || item;
-        return {
-          broker: acc.broker || "-",
-          login: acc.login || "-",
-          server: acc.server || "-",
-          platform: acc.platform || "MT5",
-          accountType: acc.accountType || "demo",
-          currency: acc.currency || "USD",
-          isConnected: index === 0, // ✅ only first is active
-          password: acc.password || "",
-        };
-      });
+      const a = item?.account || item;
+      if (!a || !a.login) return;
+      accountByLogin[String(a.login)] = {
+        broker: a.broker || "",
+        login: String(a.login),
+        password: a.password || "",
+        server: a.server || "",
+        platform: a.platform || "MT5",
+        accountType: a.accountType || "demo",
+        currency: a.currency || "USD",
+        isConnected: !!a.isConnected
+      };
+    });
+
     // Merge propSettings with accounts: propsettings may reference accountLogin
     const merged = propSettingsArray.map((ps, idx) => {
       const setting = ps || {};
@@ -112,9 +114,9 @@ const fetchAccounts = async () => {
 
     // If there were no prop settings but there are raw prop accounts, show them too
     const onlyAccounts = Object.values(accountByLogin).map(a => ({
-      broker: a.broker || "-",
+      broker: a.broker && a.broker !== "-" ? a.broker : "",
       login: a.login || "-",
-      server: a.server || "-",
+      server: a.server && a.server !== "-" ? a.server : "",
       platform: a.platform || "MT5",
       accountType: a.accountType || "demo",
       currency: a.currency || "USD",
@@ -160,10 +162,10 @@ const fetchAccounts = async () => {
         console.log("connectAccount result:", res);
 
   const newAccount = {
-    broker: formData.broker || "-",
+    broker: formData.broker?.trim() || "Unknown Broker",
     login: res.account.login || formData.login || "-",
     password: formData.password || "",
-    server: formData.server || "-",
+    server: formData.server?.trim() || "Unknown Server",
     platform: formData.platform,
     accountType: formData.accountType,
     currency: res.account.currency || "USD",
@@ -272,10 +274,14 @@ try {
 
     const result = await res.json();
     if (result.success) {
-  setStatus({ type: "success", text: "Account deleted successfully!" });
-  await fetchAccounts();  // 🔁 Refresh from backend
-}
-
+      const remaining = accounts.filter(a => a.login !== acc.login);
+      // Make sure one stays connected
+      if (remaining.length > 0) remaining[0].isConnected = true;
+      setAccounts(remaining);
+      setStatus({ type: "success", text: "Account deleted successfully!" });
+    } else {
+      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+    }
   } catch (err) {
     console.error(err);
     setStatus({ type: "error", text: err.message || "Unexpected error" });
@@ -286,40 +292,46 @@ try {
 
 
   // Replace the entire handleReconnect function with this
-// ✅ FIXED Login (switch)
 const handleReconnect = async (acc) => {
   try {
     setLoading(true);
-    const res = await APIControl.connectAccount({
+
+    let password = acc.password;
+    if (!password) {
+      const userPassword = window.prompt(`Please enter password for account ${acc.login}`);
+      if (!userPassword) {
+        setStatus({ type: "error", text: "Password is required to reconnect." });
+        return;
+      }
+      password = userPassword;
+    }
+
+    const res = await APIControl.connectPropFirmAccount({
       login: acc.login,
-      password: acc.password || prompt(`Enter password for ${acc.login}`),
+      password,
       server: acc.server,
       broker: acc.broker,
       platform: acc.platform,
       accountType: acc.accountType,
     });
 
-    if (res.success) {
-      // ✅ Mark only this one connected
-      setAccounts(prev =>
-        prev.map(a =>
-          a.login === acc.login
-            ? { ...a, isConnected: true }
-            : { ...a, isConnected: false }
-        )
-      );
-
-      setStatus({ type: "success", text: `Switched to account ${acc.login}` });
-    } else {
+    if (!res.success) {
       setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
+      return;
     }
+
+    await fetchAccounts();
+    setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
   } catch (err) {
-    console.error(err);
+    console.error("Reconnect error:", err);
     setStatus({ type: "error", text: err.message || "Unexpected error." });
   } finally {
     setLoading(false);
   }
 };
+
+
+
 
   if (!isAuthenticated) {
     return (
