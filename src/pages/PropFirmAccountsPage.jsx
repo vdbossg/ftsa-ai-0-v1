@@ -51,28 +51,24 @@ const fetchAccounts = async () => {
     const data = await res.json();
 
     if (data.success && Array.isArray(data.data)) {
-      const formatted = data.data.map((acc, index) => {
-  const account = acc.account || acc;
-  return {
-    _id: acc._id || account._id || account.accountLogin, // <- NEW
-    broker: account.broker || "-",
-    login: account.accountLogin || "-",
-    server: account.server || "-",
-    platform: account.platform || "MT5",
-    accountType: account.accountType || "demo",
-    currency: account.currency || "USD",
-    currentProfit: account.currentProfit ?? 0,
-    status: account.status ?? "active",
-    profitTarget: acc.profitTarget ?? 0,
-    dailyDrawdown: acc.dailyDrawdown ?? 0,
-    maxDrawdown: acc.maxDrawdown ?? 0,
-    phase: acc.phase ?? "1",
-    isConnected: index === 0,
-    password: account.password || "",
-  };
-});
-
-
+      const formatted = data.data.map((acc) => {
+        const account = acc.account || acc;
+        return {
+          broker: account.broker || "-",
+          login: account.accountLogin || "-",
+          server: account.server || "-",
+          platform: account.platform || "MT5",
+          accountType: account.accountType || "demo",
+          currency: account.currency || "USD",
+          currentProfit: account.currentProfit ?? 0,
+          status: account.status ?? "active",
+          profitTarget: acc.profitTarget ?? 0,
+          dailyDrawdown: acc.dailyDrawdown ?? 0,
+          maxDrawdown: acc.maxDrawdown ?? 0,
+          phase: acc.phase ?? "1",
+          isConnected: true,
+        };
+      });
       setAccounts(formatted);
     } else {
       setAccounts([]);
@@ -113,13 +109,10 @@ const fetchAccounts = async () => {
     isConnected: true,
   };
 
-  
-setAccounts(prev => {
+  setAccounts(prev => {
   const updatedPrev = prev.map(acc => ({ ...acc, isConnected: false }));
   return [...updatedPrev, newAccount];
 });
-await APIControl.setConnectedAccount(newAccount.login, newAccount.platform); // persist active account
-
 
 
 
@@ -208,24 +201,23 @@ try {
     }
   };
 
-  // ✅ FIXED Delete (matches backend)
-const handleDelete = async (acc) => {
+  const handleDelete = async (acc) => {
   try {
     setLoading(true);
-     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc._id}`, { // <- use _id
+     const res = await fetch(`${BACKEND_URL}/api/propaccounts/${acc.login}`, {
   method: "DELETE",
 });
-
+// or acc.accountId if available
 
     const result = await res.json();
-    if (result.success) {
-      const remaining = accounts.filter(a => a.login !== acc.login);
-      // ✅ ensure one stays connected
+if (result.success) {
+
+      const remaining = accounts.filter(a => a.login !== acc.login || a.platform !== acc.platform);
       if (remaining.length > 0) remaining[0].isConnected = true;
       setAccounts(remaining);
       setStatus({ type: "success", text: "Account deleted successfully!" });
     } else {
-      setStatus({ type: "error", text: result.message || "Failed to delete account." });
+      setStatus({ type: "error", text: res.message || "Failed to delete account." });
     }
   } catch (err) {
     console.error(err);
@@ -236,43 +228,42 @@ const handleDelete = async (acc) => {
 };
 
 
-
-  // ✅ FIXED Login (switch)
   const handleReconnect = async (acc) => {
-    try {
-      setLoading(true);
-      const res = await APIControl.connectAccount({
-  login: Number(acc.login), // <- convert to number
-  password: acc.password,
-  server: acc.server,
-  broker: acc.broker,
-  platform: acc.platform,
-  // accountType: acc.accountType, <- remove if backend doesn't need
-});
+  try {
+    setLoading(true);
+    const res = await APIControl.connectAccount({
+      login: acc.login,
+      password: acc.password || prompt(`Enter password for ${acc.login}`),
+      server: acc.server,
+      broker: acc.broker,
+      platform: acc.platform,
+      accountType: acc.accountType,
+    });
 
-  
-      if (res.success) {
-        // ✅ Mark only this one connected
-        setAccounts(prev =>
-          prev.map(a =>
-            a.login === acc.login
-              ? { ...a, isConnected: true }
-              : { ...a, isConnected: false }
-          )
-        );
-  
-        setStatus({ type: "success", text: `Switched to account ${acc.login}` });
-      } else {
-        setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus({ type: "error", text: err.message || "Unexpected error." });
-    } finally {
-      setLoading(false);
+    if (res.success) {
+      // Persist the connected account in backend
+await APIControl.setConnectedAccount(acc.login, acc.platform);
+
+setAccounts((prev) =>
+  prev.map((a) =>
+    a.login === acc.login ? { ...a, isConnected: true } : { ...a, isConnected: false }
+  )
+);
+
+
+
+
+      setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
+    } else {
+      setStatus({ type: "error", text: res.message || "Failed to reconnect account." });
     }
-  };
-  
+  } catch (err) {
+    console.error(err);
+    setStatus({ type: "error", text: err.message || "Unexpected error." });
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   if (!isAuthenticated) {
