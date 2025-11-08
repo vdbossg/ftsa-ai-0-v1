@@ -79,7 +79,17 @@ useEffect(() => {
       const mtData = await mtRes.json();
       if (mtData.success && Array.isArray(mtData.accounts)) {
         const connectedMT = mtData.accounts.find(acc => acc.account?.isConnected);
-        setMTConnectedAccount(connectedMT || null);
+if (connectedMT) {
+  // Merge account + summary + trades into one object for convenience
+  setMTConnectedAccount({
+    ...connectedMT.account,
+    summary: connectedMT.summary,
+    trades: connectedMT.trades?.data || [],
+  });
+} else {
+  setMTConnectedAccount(null);
+}
+
       }
 
       // Prop connected account
@@ -87,7 +97,21 @@ useEffect(() => {
       const propData = await propRes.json();
       if (propData.success && Array.isArray(propData.accounts)) {
         const connectedProp = propData.accounts.find(acc => acc.account?.isConnected);
-        setPropConnectedAccount(connectedProp || null);
+if (connectedProp) {
+  setPropConnectedAccount({
+    ...connectedProp.account,
+    summary: connectedProp.summary,
+    trades: connectedProp.account.trades?.data || [],
+    propSettings: connectedProp.account.propSettings || {},
+    chartData: connectedProp.account.trades?.data.map(t => ({
+      name: t.symbol,
+      profit: t.profit || 0
+    })) || []
+  });
+} else {
+  setPropConnectedAccount(null);
+}
+
       }
 
     } catch (err) {
