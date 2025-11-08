@@ -177,51 +177,84 @@ const DashboardPage = () => {
           </div>
         </div>
       </section>
-      {/* Market Strength Table */}
-<section className="market-strength neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
+     {/* Market Strength Table */}
+<section
+  className="market-strength neon-glow-border"
+  style={{
+    marginBottom: "2rem",
+    padding: "1rem",
+  }}
+>
   <h2 style={{ color: "#00FFFF" }}>Market Strength</h2>
-  <table style={{
-    width: "100%",
-    borderCollapse: "collapse",
-    color: "#00FFFF",
-    fontFamily: "Orbitron",
-  }}>
-    <thead>
-      <tr>
-        {["Pair", "Strength", "Trend"].map((header) => (
-          <th key={header} style={{
-            borderBottom: "2px solid #00FFFF",
-            padding: "0.5rem",
-            textAlign: "left",
-          }}>
-            {header}
-          </th>
-        ))}
-      </tr>
-    </thead>
-    <tbody>
-      {dashboardData?.marketStrength?.length > 0 ? (
-  dashboardData.marketStrength.map(({ symbol, strength, bias }, idx) => (
-    <tr key={idx} style={{
-      borderBottom: "1px solid #00FFFF",
-      backgroundColor: idx % 2 === 0 ? "#001111" : "#000000",
-    }}>
-      <td style={{ padding: "0.5rem" }}>{symbol}</td> {/* changed pair → symbol */}
-      <td style={{ padding: "0.5rem" }}>{strength}</td>
-      <td style={{ padding: "0.5rem", color: bias === "Bullish" ? "#00FF00" : bias === "Bearish" ? "#FF0000" : "#AAAAAA" }}>
-        {bias || "Unknown"} {/* changed trend → bias and handle Unknown */}
-      </td>
-    </tr>
-  ))
-) : (
-  <tr>
-    <td colSpan={3} style={{ textAlign: "center", padding: "1rem" }}>No market strength data.</td>
-  </tr>
-)}
 
-    </tbody>
-  </table>
+  {/* Scrollable container */}
+  <div
+    style={{
+      maxHeight: "300px",         // height of the visible area
+      overflowY: "auto",          // vertical scroll if content overflows
+      border: "1px solid #00FFFF",
+      borderRadius: "8px",
+    }}
+  >
+    <table
+      style={{
+        width: "100%",
+        borderCollapse: "collapse",
+        color: "#00FFFF",
+        fontFamily: "Orbitron",
+      }}
+    >
+      <thead style={{ position: "sticky", top: 0, backgroundColor: "#000000", zIndex: 1 }}>
+        <tr>
+          {["Pair", "Strength", "Trend"].map((header) => (
+            <th
+              key={header}
+              style={{
+                borderBottom: "2px solid #00FFFF",
+                padding: "0.5rem",
+                textAlign: "left",
+                borderRight: "1px solid #00FFFF",
+              }}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {dashboardData?.marketStrength?.length > 0 ? (
+          dashboardData.marketStrength.map(({ symbol, strength, bias }, idx) => (
+            <tr
+              key={idx}
+              style={{
+                borderBottom: "1px solid #00FFFF",
+                backgroundColor: idx % 2 === 0 ? "#001111" : "#000000",
+              }}
+            >
+              <td style={{ padding: "0.5rem", borderRight: "1px solid #00FFFF" }}>{symbol}</td>
+              <td style={{ padding: "0.5rem", borderRight: "1px solid #00FFFF" }}>{strength}</td>
+              <td
+                style={{
+                  padding: "0.5rem",
+                  color: bias === "Bullish" ? "#00FF00" : bias === "Bearish" ? "#FF0000" : "#AAAAAA",
+                }}
+              >
+                {bias || "Unknown"}
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={3} style={{ textAlign: "center", padding: "1rem" }}>
+              No market strength data.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
 </section>
+
       {/* Alerts & Notifications */}
       <section className="alerts-notifications neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
         <h2 style={{ color: "#FFA500" }}>Alerts & Notifications</h2>
