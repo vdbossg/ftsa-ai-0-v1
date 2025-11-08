@@ -19,8 +19,36 @@ export default function BrainPage() {
   dailyTP: 2,   // daily take profit %
   dailySL: 1,   // daily stop loss %
 });
+
+const scrollableTableContainer = {
+  marginBottom: "2rem",
+  border: "1px solid #00FFFF",
+  padding: "1rem",
+  borderRadius: "12px",
+  boxShadow: "0 0 10px #00FFFF",
+  maxHeight: "300px",      // sets max height
+  overflowY: "auto",       // enables vertical scroll
+};
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+};
+
+const thStyle = {
+  borderBottom: "2px solid #00FFFF",
+  padding: "0.5rem",
+  textAlign: "left",
+};
+
+const tdStyle = {
+  borderBottom: "1px solid #00FFFF",
+  padding: "0.5rem",
+};
+
 const tradeHistoryRef = useRef(tradeHistory);
 const marketStrengthRef = useRef(marketStrength);
+
 
 const saveSettings = async (newSettings) => {
   try {
@@ -212,17 +240,9 @@ useEffect(() => {
       {error && <p style={{ color: "#FF0000" }}>{error}</p>}
 
       {/* Strongest Pair / Trade History Table */}
-<section
-  style={{
-    marginBottom: "2rem",
-    border: "1px solid #00FFFF",
-    padding: "1rem",
-    borderRadius: "12px",
-    boxShadow: "0 0 10px #00FFFF",
-  }}
->
+<section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trade History / Strongest Pair</h2>
-  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+  <table style={tableStyle}>
     <thead>
       <tr>
         <th>Time</th>
@@ -258,17 +278,9 @@ useEffect(() => {
 
 
       {/* Market Strength Table */}
-      <section
-        style={{
-          marginBottom: "2rem",
-          border: "1px solid #00FFFF",
-          padding: "1rem",
-          borderRadius: "12px",
-          boxShadow: "0 0 10px #00FFFF",
-        }}
-      >
+      <section style={scrollableTableContainer}>
         <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Market Strength</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={tableStyle}>
           <thead>
             <tr>
               <th>Pair</th>
@@ -305,17 +317,9 @@ useEffect(() => {
       </section>
 
       {/* CHoCH Data */}
-      <section
-        style={{
-          marginBottom: "2rem",
-          border: "1px solid #00FFFF",
-          padding: "1rem",
-          borderRadius: "12px",
-          boxShadow: "0 0 10px #00FFFF",
-        }}
-      >
+      <section style={scrollableTableContainer}>
         <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>CHoCH (Lower TF)</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={tableStyle}>
           <thead>
             <tr>
               <th>Pair</th>
@@ -434,17 +438,9 @@ useEffect(() => {
         <p>Status: {autoTradeStatus || "Unknown"}</p>
       </section>
 {/* Top 3 Pairs */}
-<section
-  style={{
-    marginBottom: "2rem",
-    border: "1px solid #00FFFF",
-    padding: "1rem",
-    borderRadius: "12px",
-    boxShadow: "0 0 10px #00FFFF",
-  }}
->
+<section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Top 3 Pairs</h2>
-  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+  <table style={tableStyle}>
     <thead>
       <tr>
         <th>Selected Pair</th>
