@@ -34,12 +34,15 @@ async function getPropTableTrades() {
       return {
         broker: account.broker || "Unknown",
         login: account.login || "Unknown",
+        
         summary: {
-          balance: summaryData.balance || 0,
-          equity: summaryData.equity || 0,
-          margin: summaryData.margin || 0,
-          freeMargin: summaryData.freeMargin || 0,
-        },
+         data: {
+         balance: summaryData.balance || 0,
+         equity: summaryData.equity || 0,
+         margin: summaryData.margin || 0,
+         freeMargin: summaryData.freeMargin || 0,
+        }
+       },
         trades: tradesData.map((t) => ({
           ticket: t.ticket || 0,
           symbol: t.symbol || "Unknown",
@@ -55,10 +58,10 @@ async function getPropTableTrades() {
         platform: account.platform || "PropFirm",
         accountType: account.accountType || "demo",
         propSettings: {
-          profitTarget: propSetting.profitTarget || 0,
-          dailyDrawdown: propSetting.dailyDrawdown || 0,
-          maxDrawdown: propSetting.maxDrawdown || 0,
-          phase: propSetting.phase || 0,
+  initialBalance: initialBalance,
+  profitTarget: ((propSetting.profitTarget || 0) / 100) * initialBalance,
+  dailyLossLimit: ((propSetting.dailyDrawdown || 0) / 100) * initialBalance,
+  overallLossLimit: ((propSetting.maxDrawdown || 0) / 100) * initialBalance,
         },
         stats: {
           initialBalance,

@@ -16,31 +16,80 @@ const neonColors = {
 
 export default function TradesPage() {
   const { isAuthenticated } = useAuth();
-  const [propTableData, setPropTableData] = useState({ trades: [], summary: {} });
-const [mtTableData, setMTTableData] = useState({ trades: [], summary: {} });
-const [loading, setLoading] = useState(true);
-const [propConnectedAccount, setPropConnectedAccount] = useState(null);
-const [mtConnectedAccount, setMTConnectedAccount] = useState(null);
+  const [mtTableData, setMTTableData] = useState(null); // for /api/mttabletrades
+  const [loading, setLoading] = useState(true);
+  const [propTableData, setPropTableData] = useState(null); // for /api/proptabletrades
+  const [mtConnectedAccount, setMTConnectedAccount] = useState(null);
+  const [propConnectedAccount, setPropConnectedAccount] = useState(null);
 
-// Fetch connected accounts once on mount
+
+
+  // Auto-refresh every second
+useEffect(() => {
+  if (!isAuthenticated || !propConnectedAccount) return;
+
+  const fetchPropTrades = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/proptabletrades");
+    const data = await res.json();
+    setPropTableData(data?.data?.[0] || null); // take first account from JSON
+  } catch (err) {
+    console.error("Failed to fetch prop table trades:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  fetchPropTrades();
+  const interval = setInterval(fetchPropTrades, 1000);
+  return () => clearInterval(interval);
+}, [isAuthenticated, propConnectedAccount]);
+
+
+useEffect(() => {
+  if (!isAuthenticated || !mtConnectedAccount) return;
+
+  const fetchMTTrades = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/mttabletrades");
+    const data = await res.json();
+    setMTTableData(data?.[0] || null); // take first account from JSON array
+  } catch (err) {
+    console.error("Failed to fetch MT table trades:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  fetchMTTrades();
+  const interval = setInterval(fetchMTTrades, 1000);
+  return () => clearInterval(interval);
+}, [isAuthenticated, mtConnectedAccount]);
+
+// Fetch connected accounts for MT and Prop from updated JSON endpoints
 useEffect(() => {
   if (!isAuthenticated) return;
 
   const fetchConnectedAccounts = async () => {
     try {
+      // MT connected account
       const mtRes = await fetch("http://localhost:5000/api/mtaccounts");
       const mtData = await mtRes.json();
       if (mtData.success && Array.isArray(mtData.accounts)) {
-        const connectedMT = mtData.accounts.find(acc => acc.isConnected);
+        const connectedMT = mtData.accounts.find(acc => acc.account?.isConnected);
         setMTConnectedAccount(connectedMT || null);
       }
 
-      const propRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propaccounts`);
+      // Prop connected account
+      const propRes = await fetch("http://localhost:5000/api/propaccounts");
       const propData = await propRes.json();
-      if (Array.isArray(propData.accounts)) {
-        const connectedProp = propData.accounts.find(acc => acc.isConnected);
+      if (propData.success && Array.isArray(propData.accounts)) {
+        const connectedProp = propData.accounts.find(acc => acc.account?.isConnected);
         setPropConnectedAccount(connectedProp || null);
       }
+
     } catch (err) {
       console.error("Failed to fetch connected accounts:", err);
     }
@@ -49,55 +98,6 @@ useEffect(() => {
   fetchConnectedAccounts();
 }, [isAuthenticated]);
 
-// Fetch Prop trades every second
-useEffect(() => {
-  if (!isAuthenticated || !propConnectedAccount) return;
-
-  let mounted = true;
-  const fetchPropTrades = async () => {
-    try {
-      const res = await APIControl.fetchPropTableTrades(propConnectedAccount.login);
-      if (!mounted) return;
-      setPropTableData(res?.data?.[0] || { trades: [], summary: {} });
-    } catch (err) {
-      console.error("Failed to fetch prop trades:", err);
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  };
-
-  fetchPropTrades();
-  const interval = setInterval(fetchPropTrades, 1000);
-  return () => {
-    mounted = false;
-    clearInterval(interval);
-  };
-}, [isAuthenticated, propConnectedAccount]);
-
-// Fetch MT trades every second
-useEffect(() => {
-  if (!isAuthenticated || !mtConnectedAccount) return;
-
-  let mounted = true;
-  const fetchMTTrades = async () => {
-    try {
-      const res = await APIControl.fetchMTTableTrades(mtConnectedAccount.login);
-      if (!mounted) return;
-      setMTTableData(res?.data?.[0] || { trades: [], summary: {} });
-    } catch (err) {
-      console.error("Failed to fetch MT trades:", err);
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  };
-
-  fetchMTTrades();
-  const interval = setInterval(fetchMTTrades, 1000);
-  return () => {
-    mounted = false;
-    clearInterval(interval);
-  };
-}, [isAuthenticated, mtConnectedAccount]);
 
 
 
@@ -111,29 +111,35 @@ useEffect(() => {
   };
 
   const calculateStats = (account, isProp = false) => {
-    if (!account) return null;
-    const trades = Array.isArray(account.trades)
-  ? account.trades
-  : Array.isArray(account.trades?.data)
-  ? account.trades.data
-  : [];
+  if (!account) return null;
 
+  // Extract trades array
+  const trades = Array.isArray(account.trades) ? account.trades : [];
+
+  // For Prop, get summary and propSettings from new JSON
+  if (isProp) {
     const balance = account.summary?.data?.balance || 0;
-    const initialBalance = isProp ? account.propSettings?.initialBalance || balance : balance;
+    const initialBalance = account.propSettings?.initialBalance || balance;
     const profitLoss = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const gainDrawdown = initialBalance > 0 ? ((balance - initialBalance) / initialBalance) * 100 : 0;
 
-    return isProp
-      ? {
-          initialBalance,
-          dailyLossLimit: account.propSettings?.dailyLossLimit || 0,
-          overallLossLimit: account.propSettings?.overallLossLimit || 0,
-          profitTarget: account.propSettings?.profitTarget || 0,
-          profitLoss,
-          gainDrawdown,
-        }
-      : { profitLoss, gainDrawdown };
-  };
+    return {
+      initialBalance,
+      dailyLossLimit: account.propSettings?.dailyLossLimit || 0,
+      overallLossLimit: account.propSettings?.overallLossLimit || 0,
+      profitTarget: account.propSettings?.profitTarget || 0,
+      profitLoss,
+      gainDrawdown,
+    };
+  }
+
+  // MT trades (unchanged)
+  const balance = account.summary?.data?.balance || 0;
+  const profitLoss = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+  const gainDrawdown = balance > 0 ? 0 : 0; // fallback for MT if needed
+  return { profitLoss, gainDrawdown };
+};
+
   const propStats = calculateStats(propTableData, true);
 
   const mtStats = calculateStats(mtTableData, false);
@@ -281,15 +287,16 @@ useEffect(() => {
   };
 
   const renderGraph = (account, isProp = false) => {
-  if (!account || !account.trades || account.trades.length === 0) return null
+  if (!account) return null;
 
-  // Prepare chart data for last N trades (e.g., 20) for clarity
-  const lastN = 20;
-  const tradesData = account.trades.slice(-lastN);
-  const chartData = tradesData.map((trade, index) => ({
-    name: `#${trade.ticket}`, // can use ticket for label
-    profit: trade.profit || 0,
-  }));
+  const chartData = isProp
+    ? account.chartData || []
+    : (account.trades || []).slice(-20).map(trade => ({
+        name: `#${trade.ticket}`,
+        profit: trade.profit || 0,
+      }));
+
+  if (chartData.length === 0) return null;
 
   return (
     <div
@@ -312,18 +319,19 @@ useEffect(() => {
           <YAxis stroke={neonColors.neonBlue} />
           <Tooltip formatter={(value) => formatCurrency(value)} />
           <Line
-  type="monotone"
-  dataKey="profit"
-  stroke={chartData[chartData.length-1]?.profit >= 0 ? neonColors.neonGreen : neonColors.neonRed}
-  strokeWidth={2}
-  dot={{ r: 3 }}
-  isAnimationActive={false}
-/>
+            type="monotone"
+            dataKey="profit"
+            stroke={chartData[chartData.length - 1]?.profit >= 0 ? neonColors.neonGreen : neonColors.neonRed}
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            isAnimationActive={false}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 };
+
 
   return (
     <div
