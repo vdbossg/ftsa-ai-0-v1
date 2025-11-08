@@ -417,6 +417,58 @@ async fetchPropFirmAccountsData() {
   }
 },
 /**
+ * Fetch unified PropTrades table data
+ */
+async fetchPropTableTrades() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/proptabletrades`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { 
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
+        })
+      }
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch PropTrades table:", response.statusText);
+      return { success: false, data: [] };
+    }
+
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("Error fetching PropTrades table:", err);
+    return { success: false, data: [] };
+  }
+},
+/**
+ * Fetch MTAccounts Trades Table
+ */
+async fetchMTTableTrades() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/mttabletrades`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { 
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
+        })
+      }
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch MT table trades:", response.statusText);
+      return { success: false, data: null };
+    }
+
+    const data = await response.json();
+    // Return the full object exactly as your backend returns it
+    return { success: true, data: data };
+  } catch (err) {
+    console.error("Error fetching MT table trades:", err);
+    return { success: false, data: null };
+  }
+},
+
+/**
  * Fetch current currency strength from backend
  */
 /**

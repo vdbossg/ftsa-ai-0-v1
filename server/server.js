@@ -28,6 +28,8 @@ const binanceRoutes = require("./routes/binanceRoutes");
 const authRoutes = require("./routes/auth");
 const propSettingRoutes = require("./routes/propSettingRoutes");
 const propAccountRoutes = require("./routes/propAccountRoutes");
+const propTradesRoute = require("./routes/propTradesRoute");
+const mttabletradesRoutes = require("./routes/mttabletrades.routes");
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -89,6 +91,8 @@ app.use("/api/faqs", faqsRoute); // Frontend fetchFAQs() → /api/faqs
 app.use("/api/support/channels", supportChannelsRoute);
 app.use("/api/about", aboutRoutes);
 app.use("/api/admin/about", aboutRoutes);
+app.use("/api", propTradesRoute);
+app.use("/api/mttabletrades", mttabletradesRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
 app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade

@@ -16,34 +16,54 @@ const neonColors = {
 
 export default function TradesPage() {
   const { isAuthenticated } = useAuth();
-  const [propAccount, setPropAccount] = useState(null);
-  const [mtAccount, setMTAccount] = useState(null);
+  const [mtTableData, setMTTableData] = useState(null); // for /api/mttabletrades
   const [loading, setLoading] = useState(true);
+  const [propTableData, setPropTableData] = useState(null); // for /api/proptabletrades
+
 
   // Auto-refresh every second
-  useEffect(() => {
-    if (!isAuthenticated) return;
+useEffect(() => {
+  if (!isAuthenticated) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [propData, mtData] = await Promise.all([
-          APIControl.fetchConnectedPropAccount(),
-          APIControl.fetchConnectedMTAccount(),
-        ]);
-        setPropAccount(propData?.account || null);
-        setMTAccount(mtData?.account || null);
-      } catch (err) {
-        console.error("Failed to fetch account data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPropTrades = async () => {
+    setLoading(true);
+    try {
+      const res = await APIControl.fetchPropTableTrades(); // fetch from backend
+      setPropTableData(res?.data || null); // store entire table data
+    } catch (err) {
+      console.error("Failed to fetch prop table trades:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-    const interval = setInterval(fetchData, 1000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  fetchPropTrades();
+  const interval = setInterval(fetchPropTrades, 1000); // auto-refresh every second
+  return () => clearInterval(interval);
+}, [isAuthenticated]);
+
+useEffect(() => {
+  if (!isAuthenticated) return;
+
+  const fetchMTTrades = async () => {
+    setLoading(true);
+    try {
+      const res = await APIControl.fetchMTTableTrades(); // new API
+      setMTTableData(res?.data || null);
+    } catch (err) {
+      console.error("Failed to fetch MT table trades:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchMTTrades();
+  const interval = setInterval(fetchMTTrades, 1000);
+  return () => clearInterval(interval);
+}, [isAuthenticated]);
+
+
+
 
   const formatCurrency = (num) =>
     typeof num === "number" ? `$${num.toFixed(2)}` : "-";
@@ -73,8 +93,8 @@ export default function TradesPage() {
         }
       : { profitLoss, gainDrawdown };
   };
+  const propStats = calculateStats(propTableData, true);
 
-  const propStats = calculateStats(propAccount, true);
   const mtStats = calculateStats(mtAccount, false);
 
   if (!isAuthenticated) {
@@ -132,8 +152,8 @@ export default function TradesPage() {
 </thead>
 
         <tbody>
-          {account?.trades?.success && account.trades.data.length > 0 ? (
-            account.trades.data.map((trade) => (
+          {account?.trades && account.trades.length > 0 ? (
+  account.trades.map((trade) => (
               <tr
                 key={trade.ticket}
                 style={{
@@ -219,11 +239,11 @@ export default function TradesPage() {
   };
 
   const renderGraph = (account, isProp = false) => {
-  if (!account || !account.trades?.data || account.trades.data.length === 0) return null;
+  if (!account || !account.trades || account.trades.length === 0) return null
 
   // Prepare chart data for last N trades (e.g., 20) for clarity
   const lastN = 20;
-  const tradesData = account.trades.data.slice(-lastN);
+  const tradesData = account.trades.slice(-lastN);
   const chartData = tradesData.map((trade, index) => ({
     name: `#${trade.ticket}`, // can use ticket for label
     profit: trade.profit || 0,
@@ -303,17 +323,18 @@ export default function TradesPage() {
   {/* Prop Trades Section */}
   <div style={{ flex: 1, width: "100%" }}>
     <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
-    {renderTable(propAccount)}
-    {renderCards(propStats, true)}
-    {renderGraph(propAccount, true)}
+    {renderTable(propTableData)}
+{renderCards(propStats, true)}
+{renderGraph(propTableData, true)}
   </div>
 
   {/* MTAccounts Trades Section */}
   <div style={{ flex: 1, width: "100%" }}>
     <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
-    {renderTable(mtAccount)}
-    {renderCards(mtStats, false)}
-    {renderGraph(mtAccount, false)}
+    {renderTable(mtTableData)}
+{renderCards(mtStats, false)}
+{renderGraph(mtTableData, false)}
+
   </div>
 </div>
 
