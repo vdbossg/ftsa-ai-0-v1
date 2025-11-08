@@ -52,7 +52,8 @@ const PropAccountSchema = new mongoose.Schema({
   updatedAt: Date,
 });
 
+// ✅ Safe export to avoid OverwriteModelError
 module.exports = {
-  PropAccount: mongoose.model("PropAccount", PropAccountSchema),
-  PropSettings: mongoose.model("PropSettings", PropSettingsSchema),
+  PropAccount: mongoose.models.PropAccount || mongoose.model("PropAccount", PropAccountSchema),
+  PropSettings: mongoose.models.PropSettings || mongoose.model("PropSettings", PropSettingsSchema),
 };
