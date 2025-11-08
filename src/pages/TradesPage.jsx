@@ -95,7 +95,8 @@ useEffect(() => {
   };
   const propStats = calculateStats(propTableData, true);
 
-  const mtStats = calculateStats(mtAccount, false);
+  const mtStats = calculateStats(mtTableData, false);
+
 
   if (!isAuthenticated) {
     return (
