@@ -157,11 +157,13 @@ if (connectedProp) {
     };
   }
 
-  // MT trades (unchanged)
-  const balance = account.summary?.data?.balance || 0;
-  const profitLoss = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
-  const gainDrawdown = balance > 0 ? 0 : 0; // fallback for MT if needed
-  return { profitLoss, gainDrawdown };
+  // MT trades
+const balance = account.summary?.data?.balance || 0;
+const initialBalance = account.summary?.data?.balance_start || balance; // use balance_start if exists, otherwise current balance
+const profitLoss = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+const gainDrawdown = initialBalance > 0 ? ((balance - initialBalance) / initialBalance) * 100 : 0;
+return { profitLoss, gainDrawdown };
+
 };
 
   const propStats = calculateStats(propTableData, true);
