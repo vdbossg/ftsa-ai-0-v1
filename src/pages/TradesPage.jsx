@@ -272,13 +272,15 @@ if (connectedProp) {
       }}
     >
       <table
-        style={{
-          minWidth: "600px",
-          width: "100%",
-          borderCollapse: "collapse",
-          color: neonColors.neonBlue,
-        }}
-      >
+  style={{
+    width: "100%",
+    borderCollapse: "collapse",
+    color: neonColors.neonBlue,
+    textAlign: "center",
+  }}
+>
+
+      
         <thead style={{ borderBottom: `2px solid ${neonColors.neonBlue}` }}>
           {renderHeaders()}
         </thead>
@@ -409,19 +411,23 @@ if (connectedProp) {
         </div>
       )}
 
-      <div
+  
+  <div
   style={{
     display: "flex",
-    flexDirection: "column", // stack vertically
+    flexDirection: "column",
+    alignItems: "center",
     gap: "2rem",
     width: "100%",
   }}
+
 >
   {/* Prop Trades Section */}
 <div
   style={{
     flex: 1,
-    width: "100%",
+    width: "90%",
+    maxWidth: "1200px",
     border: `2px solid ${neonColors.neonBlue}`,
     borderRadius: 12,
     backgroundColor: "#111",
@@ -431,8 +437,10 @@ if (connectedProp) {
     display: "flex",
     flexDirection: "column",
     gap: "1.5rem",
+    boxShadow: `0 0 15px ${neonColors.neonBlue}`,
   }}
 >
+
   <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
 
   {propConnectedAccount ? (
@@ -463,7 +471,8 @@ if (connectedProp) {
 <div
   style={{
     flex: 1,
-    width: "100%",
+    width: "90%",
+    maxWidth: "1200px",
     border: `2px solid ${neonColors.neonBlue}`,
     borderRadius: 12,
     backgroundColor: "#111",
@@ -473,8 +482,10 @@ if (connectedProp) {
     display: "flex",
     flexDirection: "column",
     gap: "1.5rem",
+    boxShadow: `0 0 15px ${neonColors.neonBlue}`,
   }}
 >
+
   <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
 
   {mtConnectedAccount ? (
