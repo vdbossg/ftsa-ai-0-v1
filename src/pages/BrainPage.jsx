@@ -240,110 +240,112 @@ useEffect(() => {
       {error && <p style={{ color: "#FF0000" }}>{error}</p>}
 
       {/* Strongest Pair / Trade History Table */}
-<section style={scrollableTableContainer}>
+      <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trade History / Strongest Pair</h2>
-  <table style={tableStyle}>
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Date</th>
-        <th>Pair</th>
-        <th>Strength</th>
-        <th>Trend</th>
-        <th>Trade Activated</th>
-      </tr>
-    </thead>
-    <tbody>
-      {tradeHistory.length > 0 ? (
-        tradeHistory.map((t, idx) => (
-          <tr key={idx} style={{ backgroundColor: t.tradeActivated ? "#002255" : "transparent" }}>
-            <td>{t.time}</td>
-            <td>{t.date}</td>
-            <td>{t.pair}</td>
-            <td>{t.strength}</td>
-            <td style={{ color: t.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
-              {t.trend}
-            </td>
-            <td>{t.tradeActivated ? "✅" : "❌"}</td>
-          </tr>
-        ))
-      ) : (
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ ...tableStyle, minWidth: "700px" }}>
+      <thead>
         <tr>
-          <td colSpan={6}>No trades yet</td>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Time</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Date</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Pair</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "right" }}>Strength</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trend</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trade Activated</th>
         </tr>
-      )}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {tradeHistory.length > 0 ? (
+          tradeHistory.map((t, idx) => (
+            <tr key={idx} style={{ backgroundColor: t.tradeActivated ? "#002255" : "transparent" }}>
+              <td>{t.time}</td>
+              <td>{t.date}</td>
+              <td>{t.pair}</td>
+              <td style={{ textAlign: "right" }}>{t.strength}</td>
+              <td style={{ color: t.trend === "Bullish" ? "#00FF00" : "#FF0000", textAlign: "center" }}>
+                {t.trend}
+              </td>
+              <td style={{ textAlign: "center" }}>{t.tradeActivated ? "✅" : "❌"}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={6} style={{ textAlign: "center" }}>No trades yet</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
 </section>
-
 
       {/* Market Strength Table */}
       <section style={scrollableTableContainer}>
-        <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Market Strength</h2>
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th>Pair</th>
-              <th>Strength %</th>
-              <th>Trend</th>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Market Strength</h2>
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ ...tableStyle, minWidth: "400px" }}>
+      <thead>
+        <tr>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Pair</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "right" }}>Strength %</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        {marketStrength?.length > 0 ? (
+          marketStrength.map((row, idx) => (
+            <tr
+              key={idx}
+              style={{
+                backgroundColor: row.pair === topPair ? "#002255" : "transparent",
+                fontWeight: row.pair === topPair ? "bold" : "normal",
+              }}
+            >
+              <td>{row.pair}</td>
+              <td style={{ textAlign: "right" }}>{row.strength}</td>
+              <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000", textAlign: "center" }}>
+                {row.trend}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {marketStrength?.length > 0 ? (
-              marketStrength.map((row, idx) => (
-           
-              <tr
-  key={idx}
-  style={{
-    backgroundColor: row.pair === topPair ? "#002255" : "transparent", // highlight top pair
-    fontWeight: row.pair === topPair ? "bold" : "normal",
-  }}
->
-  <td>{row.pair}</td>
-  <td>{row.strength}</td>
-  <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
-    {row.trend}
-  </td>
-</tr>
-
-              ))
-            ) : (
-              <tr>
-                <td colSpan={3}>No data</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </section>
-
+          ))
+        ) : (
+          <tr>
+            <td colSpan={3} style={{ textAlign: "center" }}>No data</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</section>
       {/* CHoCH Data */}
       <section style={scrollableTableContainer}>
-        <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>CHoCH (Lower TF)</h2>
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th>Pair</th>
-              <th>Side</th>
-              <th>Valid</th>
-            </tr>
-          </thead>
-          <tbody>
-  {chochData.map((item, idx) => (
-    <tr
-      key={idx}
-      style={{
-        backgroundColor: item.symbol === topPair ? "#002255" : "transparent",
-        fontWeight: item.symbol === topPair ? "bold" : "normal",
-      }}
-    >
-      <td>{item.symbol}</td>
-        <td>{item.side ? item.side : "-"}</td>
-        <td>{item.valid ? "✅" : "❌"}</td>
-      </tr>
-  ))}
-</tbody>
-        </table>
-      </section>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>CHoCH (Lower TF)</h2>
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ ...tableStyle, minWidth: "400px" }}>
+      <thead>
+        <tr>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Pair</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Side</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Valid</th>
+        </tr>
+      </thead>
+      <tbody>
+        {chochData.map((item, idx) => (
+          <tr
+            key={idx}
+            style={{
+              backgroundColor: item.symbol === topPair ? "#002255" : "transparent",
+              fontWeight: item.symbol === topPair ? "bold" : "normal",
+            }}
+          >
+            <td>{item.symbol}</td>
+            <td style={{ textAlign: "center" }}>{item.side ? item.side : "-"}</td>
+            <td style={{ textAlign: "center" }}>{item.valid ? "✅" : "❌"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>
 
       {/* Brain Settings */}
 <section
@@ -438,39 +440,41 @@ useEffect(() => {
         <p>Status: {autoTradeStatus || "Unknown"}</p>
       </section>
 {/* Top 3 Pairs */}
-<section style={scrollableTableContainer}>
+   <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Top 3 Pairs</h2>
-  <table style={tableStyle}>
-    <thead>
-      <tr>
-        <th>Selected Pair</th>
-        <th>Strength %</th>
-        <th>Trend</th>
-      </tr>
-    </thead>
-    <tbody>
-      {[...marketStrength]
-  .sort((a, b) => b.strength - a.strength)
-  .slice(0, 3)
-  .map((row, idx) => (
-
-          <tr
-            key={idx}
-            style={{
-              backgroundColor: row.pair === topPair ? "#002255" : "transparent",
-              fontWeight: row.pair === topPair ? "bold" : "normal",
-            }}
-          >
-            <td>{row.pair}</td>
-            <td>{row.strength}</td>
-            <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
-              {row.trend}
-            </td>
-          </tr>
-        ))}
-    </tbody>
-  </table>
-</section>      
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ ...tableStyle, minWidth: "400px" }}>
+      <thead>
+        <tr>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Selected Pair</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "right" }}>Strength %</th>
+          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        {[...marketStrength]
+          .sort((a, b) => b.strength - a.strength)
+          .slice(0, 3)
+          .map((row, idx) => (
+            <tr
+              key={idx}
+              style={{
+                backgroundColor: row.pair === topPair ? "#002255" : "transparent",
+                fontWeight: row.pair === topPair ? "bold" : "normal",
+              }}
+            >
+              <td>{row.pair}</td>
+              <td style={{ textAlign: "right" }}>{row.strength}</td>
+              <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000", textAlign: "center" }}>
+                {row.trend}
+              </td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+  </div>
+</section>
+ 
     </div>
   );
 }
