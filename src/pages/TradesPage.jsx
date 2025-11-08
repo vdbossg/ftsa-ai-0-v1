@@ -184,95 +184,109 @@ if (connectedProp) {
     );
   }
 
-  const renderTable = (account) => (
-  <div
-    style={{
-      overflowX: "auto",
-      border: `2px solid ${neonColors.neonBlue}`,
-      borderRadius: "12px",
-      boxShadow: `0 0 15px ${neonColors.neonBlue}`,
-      backgroundColor: "#111",
-      marginBottom: "1rem",
-    }}
-  >
-    <table
-      style={{
-        minWidth: "1200px", // ensures table doesn't squeeze
-        width: "100%",
-        borderCollapse: "collapse",
-        color: neonColors.neonBlue,
-      }}
-    >
-      <thead style={{ borderBottom: `2px solid ${neonColors.neonBlue}` }}>
+  const renderTable = (account) => {
+  if (!account) return null;
+  const part = account.tablePart || "all";
+
+  const renderHeaders = () => {
+    if (part === "basic") return <tr><th>Broker</th><th>Login ID</th></tr>;
+    if (part === "summary")
+      return (
         <tr>
-          {/* Group 1 */}
-          <th>Broker</th>
-          <th>Login ID</th>
-          {/* Group 2 */}
           <th>Balance</th>
           <th>Equity</th>
           <th>Margin</th>
           <th>Free Margin</th>
-          {/* Group 3 */}
-          <th>Symbol</th>
-          <th>Ticket</th>
-          <th>Time</th>
-          <th>Type</th>
-          <th>Volume</th>
-          <th>Entry/Open Price</th>
-          <th>Current Price</th>
-          <th>SL</th>
-          <th>TP</th>
-          <th>Profit</th>
         </tr>
-      </thead>
-      <tbody>
-        {account && Array.isArray(account.trades) && account.trades.length > 0 ? (
-          account.trades.map((trade) => (
-            <tr
-              key={trade.ticket}
-              style={{
-                textAlign: "center",
-                borderBottom: `1px solid ${neonColors.neonBlue}`,
-              }}
-            >
-              {/* Group 1 */}
-              <td>{account.broker}</td>
-              <td>{account.login}</td>
-              {/* Group 2 */}
-              <td>{formatCurrency(account.summary?.data?.balance)}</td>
-              <td>{formatCurrency(account.summary?.data?.equity)}</td>
-              <td>{formatCurrency(account.summary?.data?.margin)}</td>
-              <td>{formatCurrency(account.summary?.data?.freeMargin)}</td>
-              {/* Group 3 */}
-              <td>{trade.symbol}</td>
-              <td>{trade.ticket}</td>
-              <td>{trade.time}</td>
-              <td>{trade.type}</td>
-              <td>{trade.volume}</td>
-              <td>{trade.open_price}</td>
-              <td>{trade.current_price}</td>
-              <td>{trade.sl}</td>
-              <td>{trade.tp}</td>
-              <td style={{ color: getPLColor(trade.profit), fontWeight: "bold" }}>
-                {formatCurrency(trade.profit)}
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td
-              colSpan={16}
-              style={{ textAlign: "center", color: neonColors.neonOrange, padding: "1rem" }}
-            >
-              No trades found.
-            </td>
+      );
+    return (
+      <tr>
+        <th>Symbol</th>
+        <th>Ticket</th>
+        <th>Time</th>
+        <th>Type</th>
+        <th>Volume</th>
+        <th>Entry/Open Price</th>
+        <th>Current Price</th>
+        <th>SL</th>
+        <th>TP</th>
+        <th>Profit</th>
+      </tr>
+    );
+  };
+
+  const renderRows = () => {
+    if (!Array.isArray(account.trades) || account.trades.length === 0)
+      return (
+        <tr>
+          <td colSpan="10" style={{ textAlign: "center", padding: "1rem" }}>
+            No trades found.
+          </td>
+        </tr>
+      );
+
+    return account.trades.map((trade) => {
+      if (part === "basic")
+        return (
+          <tr key={trade.ticket}>
+            <td>{account.broker}</td>
+            <td>{account.login}</td>
           </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-);
+        );
+      if (part === "summary")
+        return (
+          <tr key={trade.ticket}>
+            <td>{formatCurrency(account.summary?.data?.balance)}</td>
+            <td>{formatCurrency(account.summary?.data?.equity)}</td>
+            <td>{formatCurrency(account.summary?.data?.margin)}</td>
+            <td>{formatCurrency(account.summary?.data?.freeMargin)}</td>
+          </tr>
+        );
+      return (
+        <tr key={trade.ticket}>
+          <td>{trade.symbol}</td>
+          <td>{trade.ticket}</td>
+          <td>{trade.time}</td>
+          <td>{trade.type}</td>
+          <td>{trade.volume}</td>
+          <td>{trade.open_price}</td>
+          <td>{trade.current_price}</td>
+          <td>{trade.sl}</td>
+          <td>{trade.tp}</td>
+          <td style={{ color: getPLColor(trade.profit), fontWeight: "bold" }}>
+            {formatCurrency(trade.profit)}
+          </td>
+        </tr>
+      );
+    });
+  };
+
+  return (
+    <div
+      style={{
+        overflowX: "auto",
+        border: `2px solid ${neonColors.neonBlue}`,
+        borderRadius: "12px",
+        boxShadow: `0 0 10px ${neonColors.neonBlue}`,
+        backgroundColor: "#111",
+      }}
+    >
+      <table
+        style={{
+          minWidth: "600px",
+          width: "100%",
+          borderCollapse: "collapse",
+          color: neonColors.neonBlue,
+        }}
+      >
+        <thead style={{ borderBottom: `2px solid ${neonColors.neonBlue}` }}>
+          {renderHeaders()}
+        </thead>
+        <tbody>{renderRows()}</tbody>
+      </table>
+    </div>
+  );
+};
 
   const renderCards = (stats, isProp = false) => {
     if (!stats) return null;
@@ -404,30 +418,83 @@ if (connectedProp) {
   }}
 >
   {/* Prop Trades Section */}
-<div style={{ flex: 1, width: "100%" }}>
+<div
+  style={{
+    flex: 1,
+    width: "100%",
+    border: `2px solid ${neonColors.neonBlue}`,
+    borderRadius: 12,
+    backgroundColor: "#111",
+    padding: "1rem",
+    overflowY: "auto",
+    maxHeight: "650px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+  }}
+>
   <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
+
   {propConnectedAccount ? (
-    <>
-      {renderTable(propTableData)}
-      {renderCards(propStats, true)}
-      {renderGraph(propTableData, true)}
-    </>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        width: "100%",
+      }}
+    >
+      {/* 3 mini-tables stacked */}
+      <div>{renderTable({ ...propTableData, tablePart: "basic" })}</div>
+      <div>{renderTable({ ...propTableData, tablePart: "summary" })}</div>
+      <div>{renderTable({ ...propTableData, tablePart: "trades" })}</div>
+
+      {/* Cards and Graph below, same scroll */}
+      <div>{renderCards(propStats, true)}</div>
+      <div>{renderGraph(propTableData, true)}</div>
+    </div>
   ) : (
     <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
       No connected Prop Firm account.
     </p>
   )}
 </div>
-
 {/* MTAccounts Trades Section */}
-<div style={{ flex: 1, width: "100%" }}>
+<div
+  style={{
+    flex: 1,
+    width: "100%",
+    border: `2px solid ${neonColors.neonBlue}`,
+    borderRadius: 12,
+    backgroundColor: "#111",
+    padding: "1rem",
+    overflowY: "auto",
+    maxHeight: "650px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+  }}
+>
   <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
+
   {mtConnectedAccount ? (
-    <>
-      {renderTable(mtTableData)}
-      {renderCards(mtStats, false)}
-      {renderGraph(mtTableData, false)}
-    </>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        width: "100%",
+      }}
+    >
+      {/* 3 mini-tables stacked */}
+      <div>{renderTable({ ...mtTableData, tablePart: "basic" })}</div>
+      <div>{renderTable({ ...mtTableData, tablePart: "summary" })}</div>
+      <div>{renderTable({ ...mtTableData, tablePart: "trades" })}</div>
+
+      {/* Cards and Graph below */}
+      <div>{renderCards(mtStats, false)}</div>
+      <div>{renderGraph(mtTableData, false)}</div>
+    </div>
   ) : (
     <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
       No connected MT account.
@@ -436,7 +503,6 @@ if (connectedProp) {
 </div>
 
 </div>
-
 
       <footer
         style={{
