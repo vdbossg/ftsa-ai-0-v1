@@ -1,11 +1,10 @@
 // src/pages/TradesPage.jsx
 import React, { useEffect, useState } from "react";
-import NeonButton from "../components/NeonButton";
-import StatusBadge from "../components/StatusBadge";
-import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
-import APIControl from "../brain/APIControl"; // Your API call to backend
+import APIControl from "../brain/APIControl";
 import "../styles/TradesPage.css";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
 const neonColors = {
   background: "#000000",
@@ -15,50 +14,68 @@ const neonColors = {
   neonRed: "#FF0000",
 };
 
-const tabs = [
-  { key: "active", label: "FTSA'S ACTIVE TRADES" },
-  { key: "pending", label: "PENDING ORDERS" },
-  { key: "nextTarget", label: "NEXT TARGET" },
-];
-
-const pairStrengthData = [
-  { symbol: "GBP", percent: 15, color: "🟥" },
-  { symbol: "JPY", percent: 32, color: "🟥" },
-  { symbol: "EUR", percent: 58, color: "🟧" },
-  { symbol: "CHF", percent: 62, color: "🟧" },
-  { symbol: "AUD", percent: 75, color: "🟩" },
-  { symbol: "CAD", percent: 81, color: "🟩" },
-  { symbol: "NZD", percent: 86, color: "🟩" },
-  { symbol: "USD", percent: 96, color: "🟩" },
-];
-
 export default function TradesPage() {
   const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [propAccount, setPropAccount] = useState(null);
+  const [mtAccount, setMTAccount] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedTab, setSelectedTab] = useState("active");
-  const [trades, setTrades] = useState({
-    active: [],
-    pending: [],
-    nextTarget: [],
-  });
-
-  const [searchTerm, setSearchTerm] = useState("");
-
+  // Auto-refresh every second
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    setLoading(true);
-    setError(null);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [propData, mtData] = await Promise.all([
+          APIControl.fetchConnectedPropAccount(),
+          APIControl.fetchConnectedMTAccount(),
+        ]);
+        setPropAccount(propData?.account || null);
+        setMTAccount(mtData?.account || null);
+      } catch (err) {
+        console.error("Failed to fetch account data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    APIControl.fetchTradesData(selectedTab)
-      .then((data) => {
-        setTrades((prev) => ({ ...prev, [selectedTab]: data || [] }));
-      })
-      .catch(() => setError("Failed to load trade data."))
-      .finally(() => setLoading(false));
-  }, [isAuthenticated, selectedTab]);
+    fetchData();
+    const interval = setInterval(fetchData, 1000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  const formatCurrency = (num) =>
+    typeof num === "number" ? `$${num.toFixed(2)}` : "-";
+
+  const getPLColor = (pl) => {
+    if (pl > 0) return neonColors.neonGreen;
+    if (pl < 0) return neonColors.neonRed;
+    return neonColors.neonOrange;
+  };
+
+  const calculateStats = (account, isProp = false) => {
+    if (!account) return null;
+    const trades = account.trades?.data || [];
+    const balance = account.summary?.data?.balance || 0;
+    const initialBalance = isProp ? account.propSettings?.initialBalance || balance : balance;
+    const profitLoss = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const gainDrawdown = initialBalance > 0 ? ((balance - initialBalance) / initialBalance) * 100 : 0;
+
+    return isProp
+      ? {
+          initialBalance,
+          dailyLossLimit: account.propSettings?.dailyLossLimit || 0,
+          overallLossLimit: account.propSettings?.overallLossLimit || 0,
+          profitTarget: account.propSettings?.profitTarget || 0,
+          profitLoss,
+          gainDrawdown,
+        }
+      : { profitLoss, gainDrawdown };
+  };
+
+  const propStats = calculateStats(propAccount, true);
+  const mtStats = calculateStats(mtAccount, false);
 
   if (!isAuthenticated) {
     return (
@@ -75,53 +92,175 @@ export default function TradesPage() {
     );
   }
 
-  // Safely filter trades
-  const filteredTrades = Array.isArray(trades[selectedTab])
-    ? trades[selectedTab].filter((t) =>
-        t.symbol?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const renderTable = (account) => (
+    <div
+      style={{
+        overflowX: "auto",
+        border: `2px solid ${neonColors.neonBlue}`,
+        borderRadius: "12px",
+        boxShadow: `0 0 15px ${neonColors.neonBlue}`,
+        backgroundColor: "#111",
+        marginBottom: "1rem",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          color: neonColors.neonBlue,
+        }}
+      >
+        <thead>
+          <tr>
+            <th>Broker</th>
+            <th>Login ID</th>
+            <th>Balance</th>
+            <th>Equity</th>
+            <th>Margin</th>
+            <th>Free Margin</th>
+            <th>Symbol</th>
+            <th>Ticket</th>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Volume</th>
+            <th>Entry/Open Price</th>
+            <th>Current Price</th>
+            <th>SL</th>
+            <th>TP</th>
+            <th>Profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {account?.trades?.success && account.trades.data.length > 0 ? (
+            account.trades.data.map((trade) => (
+              <tr
+                key={trade.ticket}
+                style={{
+                  textAlign: "center",
+                  borderBottom: `1px solid ${neonColors.neonBlue}`,
+                }}
+              >
+                <td>{account.broker}</td>
+                <td>{account.login}</td>
+                <td>{formatCurrency(account.summary.data.balance)}</td>
+                <td>{formatCurrency(account.summary.data.equity)}</td>
+                <td>{formatCurrency(account.summary.data.margin)}</td>
+                <td>{formatCurrency(account.summary.data.freeMargin)}</td>
+                <td>{trade.symbol}</td>
+                <td>{trade.ticket}</td>
+                <td>{trade.time}</td>
+                <td>{trade.type}</td>
+                <td>{trade.volume}</td>
+                <td>{trade.open_price}</td>
+                <td>{trade.current_price}</td>
+                <td>{trade.sl}</td>
+                <td>{trade.tp}</td>
+                <td style={{ color: getPLColor(trade.profit), fontWeight: "bold" }}>
+                  {formatCurrency(trade.profit)}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={16} style={{ textAlign: "center", color: neonColors.neonOrange, padding: "1rem" }}>
+                No trades found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 
-  const getPLColor = (pl) => {
-    if (pl > 0) return neonColors.neonGreen;
-    if (pl === 0) return neonColors.neonOrange;
-    return neonColors.neonRed;
+  const renderCards = (stats, isProp = false) => {
+    if (!stats) return null;
+    const cardsData = isProp
+      ? [
+          { title: "Initial Balance", value: formatCurrency(stats.initialBalance) },
+          { title: "Daily Loss Limit ± $", value: formatCurrency(stats.dailyLossLimit) },
+          { title: "Overall Loss Limit ± $", value: formatCurrency(stats.overallLossLimit) },
+          { title: "Profit Target ± $", value: formatCurrency(stats.profitTarget) },
+          { title: "Profit / Loss ± $", value: formatCurrency(stats.profitLoss), color: getPLColor(stats.profitLoss) },
+          { title: "Gain / Drawdown %", value: `${stats.gainDrawdown.toFixed(2)}%`, color: stats.gainDrawdown >= 0 ? neonColors.neonGreen : neonColors.neonRed },
+        ]
+      : [
+          { title: "Profit / Loss ± $", value: formatCurrency(stats.profitLoss), color: getPLColor(stats.profitLoss) },
+          { title: "Gain / Drawdown %", value: `${stats.gainDrawdown.toFixed(2)}%`, color: stats.gainDrawdown >= 0 ? neonColors.neonGreen : neonColors.neonRed },
+        ];
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "1rem",
+          marginBottom: "2rem",
+        }}
+      >
+        {cardsData.map((card) => (
+          <div
+            key={card.title}
+            style={{
+              border: `2px solid ${neonColors.neonBlue}`,
+              borderRadius: 12,
+              padding: "1rem",
+              backgroundColor: "#111",
+              textAlign: "center",
+              color: card.color || neonColors.neonBlue,
+            }}
+          >
+            <h4>{card.title}</h4>
+            <p style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{card.value}</p>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const headers = {
-    active: [
-      "Symbol",
-      "Type",
-      "Lot",
-      "Entry",
-      "SL",
-      "TP",
-      "P/L",
-      "Win %",
-      "TIME (started/end)",
-    ],
-    pending: [
-      "Symbol",
-      "Type",
-      "Lot",
-      "Entry",
-      "SL",
-      "TP",
-      "P/L",
-      "Win %",
-      "TIME",
-    ],
-    nextTarget: [
-      "Symbol",
-      "Type",
-      "Lot",
-      "Entry",
-      "SL",
-      "TP",
-      "P/L",
-      "Possible Win %",
-    ],
-  };
+  const renderGraph = (account, isProp = false) => {
+  if (!account || !account.trades?.data || account.trades.data.length === 0) return null;
+
+  // Prepare chart data for last N trades (e.g., 20) for clarity
+  const lastN = 20;
+  const tradesData = account.trades.data.slice(-lastN);
+  const chartData = tradesData.map((trade, index) => ({
+    name: `#${trade.ticket}`, // can use ticket for label
+    profit: trade.profit || 0,
+  }));
+
+  return (
+    <div
+      style={{
+        border: `2px solid ${neonColors.neonBlue}`,
+        borderRadius: 12,
+        padding: "1rem",
+        backgroundColor: "#111",
+        textAlign: "center",
+        color: neonColors.neonBlue,
+        marginBottom: "2rem",
+        height: 220,
+      }}
+    >
+      <h4>{isProp ? "📈 Prop Trades Graph" : "📈 MTAccounts Trades Graph"}</h4>
+      <ResponsiveContainer width="100%" height={150}>
+        <LineChart data={chartData}>
+          <CartesianGrid stroke="#00FFFF33" strokeDasharray="5 5" />
+          <XAxis dataKey="name" stroke={neonColors.neonBlue} />
+          <YAxis stroke={neonColors.neonBlue} />
+          <Tooltip formatter={(value) => formatCurrency(value)} />
+          <Line
+  type="monotone"
+  dataKey="profit"
+  stroke={chartData[chartData.length-1]?.profit >= 0 ? neonColors.neonGreen : neonColors.neonRed}
+  strokeWidth={2}
+  dot={{ r: 3 }}
+  isAnimationActive={false}
+/>
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
   return (
     <div
@@ -131,8 +270,6 @@ export default function TradesPage() {
         fontFamily: "'Orbitron', sans-serif",
         minHeight: "100vh",
         padding: "1rem",
-        display: "flex",
-        flexDirection: "column",
       }}
     >
       <header
@@ -145,196 +282,39 @@ export default function TradesPage() {
           marginBottom: "1rem",
         }}
       >
-        FTSA AI - TRADES
+        FTSA AI-TRADES
       </header>
 
-      {/* Tabs */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "1rem",
-          marginBottom: "1rem",
-          flexWrap: "wrap",
-        }}
-      >
-        {tabs.map(({ key, label }) => (
-          <NeonButton
-            key={key}
-            onClick={() => setSelectedTab(key)}
-            style={{
-              border:
-                selectedTab === key
-                  ? `2px solid ${neonColors.neonGreen}`
-                  : `2px solid ${neonColors.neonBlue}`,
-              backgroundColor: selectedTab === key ? "#002200" : "transparent",
-              minWidth: 160,
-            }}
-          >
-            {label}
-          </NeonButton>
-        ))}
-      </nav>
-
-      {/* Search */}
-      <div
-        style={{
-          marginBottom: "1rem",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="🔍 Search"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            padding: "0.4rem 0.8rem",
-            borderRadius: "6px",
-            border: `2px solid ${neonColors.neonBlue}`,
-            backgroundColor: "#111",
-            color: neonColors.neonBlue,
-            fontFamily: "'Orbitron', sans-serif",
-            outline: "none",
-            minWidth: 240,
-          }}
-        />
-      </div>
-
-      {/* Loading/Error */}
       {loading && (
         <div style={{ textAlign: "center", margin: "1rem" }}>
           <LoadingSpinner size={48} color={neonColors.neonBlue} />
         </div>
       )}
-      {error && (
-        <StatusBadge status="error" style={{ margin: "1rem auto", maxWidth: 400 }}>
-          {error}
-        </StatusBadge>
-      )}
 
-      {/* Trades Table */}
       <div
         style={{
-          overflowX: "auto",
-          flexGrow: 1,
-          border: `2px solid ${neonColors.neonBlue}`,
-          borderRadius: "12px",
-          boxShadow: `0 0 15px ${neonColors.neonBlue}`,
-          backgroundColor: "#111",
-          marginBottom: "1rem",
+          display: "flex",
+          gap: "2rem",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
         }}
       >
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            color: neonColors.neonBlue,
-          }}
-        >
-          <thead>
-            <tr>
-              {headers[selectedTab].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    borderBottom: `1px solid ${neonColors.neonBlue}`,
-                    padding: "0.5rem",
-                    fontWeight: "bold",
-                    whiteSpace: "nowrap",
-                    textAlign: "center",
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTrades.length > 0 ? (
-              filteredTrades.map((trade) => (
-                <tr
-                  key={trade.id}
-                  style={{ textAlign: "center", borderBottom: `1px solid ${neonColors.neonBlue}` }}
-                >
-                  <td>{trade.symbol || "-"}</td>
-                  <td>{trade.type || "-"}</td>
-                  <td>{trade.lot ?? "-"}</td>
-                  <td>{trade.entry ?? "-"}</td>
-                  <td>{trade.sl ?? "-"}</td>
-                  <td>{trade.tp ?? "-"}</td>
-                  <td style={{ color: getPLColor(trade.pl ?? 0), fontWeight: "bold" }}>
-                    {(trade.pl ?? 0).toFixed(2)}
-                  </td>
-                  <td>
-                    {selectedTab === "nextTarget"
-                      ? trade.possibleWinPercent ?? "-"
-                      : trade.winPercent ?? "-"}%
-                  </td>
-                  {selectedTab !== "nextTarget" ? (
-                    <td>{trade.time || "-"}</td>
-                  ) : null}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={headers[selectedTab].length}
-                  style={{ color: neonColors.neonOrange, padding: "1rem" }}
-                >
-                  No trades found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+        {/* Prop Trades Section */}
+        <div style={{ flex: 1, minWidth: 400 }}>
+          <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
+          {renderTable(propAccount)}
+          {renderCards(propStats, true)}
+          {renderGraph(propAccount, true)}
+        </div>
 
-      {/* Pair Strength Analysis */}
-      <section
-        style={{
-          maxWidth: 400,
-          margin: "0 auto 2rem",
-          border: `2px solid ${neonColors.neonBlue}`,
-          borderRadius: 12,
-          padding: "1rem",
-          backgroundColor: "#111",
-          boxShadow: `0 0 15px ${neonColors.neonBlue}`,
-          color: neonColors.neonBlue,
-          fontWeight: "bold",
-          fontSize: "1rem",
-        }}
-      >
-        <h3 style={{ textAlign: "center", marginBottom: "1rem" }}>
-          PAIR STRENGTH ANALYSIS
-        </h3>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            textAlign: "center",
-            fontFamily: "'Orbitron', sans-serif",
-          }}
-        >
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>%</th>
-              <th>Color</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pairStrengthData.map(({ symbol, percent, color }) => (
-              <tr key={symbol}>
-                <td>{symbol}</td>
-                <td>{percent}%</td>
-                <td>{color}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+        {/* MTAccounts Trades Section */}
+        <div style={{ flex: 1, minWidth: 400 }}>
+          <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
+          {renderTable(mtAccount)}
+          {renderCards(mtStats, false)}
+          {renderGraph(mtAccount, false)}
+        </div>
+      </div>
 
       <footer
         style={{
@@ -343,6 +323,7 @@ export default function TradesPage() {
           paddingTop: "1rem",
           color: neonColors.neonBlue,
           fontSize: "0.9rem",
+          marginTop: "2rem",
         }}
       >
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) © 2025

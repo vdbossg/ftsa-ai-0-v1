@@ -33,6 +33,35 @@ async function runPythonPropMT5Summary(login, password, server) {
     });
   });
 }
+/**
+ * Executes the PropFirm Python script to fetch open trades for MT5 account.
+ */
+async function runPythonPropMT5Trades(login, password, server) {
+  const pyPath = path.join(__dirname, "../utils/prop_mt5_get_trades.py");
+
+  return new Promise((resolve) => {
+    const py = spawn("python", [pyPath, login, password, server]);
+
+    let stdout = "";
+    let stderr = "";
+
+    py.stdout.on("data", (data) => (stdout += data.toString()));
+    py.stderr.on("data", (data) => (stderr += data.toString()));
+
+    py.on("close", (code) => {
+      if (stderr) console.warn("⚠️ Python stderr:", stderr.trim());
+      if (code !== 0) console.warn("⚠️ Python exited with code:", code);
+
+      try {
+        const parsed = JSON.parse(stdout.trim());
+        resolve(parsed);
+      } catch (err) {
+        console.warn("❌ Failed to parse Python JSON:", stdout.trim());
+        resolve({ success: false, data: [] });
+      }
+    });
+  });
+}
 
 /**
  * Connect and store Prop MT5 account in MongoDB.
@@ -102,16 +131,34 @@ if (account) {
 async function getPropAccount() {
   try {
     const accounts = await PropAccountModel.find({ platform: "MT5" }).lean();
-    return accounts.map(a => ({
-      ...a,
-      broker: a.broker?.trim() || "Unknown Broker",
-      server: a.server?.trim() || "Unknown Server",
-    }));
+
+    const accountsWithTrades = await Promise.all(
+      accounts.map(async (a) => {
+        let trades = { success: true, data: [] };
+
+        try {
+          // Fetch trades from Python script
+          trades = await runPythonPropMT5Trades(a.login, a.password, a.server);
+        } catch (err) {
+          console.warn(`⚠️ Failed to fetch trades for ${a.login}:`, err);
+        }
+
+        return {
+          ...a,
+          broker: a.broker?.trim() || "Unknown Broker",
+          server: a.server?.trim() || "Unknown Server",
+          trades,
+        };
+      })
+    );
+
+    return accountsWithTrades;
   } catch (err) {
     console.error("💥 Error fetching Prop MT5 accounts:", err);
     return [];
   }
 }
+
 
 
 /**
