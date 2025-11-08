@@ -81,10 +81,15 @@ async function getMTAccount(req, res) {
       }
 
       results.push({
-        account: acc,
-        summary,
-        trades
-      });
+  account: {
+    ...acc.toObject(),  // <-- converts Mongoose doc to plain JS object
+    isConnected: true
+  },
+  summary,
+  trades
+});
+
+
     }
 
     res.json({ success: true, accounts: results });

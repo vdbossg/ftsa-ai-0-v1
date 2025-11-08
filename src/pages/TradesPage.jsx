@@ -185,85 +185,94 @@ if (connectedProp) {
   }
 
   const renderTable = (account) => (
-    <div
+  <div
+    style={{
+      overflowX: "auto",
+      border: `2px solid ${neonColors.neonBlue}`,
+      borderRadius: "12px",
+      boxShadow: `0 0 15px ${neonColors.neonBlue}`,
+      backgroundColor: "#111",
+      marginBottom: "1rem",
+    }}
+  >
+    <table
       style={{
-        overflowX: "auto",
-        border: `2px solid ${neonColors.neonBlue}`,
-        borderRadius: "12px",
-        boxShadow: `0 0 15px ${neonColors.neonBlue}`,
-        backgroundColor: "#111",
-        marginBottom: "1rem",
+        minWidth: "1200px", // ensures table doesn't squeeze
+        width: "100%",
+        borderCollapse: "collapse",
+        color: neonColors.neonBlue,
       }}
     >
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          color: neonColors.neonBlue,
-        }}
-      >
-        <thead style={{ borderBottom: `2px solid ${neonColors.neonBlue}` }}> {/* <--- adds dividing line */}
-  <tr>
-    <th>Broker</th>
-    <th>Login ID</th>
-    <th>Balance</th>
-    <th>Equity</th>
-    <th>Margin</th>
-    <th>Free Margin</th>
-    <th>Symbol</th>
-    <th>Ticket</th>
-    <th>Time</th>
-    <th>Type</th>
-    <th>Volume</th>
-    <th>Entry/Open Price</th>
-    <th>Current Price</th>
-    <th>SL</th>
-    <th>TP</th>
-    <th>Profit</th>
-  </tr>
-</thead>
-
-        <tbody>
-          {account && Array.isArray(account.trades) && account.trades.length > 0 ? (
-           account.trades.map((trade) => (
-              <tr
-                key={trade.ticket}
-                style={{
-                  textAlign: "center",
-                  borderBottom: `1px solid ${neonColors.neonBlue}`,
-                }}
-              >
-                <td>{account.broker}</td>
-                <td>{account.login}</td>
-                <td>{formatCurrency(account.summary?.data?.balance)}</td>
-                <td>{formatCurrency(account.summary?.data?.equity)}</td>
-                <td>{formatCurrency(account.summary?.data?.margin)}</td>
-                <td>{formatCurrency(account.summary?.data?.freeMargin)}</td>
-                <td>{trade.symbol}</td>
-                <td>{trade.ticket}</td>
-                <td>{trade.time}</td>
-                <td>{trade.type}</td>
-                <td>{trade.volume}</td>
-                <td>{trade.open_price}</td>
-                <td>{trade.current_price}</td>
-                <td>{trade.sl}</td>
-                <td>{trade.tp}</td>
-                <td style={{ color: getPLColor(trade.profit), fontWeight: "bold" }}>
-                  {formatCurrency(trade.profit)}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={16} style={{ textAlign: "center", color: neonColors.neonOrange, padding: "1rem" }}>
-                No trades found.
+      <thead style={{ borderBottom: `2px solid ${neonColors.neonBlue}` }}>
+        <tr>
+          {/* Group 1 */}
+          <th>Broker</th>
+          <th>Login ID</th>
+          {/* Group 2 */}
+          <th>Balance</th>
+          <th>Equity</th>
+          <th>Margin</th>
+          <th>Free Margin</th>
+          {/* Group 3 */}
+          <th>Symbol</th>
+          <th>Ticket</th>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Volume</th>
+          <th>Entry/Open Price</th>
+          <th>Current Price</th>
+          <th>SL</th>
+          <th>TP</th>
+          <th>Profit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {account && Array.isArray(account.trades) && account.trades.length > 0 ? (
+          account.trades.map((trade) => (
+            <tr
+              key={trade.ticket}
+              style={{
+                textAlign: "center",
+                borderBottom: `1px solid ${neonColors.neonBlue}`,
+              }}
+            >
+              {/* Group 1 */}
+              <td>{account.broker}</td>
+              <td>{account.login}</td>
+              {/* Group 2 */}
+              <td>{formatCurrency(account.summary?.data?.balance)}</td>
+              <td>{formatCurrency(account.summary?.data?.equity)}</td>
+              <td>{formatCurrency(account.summary?.data?.margin)}</td>
+              <td>{formatCurrency(account.summary?.data?.freeMargin)}</td>
+              {/* Group 3 */}
+              <td>{trade.symbol}</td>
+              <td>{trade.ticket}</td>
+              <td>{trade.time}</td>
+              <td>{trade.type}</td>
+              <td>{trade.volume}</td>
+              <td>{trade.open_price}</td>
+              <td>{trade.current_price}</td>
+              <td>{trade.sl}</td>
+              <td>{trade.tp}</td>
+              <td style={{ color: getPLColor(trade.profit), fontWeight: "bold" }}>
+                {formatCurrency(trade.profit)}
               </td>
             </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
+          ))
+        ) : (
+          <tr>
+            <td
+              colSpan={16}
+              style={{ textAlign: "center", color: neonColors.neonOrange, padding: "1rem" }}
+            >
+              No trades found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
 
   const renderCards = (stats, isProp = false) => {
     if (!stats) return null;
