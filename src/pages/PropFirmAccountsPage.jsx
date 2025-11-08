@@ -298,17 +298,15 @@ try {
   }
 };
 
-  // Replace the entire handleReconnect function with this
+  // ✅ FIXED handleReconnect (only one account stays connected)
 const handleReconnect = async (acc) => {
   try {
     setLoading(true);
 
-    // ✅ Always find the freshest account info from state
     const currentAcc = accounts.find(a => a.login === acc.login) || acc;
     let password = currentAcc.password;
 
     if (!password || password.trim() === "") {
-      console.warn("⚠️ Missing password in state for", acc.login);
       const userPassword = window.prompt(`Please enter password for account ${acc.login}`);
       if (!userPassword) {
         setStatus({ type: "error", text: "Password is required to reconnect." });
@@ -317,8 +315,7 @@ const handleReconnect = async (acc) => {
       password = userPassword;
     }
 
-    console.log(`🔐 Using saved password for ${acc.login}`);
-
+    // 🔄 Call backend to reconnect this account (it will auto-disconnect others)
     const res = await APIControl.connectPropFirmAccount({
       login: acc.login,
       password,
@@ -333,14 +330,16 @@ const handleReconnect = async (acc) => {
       return;
     }
 
-    // ✅ Update the password and connection status in local state immediately
+    // 🧠 Locally mark all others disconnected, and this one connected
     setAccounts(prev =>
       prev.map(a =>
-        a.login === acc.login ? { ...a, isConnected: true, password } : a
+        a.login === acc.login
+          ? { ...a, isConnected: true, password }
+          : { ...a, isConnected: false }
       )
     );
 
-    setStatus({ type: "success", text: `Reconnected to account ${acc.login}` });
+    setStatus({ type: "success", text: `Switched to account ${acc.login}` });
   } catch (err) {
     console.error("Reconnect error:", err);
     setStatus({ type: "error", text: err.message || "Unexpected error." });
@@ -348,9 +347,6 @@ const handleReconnect = async (acc) => {
     setLoading(false);
   }
 };
-
-
-
 
 
   if (!isAuthenticated) {
