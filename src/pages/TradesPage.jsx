@@ -110,26 +110,27 @@ export default function TradesPage() {
           color: neonColors.neonBlue,
         }}
       >
-        <thead>
-          <tr>
-            <th>Broker</th>
-            <th>Login ID</th>
-            <th>Balance</th>
-            <th>Equity</th>
-            <th>Margin</th>
-            <th>Free Margin</th>
-            <th>Symbol</th>
-            <th>Ticket</th>
-            <th>Time</th>
-            <th>Type</th>
-            <th>Volume</th>
-            <th>Entry/Open Price</th>
-            <th>Current Price</th>
-            <th>SL</th>
-            <th>TP</th>
-            <th>Profit</th>
-          </tr>
-        </thead>
+        <thead style={{ borderBottom: `2px solid ${neonColors.neonBlue}` }}> {/* <--- adds dividing line */}
+  <tr>
+    <th>Broker</th>
+    <th>Login ID</th>
+    <th>Balance</th>
+    <th>Equity</th>
+    <th>Margin</th>
+    <th>Free Margin</th>
+    <th>Symbol</th>
+    <th>Ticket</th>
+    <th>Time</th>
+    <th>Type</th>
+    <th>Volume</th>
+    <th>Entry/Open Price</th>
+    <th>Current Price</th>
+    <th>SL</th>
+    <th>TP</th>
+    <th>Profit</th>
+  </tr>
+</thead>
+
         <tbody>
           {account?.trades?.success && account.trades.data.length > 0 ? (
             account.trades.data.map((trade) => (
@@ -292,29 +293,30 @@ export default function TradesPage() {
       )}
 
       <div
-        style={{
-          display: "flex",
-          gap: "2rem",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-        }}
-      >
-        {/* Prop Trades Section */}
-        <div style={{ flex: 1, minWidth: 400 }}>
-          <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
-          {renderTable(propAccount)}
-          {renderCards(propStats, true)}
-          {renderGraph(propAccount, true)}
-        </div>
+  style={{
+    display: "flex",
+    flexDirection: "column", // stack vertically
+    gap: "2rem",
+    width: "100%",
+  }}
+>
+  {/* Prop Trades Section */}
+  <div style={{ flex: 1, width: "100%" }}>
+    <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
+    {renderTable(propAccount)}
+    {renderCards(propStats, true)}
+    {renderGraph(propAccount, true)}
+  </div>
 
-        {/* MTAccounts Trades Section */}
-        <div style={{ flex: 1, minWidth: 400 }}>
-          <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
-          {renderTable(mtAccount)}
-          {renderCards(mtStats, false)}
-          {renderGraph(mtAccount, false)}
-        </div>
-      </div>
+  {/* MTAccounts Trades Section */}
+  <div style={{ flex: 1, width: "100%" }}>
+    <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
+    {renderTable(mtAccount)}
+    {renderCards(mtStats, false)}
+    {renderGraph(mtAccount, false)}
+  </div>
+</div>
+
 
       <footer
         style={{
