@@ -45,6 +45,22 @@ const tdStyle = {
   borderBottom: "1px solid #00FFFF",
   padding: "0.5rem",
 };
+const thShadowStyle = {
+  borderBottom: "3px double #00FFFF",
+  boxShadow: "0 2px 2px rgba(0,255,255,0.5)",
+  padding: "0.5rem",
+};
+
+const tdVerticalLineStyle = {
+  borderBottom: "1px solid #00FFFF",
+  borderRight: "1px solid #00FFFF",
+  padding: "0.5rem",
+};
+
+const lastTdStyle = {
+  borderBottom: "1px solid #00FFFF",
+  padding: "0.5rem",
+};
 
 const tradeHistoryRef = useRef(tradeHistory);
 const marketStrengthRef = useRef(marketStrength);
@@ -246,26 +262,27 @@ useEffect(() => {
     <table style={{ ...tableStyle, minWidth: "700px" }}>
       <thead>
         <tr>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Time</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Date</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Pair</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "right" }}>Strength</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trend</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trade Activated</th>
+         <th style={{ ...thShadowStyle, textAlign: "left" }}>Time</th>
+<th style={{ ...thShadowStyle, textAlign: "left" }}>Date</th>
+<th style={{ ...thShadowStyle, textAlign: "left" }}>Pair</th>
+<th style={{ ...thShadowStyle, textAlign: "right" }}>Strength</th>
+<th style={{ ...thShadowStyle, textAlign: "center" }}>Trend</th>
+<th style={{ ...thShadowStyle, textAlign: "center" }}>Trade Activated</th>
         </tr>
       </thead>
       <tbody>
         {tradeHistory.length > 0 ? (
           tradeHistory.map((t, idx) => (
             <tr key={idx} style={{ backgroundColor: t.tradeActivated ? "#002255" : "transparent" }}>
-              <td>{t.time}</td>
-              <td>{t.date}</td>
-              <td>{t.pair}</td>
-              <td style={{ textAlign: "right" }}>{t.strength}</td>
-              <td style={{ color: t.trend === "Bullish" ? "#00FF00" : "#FF0000", textAlign: "center" }}>
-                {t.trend}
-              </td>
-              <td style={{ textAlign: "center" }}>{t.tradeActivated ? "✅" : "❌"}</td>
+             <td style={tdVerticalLineStyle}>{t.time}</td>
+<td style={tdVerticalLineStyle}>{t.date}</td>
+<td style={tdVerticalLineStyle}>{t.pair}</td>
+<td style={{ ...tdVerticalLineStyle, textAlign: "right" }}>{t.strength}</td>
+<td style={{ ...tdVerticalLineStyle, textAlign: "center", color: t.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+  {t.trend}
+</td>
+<td style={lastTdStyle}>{t.tradeActivated ? "✅" : "❌"}</td>
+
             </tr>
           ))
         ) : (
@@ -285,9 +302,9 @@ useEffect(() => {
     <table style={{ ...tableStyle, minWidth: "400px" }}>
       <thead>
         <tr>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Pair</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "right" }}>Strength %</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trend</th>
+          <th style={{ ...thShadowStyle, textAlign: "left" }}>Pair</th>
+<th style={{ ...thShadowStyle, textAlign: "right" }}>Strength %</th>
+<th style={{ ...thShadowStyle, textAlign: "center" }}>Trend</th>
         </tr>
       </thead>
       <tbody>
@@ -300,11 +317,11 @@ useEffect(() => {
                 fontWeight: row.pair === topPair ? "bold" : "normal",
               }}
             >
-              <td>{row.pair}</td>
-              <td style={{ textAlign: "right" }}>{row.strength}</td>
-              <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000", textAlign: "center" }}>
-                {row.trend}
-              </td>
+              <td style={tdVerticalLineStyle}>{row.pair}</td>
+<td style={{ ...tdVerticalLineStyle, textAlign: "right" }}>{row.strength}</td>
+<td style={{ ...lastTdStyle, textAlign: "center", color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+  {row.trend}
+</td>
             </tr>
           ))
         ) : (
@@ -323,9 +340,9 @@ useEffect(() => {
     <table style={{ ...tableStyle, minWidth: "400px" }}>
       <thead>
         <tr>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Pair</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Side</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Valid</th>
+          <th style={{ ...thShadowStyle, textAlign: "left" }}>Pair</th>
+<th style={{ ...thShadowStyle, textAlign: "center" }}>Side</th>
+<th style={{ ...thShadowStyle, textAlign: "center" }}>Valid</th>
         </tr>
       </thead>
       <tbody>
@@ -337,9 +354,9 @@ useEffect(() => {
               fontWeight: item.symbol === topPair ? "bold" : "normal",
             }}
           >
-            <td>{item.symbol}</td>
-            <td style={{ textAlign: "center" }}>{item.side ? item.side : "-"}</td>
-            <td style={{ textAlign: "center" }}>{item.valid ? "✅" : "❌"}</td>
+            <td style={tdVerticalLineStyle}>{item.symbol}</td>
+<td style={{ ...tdVerticalLineStyle, textAlign: "center" }}>{item.side ? item.side : "-"}</td>
+<td style={{ ...lastTdStyle, textAlign: "center" }}>{item.valid ? "✅" : "❌"}</td>
           </tr>
         ))}
       </tbody>
@@ -446,9 +463,9 @@ useEffect(() => {
     <table style={{ ...tableStyle, minWidth: "400px" }}>
       <thead>
         <tr>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "left" }}>Selected Pair</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "right" }}>Strength %</th>
-          <th style={{ borderBottom: "3px double #00FFFF", textAlign: "center" }}>Trend</th>
+         <th style={{ ...thShadowStyle, textAlign: "left" }}>Selected Pair</th>
+<th style={{ ...thShadowStyle, textAlign: "right" }}>Strength %</th>
+<th style={{ ...thShadowStyle, textAlign: "center" }}>Trend</th>
         </tr>
       </thead>
       <tbody>
@@ -463,11 +480,12 @@ useEffect(() => {
                 fontWeight: row.pair === topPair ? "bold" : "normal",
               }}
             >
-              <td>{row.pair}</td>
-              <td style={{ textAlign: "right" }}>{row.strength}</td>
-              <td style={{ color: row.trend === "Bullish" ? "#00FF00" : "#FF0000", textAlign: "center" }}>
-                {row.trend}
-              </td>
+              <td style={tdVerticalLineStyle}>{row.pair}</td>
+<td style={{ ...tdVerticalLineStyle, textAlign: "right" }}>{row.strength}</td>
+<td style={{ ...lastTdStyle, textAlign: "center", color: row.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+  {row.trend}
+</td>
+
             </tr>
           ))}
       </tbody>
