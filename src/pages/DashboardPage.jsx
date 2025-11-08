@@ -222,77 +222,6 @@ const DashboardPage = () => {
     </tbody>
   </table>
 </section>
-
-
-      {/* Accounts Panel */}
-      <section className="accounts-panel neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
-        <h2 style={{ color: "#00FFFF" }}>Accounts Panel</h2>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            color: "#00FFFF",
-            fontFamily: "Orbitron",
-          }}
-        >
-          <thead>
-            <tr>
-              {["Account", "Balance", "Equity", "P/L", "Order", "Trades", "Status"].map((header) => (
-                <th
-                  key={header}
-                  style={{
-                    borderBottom: "2px solid #00FFFF",
-                    padding: "0.5rem",
-                    textAlign: "left",
-                  }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {accounts && accounts.length > 0 ? (
-              accounts.map(
-                ({ accountName, balance, equity, profitLoss, orderCount, activeTrades, status }, idx) => (
-                  <tr
-                    key={idx}
-                    style={{
-                      borderBottom: "1px solid #00FFFF",
-                      backgroundColor: idx % 2 === 0 ? "#001111" : "#000000",
-                    }}
-                  >
-                    <td style={{ padding: "0.5rem" }}>{accountName}</td>
-                    <td style={{ padding: "0.5rem" }}>${balance.toFixed(2)}</td>
-                    <td style={{ padding: "0.5rem" }}>${equity.toFixed(2)}</td>
-                    <td style={{ padding: "0.5rem" }}>
-                      <StatusBadge
-                        text={`${profitLoss >= 0 ? "+" : ""}${profitLoss.toFixed(2)}`}
-                        status={profitLoss > 0 ? "green" : profitLoss < 0 ? "red" : "orange"}
-                      />
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>{orderCount}</td>
-                    <td style={{ padding: "0.5rem" }}>{activeTrades}</td>
-                    <td style={{ padding: "0.5rem" }}>
-                      <StatusBadge
-                        text={status}
-                        status={status.toLowerCase() === "active" ? "green" : "red"}
-                      />
-                    </td>
-                  </tr>
-                )
-              )
-            ) : (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "1rem" }}>
-                  No accounts found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </section>
-
       {/* Alerts & Notifications */}
       <section className="alerts-notifications neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
         <h2 style={{ color: "#FFA500" }}>Alerts & Notifications</h2>
@@ -328,19 +257,7 @@ const DashboardPage = () => {
           )}
         </ul>
       </section>
-      {/* Auto Trade Control */}
-<section className="auto-trade-control neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
-  <h2 style={{ color: "#00FFFF" }}>Auto-Trade Control</h2>
-  <div style={{ display: "flex", gap: "1rem" }}>
-    <NeonButton onClick={() => APIControl.toggleAutoTrade(true)}>Start Auto-Trade</NeonButton>
-    <NeonButton onClick={() => APIControl.toggleAutoTrade(false)}>Stop Auto-Trade</NeonButton>
-  </div>
-  <p style={{ marginTop: "0.5rem", color: "#FFA500" }}>
-    Status: {dashboardData?.autoTradeStatus || "Unknown"}
-  </p>
-</section>
-
-
+    
       <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
       </footer>
