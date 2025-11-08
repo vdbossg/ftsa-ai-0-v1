@@ -19,49 +19,80 @@ export default function TradesPage() {
   const [mtTableData, setMTTableData] = useState(null); // for /api/mttabletrades
   const [loading, setLoading] = useState(true);
   const [propTableData, setPropTableData] = useState(null); // for /api/proptabletrades
+  const [mtConnectedAccount, setMTConnectedAccount] = useState(null);
+  const [propConnectedAccount, setPropConnectedAccount] = useState(null);
+
 
 
   // Auto-refresh every second
 useEffect(() => {
-  if (!isAuthenticated) return;
+  if (!isAuthenticated || !propConnectedAccount) return;
 
   const fetchPropTrades = async () => {
-    setLoading(true);
-    try {
-      const res = await APIControl.fetchPropTableTrades(); // fetch from backend
-      setPropTableData(res?.data || null); // store entire table data
-    } catch (err) {
-      console.error("Failed to fetch prop table trades:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await APIControl.fetchPropTableTrades(propConnectedAccount.login);
+    setPropTableData(res?.data || []);
+  } catch (err) {
+    console.error("Failed to fetch prop table trades:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   fetchPropTrades();
-  const interval = setInterval(fetchPropTrades, 1000); // auto-refresh every second
+  const interval = setInterval(fetchPropTrades, 1000);
   return () => clearInterval(interval);
-}, [isAuthenticated]);
+}, [isAuthenticated, propConnectedAccount]);
+
 
 useEffect(() => {
-  if (!isAuthenticated) return;
+  if (!isAuthenticated || !mtConnectedAccount) return;
 
   const fetchMTTrades = async () => {
-    setLoading(true);
-    try {
-      const res = await APIControl.fetchMTTableTrades(); // new API
-      setMTTableData(res?.data || null);
-    } catch (err) {
-      console.error("Failed to fetch MT table trades:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await APIControl.fetchMTTableTrades(mtConnectedAccount.login);
+    setMTTableData(res?.data || []);
+  } catch (err) {
+    console.error("Failed to fetch MT table trades:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   fetchMTTrades();
   const interval = setInterval(fetchMTTrades, 1000);
   return () => clearInterval(interval);
-}, [isAuthenticated]);
+}, [isAuthenticated, mtConnectedAccount]);
 
+// Fetch connected accounts for MT and Prop
+useEffect(() => {
+  if (!isAuthenticated) return;
+
+  const fetchConnectedAccounts = async () => {
+    try {
+      // MT connected account
+      const mtRes = await fetch("http://localhost:5000/api/mtaccounts");
+      const mtData = await mtRes.json();
+      if (mtData.success && Array.isArray(mtData.accounts)) {
+        const connectedMT = mtData.accounts.find(acc => acc.isConnected);
+        setMTConnectedAccount(connectedMT || null);
+      }
+
+      // Prop connected account
+      const propRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propaccounts`);
+      const propData = await propRes.json();
+      if (Array.isArray(propData.accounts)) {
+        const connectedProp = propData.accounts.find(acc => acc.isConnected);
+        setPropConnectedAccount(connectedProp || null);
+      }
+
+    } catch (err) {
+      console.error("Failed to fetch connected accounts:", err);
+    }
+  };
+
+  fetchConnectedAccounts();
+}, [isAuthenticated]);
 
 
 
@@ -76,7 +107,12 @@ useEffect(() => {
 
   const calculateStats = (account, isProp = false) => {
     if (!account) return null;
-    const trades = account.trades?.data || [];
+    const trades = Array.isArray(account.trades)
+  ? account.trades
+  : Array.isArray(account.trades?.data)
+  ? account.trades.data
+  : [];
+
     const balance = account.summary?.data?.balance || 0;
     const initialBalance = isProp ? account.propSettings?.initialBalance || balance : balance;
     const profitLoss = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
@@ -153,8 +189,8 @@ useEffect(() => {
 </thead>
 
         <tbody>
-          {account?.trades && account.trades.length > 0 ? (
-  account.trades.map((trade) => (
+          {account && Array.isArray(account.trades) && account.trades.length > 0 ? (
+           account.trades.map((trade) => (
               <tr
                 key={trade.ticket}
                 style={{
@@ -164,10 +200,10 @@ useEffect(() => {
               >
                 <td>{account.broker}</td>
                 <td>{account.login}</td>
-                <td>{formatCurrency(account.summary.data.balance)}</td>
-                <td>{formatCurrency(account.summary.data.equity)}</td>
-                <td>{formatCurrency(account.summary.data.margin)}</td>
-                <td>{formatCurrency(account.summary.data.freeMargin)}</td>
+                <td>{formatCurrency(account.summary?.data?.balance)}</td>
+                <td>{formatCurrency(account.summary?.data?.equity)}</td>
+                <td>{formatCurrency(account.summary?.data?.margin)}</td>
+                <td>{formatCurrency(account.summary?.data?.freeMargin)}</td>
                 <td>{trade.symbol}</td>
                 <td>{trade.ticket}</td>
                 <td>{trade.time}</td>
@@ -322,21 +358,37 @@ useEffect(() => {
   }}
 >
   {/* Prop Trades Section */}
-  <div style={{ flex: 1, width: "100%" }}>
-    <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
-    {renderTable(propTableData)}
-{renderCards(propStats, true)}
-{renderGraph(propTableData, true)}
-  </div>
+<div style={{ flex: 1, width: "100%" }}>
+  <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
+  {propConnectedAccount ? (
+    <>
+      {renderTable(propTableData)}
+      {renderCards(propStats, true)}
+      {renderGraph(propTableData, true)}
+    </>
+  ) : (
+    <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
+      No connected Prop Firm account.
+    </p>
+  )}
+</div>
 
-  {/* MTAccounts Trades Section */}
-  <div style={{ flex: 1, width: "100%" }}>
-    <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
-    {renderTable(mtTableData)}
-{renderCards(mtStats, false)}
-{renderGraph(mtTableData, false)}
+{/* MTAccounts Trades Section */}
+<div style={{ flex: 1, width: "100%" }}>
+  <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>MTAccounts Trades</h3>
+  {mtConnectedAccount ? (
+    <>
+      {renderTable(mtTableData)}
+      {renderCards(mtStats, false)}
+      {renderGraph(mtTableData, false)}
+    </>
+  ) : (
+    <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
+      No connected MT account.
+    </p>
+  )}
+</div>
 
-  </div>
 </div>
 
 

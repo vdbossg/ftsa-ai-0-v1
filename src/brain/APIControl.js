@@ -410,7 +410,7 @@ async fetchPropFirmAccountsData() {
 
     const data = await response.json();
     // Ensure we always return an array
-    return { success: true, data: Array.isArray(data) ? data : [] };
+    return { success: true, data: Array.isArray(data.accounts) ? data.accounts : [] };
   } catch (error) {
     console.error("Error fetching PropFirm accounts data:", error);
     return { success: false, data: [] };
@@ -461,7 +461,7 @@ async fetchMTTableTrades() {
 
     const data = await response.json();
     // Return the full object exactly as your backend returns it
-    return { success: true, data: data };
+    return { success: true, data: Array.isArray(data) ? data : [] };
   } catch (err) {
     console.error("Error fetching MT table trades:", err);
     return { success: false, data: null };

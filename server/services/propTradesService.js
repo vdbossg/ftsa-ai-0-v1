@@ -9,7 +9,8 @@ async function getPropTableTrades() {
     const propSetting = settings.find((s) => s.accountLogin === acc.login) || {};
 
     // initial balance = first summary balance (or fixed)
-    const initialBalance = acc.summary?.data?.balance || 0;
+    const initialBalance = propSetting.initialBalance || acc.summary?.data?.balance || 0;
+
 
     // profit/loss calculation
     const profitLoss = acc.trades?.data?.reduce((sum, t) => sum + (t.profit || 0), 0) || 0;
