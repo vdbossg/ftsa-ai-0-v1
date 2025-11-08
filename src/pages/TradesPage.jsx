@@ -16,61 +16,18 @@ const neonColors = {
 
 export default function TradesPage() {
   const { isAuthenticated } = useAuth();
-  const [mtTableData, setMTTableData] = useState(null); // for /api/mttabletrades
-  const [loading, setLoading] = useState(true);
-  const [propTableData, setPropTableData] = useState(null); // for /api/proptabletrades
-  const [mtConnectedAccount, setMTConnectedAccount] = useState(null);
-  const [propConnectedAccount, setPropConnectedAccount] = useState(null);
+  const [propTableData, setPropTableData] = useState({ trades: [], summary: {} });
+const [mtTableData, setMTTableData] = useState({ trades: [], summary: {} });
+const [loading, setLoading] = useState(true);
+const [propConnectedAccount, setPropConnectedAccount] = useState(null);
+const [mtConnectedAccount, setMTConnectedAccount] = useState(null);
 
-
-
-  // Auto-refresh every second
-useEffect(() => {
-  if (!isAuthenticated || !propConnectedAccount) return;
-
-  const fetchPropTrades = async () => {
-  try {
-    const res = await APIControl.fetchPropTableTrades(propConnectedAccount.login);
-    setPropTableData(res?.data || []);
-  } catch (err) {
-    console.error("Failed to fetch prop table trades:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  fetchPropTrades();
-  const interval = setInterval(fetchPropTrades, 1000);
-  return () => clearInterval(interval);
-}, [isAuthenticated, propConnectedAccount]);
-
-
-useEffect(() => {
-  if (!isAuthenticated || !mtConnectedAccount) return;
-
-  const fetchMTTrades = async () => {
-  try {
-    const res = await APIControl.fetchMTTableTrades(mtConnectedAccount.login);
-    setMTTableData(res?.data || []);
-  } catch (err) {
-    console.error("Failed to fetch MT table trades:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  fetchMTTrades();
-  const interval = setInterval(fetchMTTrades, 1000);
-  return () => clearInterval(interval);
-}, [isAuthenticated, mtConnectedAccount]);
-
-// Fetch connected accounts for MT and Prop
+// Fetch connected accounts once on mount
 useEffect(() => {
   if (!isAuthenticated) return;
 
   const fetchConnectedAccounts = async () => {
     try {
-      // MT connected account
       const mtRes = await fetch("http://localhost:5000/api/mtaccounts");
       const mtData = await mtRes.json();
       if (mtData.success && Array.isArray(mtData.accounts)) {
@@ -78,14 +35,12 @@ useEffect(() => {
         setMTConnectedAccount(connectedMT || null);
       }
 
-      // Prop connected account
       const propRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/propaccounts`);
       const propData = await propRes.json();
       if (Array.isArray(propData.accounts)) {
         const connectedProp = propData.accounts.find(acc => acc.isConnected);
         setPropConnectedAccount(connectedProp || null);
       }
-
     } catch (err) {
       console.error("Failed to fetch connected accounts:", err);
     }
@@ -93,6 +48,56 @@ useEffect(() => {
 
   fetchConnectedAccounts();
 }, [isAuthenticated]);
+
+// Fetch Prop trades every second
+useEffect(() => {
+  if (!isAuthenticated || !propConnectedAccount) return;
+
+  let mounted = true;
+  const fetchPropTrades = async () => {
+    try {
+      const res = await APIControl.fetchPropTableTrades(propConnectedAccount.login);
+      if (!mounted) return;
+      setPropTableData(res?.data?.[0] || { trades: [], summary: {} });
+    } catch (err) {
+      console.error("Failed to fetch prop trades:", err);
+    } finally {
+      if (mounted) setLoading(false);
+    }
+  };
+
+  fetchPropTrades();
+  const interval = setInterval(fetchPropTrades, 1000);
+  return () => {
+    mounted = false;
+    clearInterval(interval);
+  };
+}, [isAuthenticated, propConnectedAccount]);
+
+// Fetch MT trades every second
+useEffect(() => {
+  if (!isAuthenticated || !mtConnectedAccount) return;
+
+  let mounted = true;
+  const fetchMTTrades = async () => {
+    try {
+      const res = await APIControl.fetchMTTableTrades(mtConnectedAccount.login);
+      if (!mounted) return;
+      setMTTableData(res?.data?.[0] || { trades: [], summary: {} });
+    } catch (err) {
+      console.error("Failed to fetch MT trades:", err);
+    } finally {
+      if (mounted) setLoading(false);
+    }
+  };
+
+  fetchMTTrades();
+  const interval = setInterval(fetchMTTrades, 1000);
+  return () => {
+    mounted = false;
+    clearInterval(interval);
+  };
+}, [isAuthenticated, mtConnectedAccount]);
 
 
 

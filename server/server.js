@@ -91,7 +91,7 @@ app.use("/api/faqs", faqsRoute); // Frontend fetchFAQs() → /api/faqs
 app.use("/api/support/channels", supportChannelsRoute);
 app.use("/api/about", aboutRoutes);
 app.use("/api/admin/about", aboutRoutes);
-app.use("/api", propTradesRoute);
+app.use("/api/proptabletrades", propTradesRoute);
 app.use("/api/mttabletrades", mttabletradesRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/dashboard', dashboardRoutes);           // GET /dashboard
