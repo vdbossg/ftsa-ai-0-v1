@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Controller = require("./Controller");
+const PropJournalController = require("../controllers/propAIJournalController");
 
-// GET /api/propaijournal
-router.get("/", Controller.getPropJournal);
+router.get("/", PropJournalController.getPropJournal);
 
 module.exports = router;

@@ -30,8 +30,8 @@ const propSettingRoutes = require("./routes/propSettingRoutes");
 const propAccountRoutes = require("./routes/propAccountRoutes");
 const propTradesRoute = require("./routes/propTradesRoute");
 const mttabletradesRoutes = require("./routes/mttabletrades.routes");
-const propJournalRoutes = require("./backend/propAIJournal/Routes");
-const mtJournalRoutes = require("./backend/mtAIJournal/Routes");
+const propJournalRoutes = require("./routes/propAIJournalRoutes");
+const mtJournalRoutes = require("./routes/mtAIJournalRoutes");
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB

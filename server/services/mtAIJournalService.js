@@ -1,4 +1,4 @@
-const MTJournal = require("./Model");
+const MTJournal = require("../models/mtAIJournaModel"); // relative path from services
 
 exports.fetchMTJournal = async (filters) => {
   const { dateFrom, dateTo, winLoss, symbolSearch } = filters;

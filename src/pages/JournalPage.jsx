@@ -152,7 +152,7 @@ export default function JournalPage() {
           {trades.length > 0 ? (
             trades.map((trade) => (
               <tr key={trade.ticket} style={{ textAlign: "center" }}>
-                <td>{format(new Date(selectedTrade.date), "dd/MM/yyyy")}</td>
+                <td>{format(new Date(trade.date), "dd/MM/yyyy")}</td>
                 <td>{trade.broker}</td>
                 <td>{trade.login}</td>
                 <td>{trade.ticket}</td>
@@ -162,7 +162,8 @@ export default function JournalPage() {
                     color: trade.profit >= 0 ? neonColors.neonGreen : neonColors.neonRed,
                   }}
                 >
-                  {trade.profit.toFixed(2)}
+                  {trade.profit != null ? trade.profit.toFixed(2) : "-"}
+
                 </td>
                 {type === "prop" && (
                   <>
@@ -199,7 +200,7 @@ export default function JournalPage() {
   const renderModalContent = () => {
     if (!selectedTrade) return null;
 
-    const isProp = selectedTrade.accountType.includes("prop");
+    const isProp = selectedTrade.accountType?.includes("prop");
 
     return (
       <div style={{ color: neonColors.neonBlue }}>
@@ -284,9 +285,9 @@ export default function JournalPage() {
 
         {/* Cards */}
         <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-          <div className="trade-card">AI Strategy: {selectedTrade.aiStrategy}</div>
-          <div className="trade-card">Execution Notes: {selectedTrade.executionNotes}</div>
-          <div className="trade-card">Conclusions: {selectedTrade.conclusions}</div>
+          <div className="trade-card">AI Strategy: {selectedTrade.aiStrategy || "-"}</div>
+<div className="trade-card">Execution Notes: {selectedTrade.executionNotes || "-"}</div>
+<div className="trade-card">Conclusions: {selectedTrade.conclusions || "-"}</div>
         </div>
 
         {/* Graph */}

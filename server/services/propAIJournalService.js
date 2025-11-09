@@ -1,4 +1,4 @@
-const PropJournal = require("./Model");
+const PropJournal = require("../models/propAIJournalModel"); // correct relative path
 
 exports.fetchPropJournal = async (filters) => {
   const { dateFrom, dateTo, winLoss, symbolSearch } = filters;

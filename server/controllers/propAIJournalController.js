@@ -1,4 +1,4 @@
-const PropJournalService = require("./Service");
+const PropJournalService = require("../services/propAIJournalService"); // corrected
 
 exports.getPropJournal = async (req, res) => {
   try {

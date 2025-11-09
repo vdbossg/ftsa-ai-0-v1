@@ -1,4 +1,4 @@
-const MTJournalService = require("./Service");
+const MTJournalService = require("../services/mtAIJournalService");
 
 exports.getMTJournal = async (req, res) => {
   try {
