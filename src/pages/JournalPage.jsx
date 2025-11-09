@@ -9,7 +9,6 @@ import Modal from "../components/Modal";
 import BalanceGraph from "../components/BalanceGraph"; // a component to render graph
 import "../styles/JournalPage.css";
 import { format } from "date-fns";
-format(new Date(entry.date), "dd/MM/yyyy");
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const neonColors = {
@@ -153,7 +152,7 @@ export default function JournalPage() {
           {trades.length > 0 ? (
             trades.map((trade) => (
               <tr key={trade.ticket} style={{ textAlign: "center" }}>
-                <td>{new Date(trade.date).toLocaleDateString()}</td>
+                <td>{format(new Date(selectedTrade.date), "dd/MM/yyyy")}</td>
                 <td>{trade.broker}</td>
                 <td>{trade.login}</td>
                 <td>{trade.ticket}</td>
