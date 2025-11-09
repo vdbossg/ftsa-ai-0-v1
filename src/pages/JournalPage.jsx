@@ -1,4 +1,5 @@
 // src/pages/JournalPage.jsx
+import { useEffect } from "react";
 import React, { useState, useEffect } from "react";
 import NeonButton from "../components/NeonButton";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -36,6 +37,23 @@ export default function JournalPage() {
     winLoss: "",
     symbolSearch: "",
   });
+
+
+// Inside JournalPage component
+useEffect(() => {
+  const interval = setInterval(() => {
+    const card = document.querySelector(
+      'div[style*="background-color: rgb(17, 17, 17)"][style*="box-shadow: rgb(0, 255, 255)"] header'
+    );
+    if (card) {
+      card.parentElement.style.display = "none"; // hide the whole floating card
+      clearInterval(interval); // stop checking once hidden
+    }
+  }, 500); // check every 0.5s
+
+  return () => clearInterval(interval); // cleanup on unmount
+}, []);
+
 
   useEffect(() => {
     if (!isAuthenticated) return;
