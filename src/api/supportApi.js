@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+// Use Vite's import.meta.env system instead of process.env
+const API_BASE = import.meta.env.VITE_BACKEND_URL
+  ? `${import.meta.env.VITE_BACKEND_URL}/api`
+  : "http://localhost:5000/api";
+
 
 /**
  * Generate a special ticket number based on type and current date.
