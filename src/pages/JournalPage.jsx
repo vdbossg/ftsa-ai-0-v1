@@ -284,13 +284,6 @@ export default function JournalPage() {
           </>
         )}
 
-        {/* Cards */}
-        <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-          <div className="trade-card">AI Strategy: {selectedTrade.aiStrategy || "-"}</div>
-<div className="trade-card">Execution Notes: {selectedTrade.executionNotes || "-"}</div>
-<div className="trade-card">Conclusions: {selectedTrade.conclusions || "-"}</div>
-        </div>
-
         {/* Graph */}
         <h3>Balance Evolution</h3>
         <BalanceGraph
