@@ -143,6 +143,7 @@ export default function JournalPage() {
   </th>
 ))}
 
+
           </tr>
         </thead>
         <tbody>
