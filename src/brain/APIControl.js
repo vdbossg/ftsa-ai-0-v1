@@ -735,6 +735,22 @@ async fetchStrongestPair() {
   }
 
   },
+  async fetchPropAIJournal(filters) {
+  const params = new URLSearchParams(filters).toString();
+  const response = await fetch(`${BASE_URL}/api/propaijournal?${params}`, {
+    headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }
+  });
+  return response.ok ? await response.json() : [];
+},
+
+async fetchMTAIJournal(filters) {
+  const params = new URLSearchParams(filters).toString();
+  const response = await fetch(`${BASE_URL}/api/mtaijournal?${params}`, {
+    headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }
+  });
+  return response.ok ? await response.json() : [];
+},
+
 
   /**
    * Fetch AI Brain dashboard data
