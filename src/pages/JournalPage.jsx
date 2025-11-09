@@ -283,24 +283,13 @@ export default function JournalPage() {
             </table>
           </>
         )}
-        {/* Summary Table */}
-<table style={{ width: "100%", marginBottom: "1rem", color: neonColors.neonBlue, border: `1px solid ${neonColors.neonBlue}`, borderRadius: "8px", borderCollapse: "collapse" }}>
-  <tbody>
-    <tr>
-      <th style={{ textAlign: "left", padding: "0.5rem", borderBottom: `1px solid ${neonColors.neonBlue}` }}>AI Strategy</th>
-      <td style={{ padding: "0.5rem", borderBottom: `1px solid ${neonColors.neonBlue}` }}>{selectedTrade.aiStrategy || "-"}</td>
-    </tr>
-    <tr>
-      <th style={{ textAlign: "left", padding: "0.5rem", borderBottom: `1px solid ${neonColors.neonBlue}` }}>Execution Notes</th>
-      <td style={{ padding: "0.5rem", borderBottom: `1px solid ${neonColors.neonBlue}` }}>{selectedTrade.executionNotes || "-"}</td>
-    </tr>
-    <tr>
-      <th style={{ textAlign: "left", padding: "0.5rem" }}>Conclusions</th>
-      <td style={{ padding: "0.5rem" }}>{selectedTrade.conclusions || "-"}</td>
-    </tr>
-  </tbody>
-</table>
 
+        {/* Cards */}
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+          <div className="trade-card">AI Strategy: {selectedTrade.aiStrategy || "-"}</div>
+<div className="trade-card">Execution Notes: {selectedTrade.executionNotes || "-"}</div>
+<div className="trade-card">Conclusions: {selectedTrade.conclusions || "-"}</div>
+        </div>
 
         {/* Graph */}
         <h3>Balance Evolution</h3>
