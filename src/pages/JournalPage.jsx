@@ -292,7 +292,12 @@ export default function JournalPage() {
 
         {/* Graph */}
         <h3>Balance Evolution</h3>
-        <BalanceGraph data={selectedTrade.balanceHistory || []} />
+        <BalanceGraph
+  data={(selectedTrade.balanceHistory || []).map((balance, index) => ({
+    date: index + 1, // or you can use actual timestamps if you have them
+    balance,
+  }))}
+/>
       </div>
     );
   };
