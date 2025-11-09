@@ -8,6 +8,9 @@ import APIControl from "../brain/APIControl";
 import Modal from "../components/Modal";
 import BalanceGraph from "../components/BalanceGraph"; // a component to render graph
 import "../styles/JournalPage.css";
+import { format } from "date-fns";
+format(new Date(entry.date), "dd/MM/yyyy");
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const neonColors = {
   background: "#000000",
