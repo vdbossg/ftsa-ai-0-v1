@@ -113,7 +113,3 @@
     transform: rotate(360deg);
   }
 }
-/* Hide the floating support/help card */
-div[style*="background-color: rgb(17, 17, 17)"][style*="box-shadow: rgb(0, 255, 255)"] {
-  display: none !important;
-}
