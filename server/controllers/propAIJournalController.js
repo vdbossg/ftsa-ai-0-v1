@@ -4,20 +4,27 @@ const { detectAndStoreClosedTrades } = require("../services/propAIJournalService
 
 exports.getPropAIJournal = async (req, res) => {
   try {
-    // Detect any newly closed trades
-    await detectAndStoreClosedTrades();
+    // Step 1: Detect and store any newly closed trades, returns stored trades immediately
+const newlyClosedTrades = await detectAndStoreClosedTrades();
 
-    // Fetch filtered journal entries
-    const filters = {
-      dateFrom: req.query.dateFrom || null,
-      dateTo: req.query.dateTo || null,
-      winLoss: req.query.winLoss || null,
-      symbolSearch: req.query.symbolSearch || null,
-    };
+// Step 2: Fetch filtered journal entries from DB
+const filters = {
+  dateFrom: req.query.dateFrom || null,
+  dateTo: req.query.dateTo || null,
+  winLoss: req.query.winLoss || null,
+  symbolSearch: req.query.symbolSearch || null,
+};
+const existingTrades = await fetchPropAIJournal(filters);
 
-    const trades = await fetchPropAIJournal(filters);
+// Step 3: Combine newly stored closed trades with existing filtered trades (avoid duplicates)
+const tradeTickets = new Set(existingTrades.map(t => t.ticket));
+const combinedTrades = [
+  ...existingTrades,
+  ...newlyClosedTrades.filter(t => !tradeTickets.has(t.ticket))
+];
 
-    res.json({ success: true, data: trades });
+
+    res.json({ success: true, data: combinedTrades });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Failed to fetch AI journal trades." });

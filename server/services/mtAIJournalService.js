@@ -1,4 +1,3 @@
-// server/services/mtAIJournalService.js
 const MTJournal = require("../models/mtAIJournalModel");
 const { fetchExternalMTTrades } = require("./fetchmtAIJournalService");
 
@@ -16,23 +15,27 @@ const getMTJournal = async (filters = {}) => {
   return await MTJournal.find(query).sort({ date: -1 });
 };
 
-// Fetch from external API, optionally save to DB
-const refreshMTJournal = async () => {
+// New helper to detect and store closed trades immediately
+const detectAndStoreClosedMTTrades = async () => {
   const trades = await fetchExternalMTTrades();
 
-// Only save closed trades
-for (const trade of trades) {
-  if (!trade.exit) continue; // skip running trades
+  for (const trade of trades) {
+    if (!trade.exit) continue; // skip running trades
 
-  await MTJournal.updateOne(
-    { ticket: trade.ticket },
-    { $set: trade },
-    { upsert: true }
-  );
-}
+    await MTJournal.updateOne(
+      { ticket: trade.ticket },
+      { $set: trade },
+      { upsert: true }
+    );
+  }
 
-
-  return trades;
+  return trades.filter(t => t.exit); // return only closed trades
 };
 
-module.exports = { getMTJournal, refreshMTJournal };
+// Fetch from external API and store closed trades
+const refreshMTJournal = async () => {
+  const trades = await detectAndStoreClosedMTTrades();
+  return trades; // returns closed trades only
+};
+
+module.exports = { getMTJournal, refreshMTJournal, detectAndStoreClosedMTTrades };

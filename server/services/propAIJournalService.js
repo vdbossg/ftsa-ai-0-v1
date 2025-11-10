@@ -1,40 +1,3 @@
-// services/propAIJournalService.js
-const axios = require("axios");
-const PropJournal = require("../models/propAIJournalModel");
-
-let previousOpenTrades = [];
-
-function generateAIInsights(trade) {
-  let aiStrategy = trade.strategy || `Momentum strategy on ${trade.symbol || "-"}`;
-  let executionNotes = trade.profit >= 0
-    ? "Entry and exit aligned with trend. TP reached successfully."
-    : "Trade hit SL; review entry timing.";
-  let conclusions = trade.profit >= 0
-    ? "Good execution."
-    : "Review risk management.";
-
-  return { aiStrategy, executionNotes, conclusions };
-}
-
-async function fetchOpenTrades() {
-  try {
-    // Fetch directly from the database
-    const accounts = await PropJournal.distinct("login", { status: "open" }); // all open accounts
-    const openTrades = [];
-
-    for (const login of accounts) {
-      const trades = await PropJournal.find({ login, status: "open" }).lean();
-      openTrades.push({ login, trades });
-    }
-
-    return openTrades;
-  } catch (err) {
-    console.error("Failed to fetch open trades:", err.message);
-    return [];
-  }
-}
-
-
 async function detectAndStoreClosedTrades() {
   const currentOpenTrades = await fetchOpenTrades();
 
@@ -53,6 +16,8 @@ async function detectAndStoreClosedTrades() {
       }
     }
   }
+
+  const savedTrades = [];
 
   for (let trade of closedTrades) {
     const { account } = trade;
@@ -93,12 +58,17 @@ async function detectAndStoreClosedTrades() {
     try {
       await journalEntry.save();
       console.log(`Stored closed trade: ${trade.ticket}`);
+      savedTrades.push(journalEntry.toObject());
     } catch (err) {
-      if (err.code === 11000) console.log(`Trade ${trade.ticket} already exists.`);
-      else console.error(err);
+      if (err.code === 11000) {
+        console.log(`Trade ${trade.ticket} already exists.`);
+        const existing = await PropJournal.findOne({ ticket: trade.ticket }).lean();
+        if (existing) savedTrades.push(existing);
+      } else {
+        console.error(err);
+      }
     }
   }
+
+  return savedTrades; // RETURN all newly stored closed trades
 }
-
-module.exports = { detectAndStoreClosedTrades, fetchOpenTrades };
-
