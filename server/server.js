@@ -33,6 +33,7 @@ const mttabletradesRoutes = require("./routes/mttabletrades.routes");
 const propJournalRoutes = require("./routes/propAIJournalRoutes");
 const mtJournalRoutes = require("./routes/mtAIJournalRoutes");
 
+
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
 
@@ -101,11 +102,13 @@ app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
 app.use('/api/brain/strength', strengthRoutes);
 app.use("/api/propsetting", propSettingRoutes);
 app.use("/api/propaijournal", propJournalRoutes);
-app.use("/api/mtaijournal", mtJournalRoutes);
+console.log("✅ /api/propaijournal routes mounted")
 app.use("/api/binance", binanceRoutes);
 console.log("✅ /api/binance routes mounted");
 app.use("/api/propaccounts", propAccountRoutes);
 console.log("✅ /api/propaccounts routes mounted");
+app.use("/api/mtaijournal", mtJournalRoutes);
+console.log("✅ /api/mtaijournal routes mounted")
 
 
 

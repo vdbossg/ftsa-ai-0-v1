@@ -1,3 +1,4 @@
+//server\models\mtAIJournaModel.js
 const mongoose = require("mongoose");
 
 const MTJournalSchema = new mongoose.Schema({

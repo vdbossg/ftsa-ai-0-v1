@@ -39,25 +39,45 @@ export default function JournalPage() {
 
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+  if (!isAuthenticated) return;
 
+  let isMounted = true;
+
+  const fetchJournals = async () => {
     setLoading(true);
-    Promise.all([
-      APIControl.fetchPropAIJournal(filters),
-      APIControl.fetchMTAIJournal(filters),
-    ])
-      .then(([propData, mtData]) => {
-        setPropJournal(propData);
-        setMtJournal(mtData);
-        setError(null);
-      })
-      .catch(() => {
-        setError("Failed to load journal data.");
-        setPropJournal([]);
-        setMtJournal([]);
-      })
-      .finally(() => setLoading(false));
-  }, [isAuthenticated, filters]);
+    try {
+      const [propData, mtData] = await Promise.all([
+        APIControl.fetchPropAIJournal(filters),
+        APIControl.fetchMTAIJournal(filters),
+      ]);
+
+      if (!isMounted) return;
+
+      setPropJournal(propData.data || []);
+      setMtJournal(mtData.data || []);
+      setError(null);
+    } catch (err) {
+      if (!isMounted) return;
+      setError("Failed to load journal data.");
+      setPropJournal([]);
+      setMtJournal([]);
+    } finally {
+      if (isMounted) setLoading(false);
+    }
+  };
+
+  // Initial fetch
+  fetchJournals();
+
+  // Auto-refresh interval (15s)
+  const interval = setInterval(fetchJournals, 15000);
+
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+  };
+}, [isAuthenticated, filters]);
+
 
   if (!isAuthenticated)
     return (
