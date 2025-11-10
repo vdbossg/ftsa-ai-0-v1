@@ -20,14 +20,17 @@ const getMTJournal = async (filters = {}) => {
 const refreshMTJournal = async () => {
   const trades = await fetchExternalMTTrades();
 
-  // Optional: save/update MongoDB
-  for (const trade of trades) {
-    await MTJournal.updateOne(
-      { ticket: trade.ticket },
-      { $set: trade },
-      { upsert: true }
-    );
-  }
+// Only save closed trades
+for (const trade of trades) {
+  if (!trade.exit) continue; // skip running trades
+
+  await MTJournal.updateOne(
+    { ticket: trade.ticket },
+    { $set: trade },
+    { upsert: true }
+  );
+}
+
 
   return trades;
 };

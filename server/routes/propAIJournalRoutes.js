@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const { getPropAIJournal } = require("../controllers/propAIJournalController");
 
-router.get("/api/propaijournal", getPropAIJournal);
+// only the relative path here
+router.get("/", getPropAIJournal);
 
 module.exports = router;
