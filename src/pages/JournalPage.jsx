@@ -313,12 +313,7 @@ export default function JournalPage() {
 
         {/* Graph */}
         <h3>Balance Evolution</h3>
-        <BalanceGraph
-  data={(selectedTrade.balanceHistory || []).map((balance, index) => ({
-    date: index + 1, // or you can use actual timestamps if you have them
-    balance,
-  }))}
-/>
+        <BalanceGraph data={selectedTrade.balanceHistory || []} />
       </div>
     );
   };
@@ -334,7 +329,7 @@ export default function JournalPage() {
       }}
     >
       <header
-        style={{
+        s        tyle={{
           fontSize: "1.8rem",
           fontWeight: "bold",
           borderBottom: `2px solid ${neonColors.neonBlue}`,
