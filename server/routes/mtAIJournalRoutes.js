@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { fetchMTJournalController } = require("../controllers/mtAIJournalController");
+const { getMTJournalController } = require("../controllers/mtAIJournalController");
 
 // GET /api/mtAIJournal
-router.get("/", fetchMTJournalController);
+router.get("/", getMTJournalController);
 
 module.exports = router;
