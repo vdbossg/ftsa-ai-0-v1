@@ -5,7 +5,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
-import Modal from "../components/Modal";
+import ControlledModal from "../components/ControlledModal";
 import BalanceGraph from "../components/BalanceGraph"; // a component to render graph
 import "../styles/JournalPage.css";
 import { format } from "date-fns";
@@ -396,10 +396,10 @@ export default function JournalPage() {
       <h2 style={{ marginTop: "2rem" }}>MTAccounts AI-Journal</h2>
       {renderTable(mtJournal, "mt")}
 
-      <Modal isOpen={modalOpen} onClose={closeModal}>
-        {renderModalContent()}
-      </Modal>
-
+             {renderModalContent()}
+ <ControlledModal isOpen={modalOpen} onClose={closeModal}>
+  {renderModalContent()}
+</ControlledModal>
       <footer
         style={{
           marginTop: "2rem",
