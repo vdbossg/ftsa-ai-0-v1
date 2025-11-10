@@ -1,6 +1,8 @@
 import React from "react";
 
-const Modal = ({ title, children, onClose }) => {
+const Modal = ({ title, children, onClose, isOpen }) => {
+  if (!isOpen) return null; // 🚨 Don't render anything when closed
+
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -11,9 +13,7 @@ const Modal = ({ title, children, onClose }) => {
         </header>
 
         {/* Content */}
-        <div style={styles.content}>
-          {children}
-        </div>
+        <div style={styles.content}>{children}</div>
       </div>
     </div>
   );
@@ -37,10 +37,10 @@ const styles = {
     color: "#0FF",
     padding: "1rem",
     borderRadius: "10px",
-    width: "90%",        // responsive width
-    maxWidth: "600px",   // max width for larger screens
-    maxHeight: "80vh",   // ✅ prevents modal from exceeding viewport
-    overflowY: "auto",   // ✅ allows scrolling when content is tall
+    width: "90%",
+    maxWidth: "600px",
+    maxHeight: "80vh",
+    overflowY: "auto",
     boxShadow: "0 0 20px #0FF",
   },
   header: {
@@ -54,7 +54,7 @@ const styles = {
   closeButton: {
     background: "none",
     border: "none",
-    color: "#FF0000",   // better contrast for close button
+    color: "#FF0000",
     fontSize: "1.5rem",
     cursor: "pointer",
   },
