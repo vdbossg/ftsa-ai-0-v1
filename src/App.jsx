@@ -22,11 +22,15 @@ import LogoutPage from './pages/LogoutPage';
 import AboutPage from './pages/AboutPage';
 import HelpPage from './pages/HelpPage';
 import AffiliatesPage from './pages/AffiliatesPage';
+import TradingViewPage from './pages/TradingViewPage'; // <-- ADD THIS
 
 
 
-import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
+
+
+import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt, FaChartLine } from 'react-icons/fa';
 import { FaBrain } from 'react-icons/fa';
+
 
 
 function ProtectedRoute({ children }) {
@@ -47,6 +51,7 @@ function AppContent() {
         { label: 'AI Brain', path: '/brain', icon: <FaBrain /> },
         { label: 'Status', path: '/status' },
         { label: 'Binance', path: '/binance' },
+        { label: 'TradingView', path: '/tradingview', icon: <FaChartLine /> },
         { label: 'MT Accounts', path: '/mtaccounts' },
         { label: 'Prop Firm Accounts', path: '/propfirmaccounts' },
         { label: 'Journal', path: '/journal' },
@@ -115,6 +120,15 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route
+  path="/tradingview"
+  element={
+    <ProtectedRoute>
+      <TradingViewPage />
+    </ProtectedRoute>
+  }
+/>
+
           <Route
             path="/mtaccounts"
             element={

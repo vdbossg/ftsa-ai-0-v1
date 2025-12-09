@@ -15,7 +15,8 @@ import {
          FaSignInAlt,
           FaInfoCircle,
            FaQuestionCircle,
-            FaHandshake
+            FaHandshake,
+            FaChartLine
 } from "react-icons/fa";
 
 import "../styles/sidebarMenu.css";
@@ -26,6 +27,7 @@ const defaultLinks = [
    { label: "AI Brain", path: "/brain", icon: <FaBrain /> }, 
    { label: "Status", path: "/status", icon: <FaServer /> },
     { label: "Binance", path: "/binance", icon: <FaBitcoin /> }, 
+    { label: "TradingView", path: "/tradingview", icon: <FaChartLine /> },
     { label: "MT Accounts", path: "/mtaccounts", icon: <FaUserCog /> }, 
     { label: "Prop Firm Accounts", path: "/propfirmaccounts", icon: <FaUsers /> }, 
     { label: "Journal", path: "/journal", icon: <FaBook /> }, 

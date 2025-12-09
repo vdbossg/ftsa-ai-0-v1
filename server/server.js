@@ -32,7 +32,10 @@ const propTradesRoute = require("./routes/propTradesRoute");
 const mttabletradesRoutes = require("./routes/mttabletrades.routes");
 const propJournalRoutes = require("./routes/propAIJournalRoutes");
 const mtJournalRoutes = require("./routes/mtAIJournalRoutes");
-
+const PropTradeService = require('./services/propTradeService');
+const MTTradeService = require('./services/mtTradeService');
+const propTradeRoutes = require('./routes/propTradeRoutes');
+const mtTradeRoutes = require('./routes/mtTradeRoutes');
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -52,6 +55,11 @@ const allowedOrigins = [
 
 
 chochService.connectMongo(process.env.MONGO_URI);
+
+// Start polling Prop and MT trades
+PropTradeService.startPolling(5000); // every 5 seconds
+MTTradeService.startPolling(5000);
+console.log('✅ Prop and MT trade polling started');
 
 // ✅ Enable CORS
 app.use(cors({
@@ -109,6 +117,11 @@ app.use("/api/propaccounts", propAccountRoutes);
 console.log("✅ /api/propaccounts routes mounted");
 app.use("/api/mtaijournal", mtJournalRoutes);
 console.log("✅ /api/mtaijournal routes mounted")
+app.use('/api', propTradeRoutes);
+console.log('✅ /api/closed-prop-trades routes mounted');
+app.use('/api', mtTradeRoutes);
+console.log('✅ /api/closed-mt-trades routes mounted')
+
 
 
 
@@ -138,6 +151,16 @@ app.get('/status', (req, res) => {
 });
 const http = require('http');
 const WebSocket = require('ws');
+
+const gracefulShutdown = async () => {
+  console.log('⚡ Shutting down, closing active trades...');
+  await PropTradeService.closeAllActiveTrades();
+  await MTTradeService.closeAllActiveTrades();
+  process.exit(0);
+};
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
 
 // Replace app.listen(...) with:
 const server = http.createServer(app);
