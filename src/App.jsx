@@ -28,7 +28,7 @@ import EADownloadPage from './pages/EA_DownloadPage';
 
 
 
-import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt, FaChartLine } from 'react-icons/fa';
+import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt, FaChartLine, FaServer, FaBitcoin, FaUserCog, FaBook, FaCog, FaExchangeAlt, FaQuestionCircle, FaHandshake, FaRegQuestionCircle, FaUser } from 'react-icons/fa';
 import { FaBrain } from 'react-icons/fa';
 import { FaDownload } from 'react-icons/fa';
 
@@ -49,24 +49,24 @@ function AppContent() {
         { label: 'Home', path: '/', icon: <FaHome /> },
         { label: 'Dashboard', path: '/dashboard', icon: <FaChartBar /> },
         { label: 'AI Brain', path: '/brain', icon: <FaBrain /> },
-        { label: 'Status', path: '/status' },
+        { label: 'Status', path: '/status', icon: <FaServer /> },
         { label: 'EA Download', path: '/ea-download', icon: <FaDownload /> },
-        { label: 'Binance', path: '/binance' },
+        { label: 'Binance', path: '/binance', icon: <FaBitcoin /> },
         { label: 'TradingView', path: '/tradingview', icon: <FaChartLine /> },
-        { label: 'MT Accounts', path: '/mtaccounts' },
-        { label: 'Prop Firm Accounts', path: '/propfirmaccounts' },
-        { label: 'Journal', path: '/journal' },
-        { label: 'Trades', path: '/trades' },
-        { label: 'Settings', path: '/settings' },
+        { label: 'MT Accounts', path: '/mtaccounts', icon: <FaUserCog /> },
+        { label: 'Prop Firm Accounts', path: '/propfirmaccounts', icon: <FaUser /> },
+        { label: 'Journal', path: '/journal', icon: <FaBook /> },
+        { label: 'Trades', path: '/trades', icon: <FaExchangeAlt /> },
+        { label: 'Settings', path: '/settings', icon: <FaCog /> },
         { label: 'About', path: '/about', icon: <FaInfoCircle /> },
-        { label: 'Help', path: '/help' },
-        { label: 'Affiliates', path: '/affiliates' },
+        { label: 'Help', path: '/help', icon: <FaRegQuestionCircle /> },
+        { label: 'Affiliates', path: '/affiliates', icon: <FaHandshake /> },
         { label: 'Logout', path: '/logout', icon: <FaSignOutAlt /> },
       ]
     : [
         { label: 'Login', path: '/login', icon: <FaSignInAlt /> },
         { label: 'About', path: '/about', icon: <FaInfoCircle /> },
-        { label: 'Help', path: '/help' },
+        { label: 'Help', path: '/help', icon: <FaQuestionCircle /> },
 
       ];
 
