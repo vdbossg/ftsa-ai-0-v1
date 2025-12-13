@@ -12,7 +12,11 @@ const PLAN_CONFIG = {
   Unlimited: { price: 2400, days: 36500 }, // Lifetime
 };
 
-const SELAR_CHECKOUT_URL = "https://YOURSTORE.selar.com/YOUR_PRODUCT_ID";
+const SELAR_CHECKOUT_URLS = {
+  Basic: "https://selar.com/qh11u57775",
+  Plus: "https://selar.com/m4x0043015",
+  Unlimited: "https://selar.com/1i416146s6",
+};
 
 const StatusPage = () => {
   const { isAuthenticated, user } = useAuth();
@@ -65,18 +69,27 @@ const StatusPage = () => {
 
   // ---------------- SELAR REDIRECT ----------------
   const redirectToSelar = () => {
-    if (!broker || !mtLogin) {
-      alert("Broker and MT Login are required");
-      return;
-    }
-    const url =
-      `${SELAR_CHECKOUT_URL}` +
-      `?metadata[user_id]=${user.id}` +
-      `&metadata[plan]=${selectedPlan}` +
-      `&metadata[broker]=${encodeURIComponent(broker)}` +
-      `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
-    window.location.href = url;
-  };
+  if (!broker || !mtLogin) {
+    alert("Broker and MT Login are required");
+    return;
+  }
+  
+  const planUrl = SELAR_CHECKOUT_URLS[selectedPlan];
+  if (!planUrl) {
+    alert("Invalid plan selected");
+    return;
+  }
+
+  const url =
+    `${planUrl}` +
+    `?metadata[user_id]=${user.id}` +
+    `&metadata[plan]=${selectedPlan}` +
+    `&metadata[broker]=${encodeURIComponent(broker)}` +
+    `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
+
+  window.location.href = url;
+};
+
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in</div>;
   if (loading) return <LoadingSpinner />;
