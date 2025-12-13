@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { FaEnvelope, FaUserCircle } from "react-icons/fa";
-import MessageModal from "./MessageModal";
 import { useNavigate } from "react-router-dom";
+import MessageModal from "./MessageModal"; // adjust path if needed
 
 export default function TopNav() {
   const { user, isAuthenticated } = useAuth();
@@ -59,7 +59,7 @@ export default function TopNav() {
       <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
         
         {/* Message Icon */}
-        <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setIsModalOpen(true)}>
+       <div style={{ cursor: "pointer", position: "relative" }} onClick={() => navigate("/profile")}>
           <FaEnvelope size={24} />
           {unreadMessages > 0 && (
             <span style={{
@@ -80,7 +80,7 @@ export default function TopNav() {
         </div>
 
         {/* Profile Icon */}
-        <div style={{ cursor: "pointer", position: "relative" }} onClick={() => navigate("/profile")}>
+        <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowMessages(true)}>
           <FaUserCircle size={28} />
           <span style={{
             position: "absolute",

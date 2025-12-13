@@ -1,4 +1,6 @@
 import React from "react";
+import React, { useState } from "react"; 
+import MessageModal from "./MessageModal";
 import { Link, useLocation } from "react-router-dom";
 import { 
   FaHome,
@@ -42,9 +44,10 @@ const defaultLinks = [
       { label: "Affiliates", path: "/affiliates", icon: <FaHandshake /> },
 ];
 
-const SidebarMenu = ({ links = defaultLinks }) => {
-  const location = useLocation();
+const SidebarMenu = ({ links = defaultLinks, unreadMessages = 0, messages = [] }) => {
 
+  const location = useLocation();
+const [isMessageModalOpen, setIsMessageModalOpen] = useState(false); // ✅ Fixed
   return (
     <nav className="sidebar-menu" aria-label="Main navigation">
       <ul>
@@ -59,7 +62,39 @@ const SidebarMenu = ({ links = defaultLinks }) => {
             </li>
           );
         })}
+        <li>
+  <div
+    className="sidebar-link"
+    style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+    onClick={() => setIsMessageModalOpen(true)}
+    tabIndex={0}
+  >
+    <span className="icon"><FaEnvelope /></span>
+    Messages
+    {unreadMessages > 0 && (
+      <span style={{
+        marginLeft: "auto",
+        background: "red",
+        color: "#fff",
+        borderRadius: "50%",
+        width: 18,
+        height: 18,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "0.75rem"
+      }}>{unreadMessages}</span>
+    )}
+  </div>
+</li>
+
       </ul>
+      {/* Messages Modal */}
+      <MessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        messages={messages}
+      />
     </nav>
   );
 };

@@ -28,6 +28,7 @@ import TopNav from "./components/TopNav";
 import ProfilePage from './pages/ProfilePage';
 
 
+
 import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt, FaChartLine, FaServer, FaBitcoin, FaUserCog, FaBook, FaCog, FaExchangeAlt, FaQuestionCircle, FaHandshake, FaRegQuestionCircle, FaUser } from 'react-icons/fa';
 import { FaBrain } from 'react-icons/fa';
 import { FaDownload } from 'react-icons/fa';
@@ -74,7 +75,7 @@ function AppContent() {
     <div className="app-layout" style={{ display: 'flex', height: '100vh' }}>
   <SidebarMenu links={links} />
   <div style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-    <TopNav unreadMessages={1} /> {/* Replace 1 with dynamic count */}
+    <TopNav />
     <main style={{ flexGrow: 1, padding: '1rem', overflowY: 'auto' }}>
         <Routes>
           {/* Public routes */}
@@ -99,6 +100,15 @@ function AppContent() {
             }
          
           />
+          <Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  }
+/>
+
           <Route
             path="/brain"
             element={
@@ -131,14 +141,7 @@ function AppContent() {
     </ProtectedRoute>
   }
 />
-<Route
-  path="/profile"
-  element={
-    <ProtectedRoute>
-      <ProfilePage />
-    </ProtectedRoute>
-  }
-/>
+
           <Route
   path="/tradingview"
   element={
