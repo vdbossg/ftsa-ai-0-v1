@@ -24,7 +24,10 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-grow: 1;       /* take remaining height */
+  overflow-y: auto;   /* scroll if too many items */
 }
+
 
 .sidebar-menu li {
   margin-bottom: 1rem;

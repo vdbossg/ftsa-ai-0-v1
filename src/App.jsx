@@ -72,8 +72,8 @@ function AppContent() {
 
   return (
     <div className="app-layout" style={{ display: 'flex', height: '100vh' }}>
-      <SidebarMenu links={links} />
-      <main style={{ flexGrow: 1, padding: '1rem' }}>
+  <SidebarMenu links={links} />
+  <main style={{ flexGrow: 1, padding: '1rem', overflowY: 'auto' }}>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
