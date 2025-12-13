@@ -417,6 +417,117 @@ async fetchPropFirmAccountsData() {
   }
 },
 /**
+ * Fetch the active EA license for the logged-in user
+ */
+async getActiveLicense(userId) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/licenses/active?userId=${userId}`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+      },
+    });
+
+    if (!response.ok) {
+      return { success: false, data: null };
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data || null }; // ensure null if no license
+  } catch (err) {
+    console.error("Error fetching active license:", err);
+    return { success: false, data: null };
+  }
+},
+/**
+ * Fetch Selar subscription or payment info
+ */
+async fetchSelarData() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/selar`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+      },
+    });
+    if (!response.ok) return { success: false, data: [] };
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("Error fetching Selar data:", err);
+    return { success: false, data: [] };
+  }
+},
+/**
+ * Fetch CFA data
+ */
+async fetchCFAData() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/cfa`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+      },
+    });
+    if (!response.ok) return { success: false, data: [] };
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("Error fetching CFA data:", err);
+    return { success: false, data: [] };
+  }
+},
+/**
+ * Fetch OCB data
+ */
+async fetchOCBData() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/ocb`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+      },
+    });
+    if (!response.ok) return { success: false, data: [] };
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("Error fetching OCB data:", err);
+    return { success: false, data: [] };
+  }
+},
+
+
+/**
+ * Generate the EA file for a given license
+ */
+async generateEA(licenseKey) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/ea/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+      },
+      body: JSON.stringify({ licenseKey }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, error: errorData.message || "EA generation failed" };
+    }
+
+    const data = await response.json();
+    return { success: true, filename: data.filename }; // returned filename to download
+  } catch (err) {
+    console.error("Error generating EA:", err);
+    return { success: false, error: "EA generation error" };
+  }
+},
+/**
+ * Get download URL for EA
+ */
+downloadEA(filename) {
+  return `${BASE_URL}/api/ea/download/${filename}`;
+},
+
+/**
  * Fetch unified PropTrades table data
  */
 async fetchPropTableTrades() {

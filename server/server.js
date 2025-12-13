@@ -36,6 +36,8 @@ const PropTradeService = require('./services/propTradeService');
 const MTTradeService = require('./services/mtTradeService');
 const propTradeRoutes = require('./routes/propTradeRoutes');
 const mtTradeRoutes = require('./routes/mtTradeRoutes');
+const licenseRoutes = require('./routes/license');
+
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -121,7 +123,8 @@ app.use('/api', propTradeRoutes);
 console.log('✅ /api/closed-prop-trades routes mounted');
 app.use('/api', mtTradeRoutes);
 console.log('✅ /api/closed-mt-trades routes mounted')
-
+app.use('/api/license', licenseRoutes);
+console.log('✅ /api/license routes mounted');
 
 
 

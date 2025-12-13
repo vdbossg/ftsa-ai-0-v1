@@ -23,14 +23,14 @@ import AboutPage from './pages/AboutPage';
 import HelpPage from './pages/HelpPage';
 import AffiliatesPage from './pages/AffiliatesPage';
 import TradingViewPage from './pages/TradingViewPage'; // <-- ADD THIS
-
+import EADownloadPage from './pages/EA_DownloadPage';
 
 
 
 
 import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt, FaChartLine } from 'react-icons/fa';
 import { FaBrain } from 'react-icons/fa';
-
+import { FaDownload } from 'react-icons/fa';
 
 
 function ProtectedRoute({ children }) {
@@ -50,6 +50,7 @@ function AppContent() {
         { label: 'Dashboard', path: '/dashboard', icon: <FaChartBar /> },
         { label: 'AI Brain', path: '/brain', icon: <FaBrain /> },
         { label: 'Status', path: '/status' },
+        { label: 'EA Download', path: '/ea-download', icon: <FaDownload /> },
         { label: 'Binance', path: '/binance' },
         { label: 'TradingView', path: '/tradingview', icon: <FaChartLine /> },
         { label: 'MT Accounts', path: '/mtaccounts' },
@@ -120,6 +121,15 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route
+  path="/ea-download"
+  element={
+    <ProtectedRoute>
+      <EADownloadPage />
+    </ProtectedRoute>
+  }
+/>
+
           <Route
   path="/tradingview"
   element={

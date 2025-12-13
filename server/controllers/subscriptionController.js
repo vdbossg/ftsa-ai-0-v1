@@ -1,6 +1,6 @@
 // backend/controllers/subscriptionController.js
 import Subscription from "../models/Subscription.js";
-import CFAAccount from "../services/cfaAccount.js";  // Your CFA service
+import CFAAccount from "../services/cfaAccount.js";  // CFA service
 import axios from "axios";
 import Affiliate from "../models/Affiliate.js";
 
@@ -9,27 +9,30 @@ const OCB_API = process.env.OCB_API || "http://ocb-bank:5000/api";
 
 export const subscribe = async (req, res, next) => {
   try {
-    const { userId, accountNumber, plan, paymentMethod, amount } = req.body;
+    const { userId, plan, paymentMethod, amount, mtLogin, broker } = req.body;
 
-    // 1. Save subscription locally
+    // 1️⃣ Determine expiry date based on plan
+    let expiryDate;
+    if (plan === "Basic") expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    else if (plan === "Plus") expiryDate = new Date(Date.now() + 360 * 24 * 60 * 60 * 1000);
+    else if (plan === "Unlimited") expiryDate = new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000);
+
+    // 2️⃣ Save subscription locally
     const subscription = await Subscription.create({
       userId,
-      accountNumber,
       plan,
       paymentMethod,
       amount,
       status: "active",
-      expiryDate: plan === "basic" 
-        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        : plan === "plus"
-        ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-        : null,
+      expiryDate,
+      mtLogin,
+      broker,
     });
 
-    // 2. Deposit into CFA account (local tracking)
+    // 3️⃣ Deposit into CFA account (local tracking)
     await CFAAccount.deposit(userId, amount, paymentMethod);
 
-    // 3. Sync deposit into OCB Bank
+    // 4️⃣ Sync deposit to OCB Bank
     await axios.post(`${OCB_API}/transactions/sync`, {
       accountId: "CFA_ACCOUNT",
       type: "deposit",
@@ -39,23 +42,23 @@ export const subscribe = async (req, res, next) => {
       source: "FTSA_AI_APP",
     });
 
-    
-    // 4. Handle Affiliate Commission
+    // 5️⃣ Handle affiliate commission
     const affiliate = await Affiliate.findOne({ referredUsers: userId });
     if (affiliate) {
       let commission = 0;
-      if (plan === "basic") commission = 5;
-      if (plan === "plus") commission = 15;
-      if (plan === "unlimited") commission = 30;
+      if (plan === "Basic") commission = 5;
+      else if (plan === "Plus") commission = 15;
+      else if (plan === "Unlimited") commission = 30;
 
       affiliate.totalCommission += commission;
-      affiliate.withdrawableBalance += commission;
+      affiliate.pendingCommission += commission;
       affiliate.newSubscribersCount = (affiliate.newSubscribersCount || 0) + 1;
 
       await affiliate.save();
     }
 
     res.status(201).json({
+      success: true,
       message: "Subscription successful & funds synced to OCB Bank",
       subscription,
     });
@@ -65,16 +68,15 @@ export const subscribe = async (req, res, next) => {
   }
 };
 
-
 // ✅ Get subscription status
 export const getStatus = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const subscription = await Subscription.findOne({ userId });
 
-    if (!subscription) return res.status(404).json({ message: "No subscription found" });
+    if (!subscription) return res.status(404).json({ success: false, message: "No subscription found" });
 
-    res.json(subscription);
+    res.json({ success: true, subscription });
   } catch (error) {
     next(error);
   }
