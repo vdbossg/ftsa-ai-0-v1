@@ -1,0 +1,71 @@
+/* PROFILE PAGE - NEON THEME */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Orbitron', sans-serif;
+  background-color: #111;
+  color: #00FFFF;
+}
+
+.profile-header {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  border-bottom: 2px solid #00FFFF;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.profile-container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.profile-photo {
+  border-radius: 8px;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border: 2px solid #00FFFF;
+  box-shadow: 0 0 15px #00FFFF;
+}
+
+.profile-info-card {
+  border: 2px solid #00FFFF;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  max-width: 400px;
+  box-shadow: 0 0 10px #00FFFF;
+  transition: 0.3s all;
+}
+
+.profile-info-card:hover {
+  box-shadow: 0 0 20px #00FFFF;
+}
+
+.profile-input {
+  background: #111;
+  color: #00FFFF;
+  border: 1px solid #00FFFF;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.profile-button {
+  margin-top: 1rem;
+  min-width: 160px;
+}
+
+.profile-footer {
+  text-align: center;
+  border-top: 1px solid #00FFFF;
+  padding-top: 1rem;
+  color: #00FFFF;
+  font-size: 0.9rem;
+  margin-top: 2rem;
+}

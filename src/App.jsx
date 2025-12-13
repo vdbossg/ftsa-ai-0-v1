@@ -24,7 +24,7 @@ import HelpPage from './pages/HelpPage';
 import AffiliatesPage from './pages/AffiliatesPage';
 import TradingViewPage from './pages/TradingViewPage'; // <-- ADD THIS
 import EADownloadPage from './pages/EA_DownloadPage';
-
+import TopNav from "./components/TopNav";
 
 
 
@@ -73,7 +73,9 @@ function AppContent() {
   return (
     <div className="app-layout" style={{ display: 'flex', height: '100vh' }}>
   <SidebarMenu links={links} />
-  <main style={{ flexGrow: 1, padding: '1rem', overflowY: 'auto' }}>
+  <div style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+    <TopNav unreadMessages={1} /> {/* Replace 1 with dynamic count */}
+    <main style={{ flexGrow: 1, padding: '1rem', overflowY: 'auto' }}>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -208,6 +210,7 @@ function AppContent() {
           <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
         </Routes>
       </main>
+    </div>
     </div>
   );
 }
