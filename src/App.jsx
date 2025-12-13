@@ -25,7 +25,7 @@ import AffiliatesPage from './pages/AffiliatesPage';
 import TradingViewPage from './pages/TradingViewPage'; // <-- ADD THIS
 import EADownloadPage from './pages/EA_DownloadPage';
 import TopNav from "./components/TopNav";
-
+import ProfilePage from './pages/ProfilePage';
 
 
 import { FaHome, FaChartBar, FaInfoCircle, FaSignOutAlt, FaSignInAlt, FaChartLine, FaServer, FaBitcoin, FaUserCog, FaBook, FaCog, FaExchangeAlt, FaQuestionCircle, FaHandshake, FaRegQuestionCircle, FaUser } from 'react-icons/fa';
@@ -131,7 +131,14 @@ function AppContent() {
     </ProtectedRoute>
   }
 />
-
+<Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  }
+/>
           <Route
   path="/tradingview"
   element={

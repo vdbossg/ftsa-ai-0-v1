@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaUserCircle } from "react-icons/fa";
+import MessageModal from "./MessageModal";
+import { useNavigate } from "react-router-dom";
 
 export default function TopNav() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
+  
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [messages, setMessages] = useState([]);
   const [online, setOnline] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Example: fetch unread messages count
+  // Fetch unread messages & messages
   useEffect(() => {
     if (!isAuthenticated) return;
     async function fetchMessages() {
-      // Replace with real API call
-      const count = await fetch("/api/messages/unread")
-        .then(res => res.json())
-        .then(data => data.count)
-        .catch(() => 0);
-      setUnreadMessages(count);
+      try {
+        const data = await fetch("/api/messages") // fetch messages
+          .then(res => res.json());
+        setMessages(data);
+        setUnreadMessages(data.filter(msg => !msg.read).length);
+      } catch (err) {
+        setMessages([]);
+        setUnreadMessages(0);
+      }
     }
     fetchMessages();
-    const interval = setInterval(fetchMessages, 30000); // refresh every 30s
+    const interval = setInterval(fetchMessages, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
-  // Online/offline check (simple ping simulation)
+  // Online/offline check
   useEffect(() => {
     const checkOnline = () => setOnline(navigator.onLine);
     window.addEventListener("online", checkOnline);
@@ -48,16 +54,12 @@ export default function TopNav() {
       borderBottom: "2px solid #00FFFF",
       fontFamily: "'Orbitron', sans-serif",
     }}>
-      
-      {/* Left: empty space or logo */}
       <div style={{ flex: 1 }}></div>
-
-      {/* Center: FTSA AI */}
       <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>FTSA AI</div>
-
-      {/* Right: Messages & Profile */}
       <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-        <div style={{ cursor: "pointer", position: "relative" }} onClick={() => navigate("/messages")}>
+        
+        {/* Message Icon */}
+        <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setIsModalOpen(true)}>
           <FaEnvelope size={24} />
           {unreadMessages > 0 && (
             <span style={{
@@ -76,6 +78,8 @@ export default function TopNav() {
             }}>{unreadMessages}</span>
           )}
         </div>
+
+        {/* Profile Icon */}
         <div style={{ cursor: "pointer", position: "relative" }} onClick={() => navigate("/profile")}>
           <FaUserCircle size={28} />
           <span style={{
@@ -90,6 +94,13 @@ export default function TopNav() {
           }} />
         </div>
       </div>
+
+      {/* Modal */}
+      <MessageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        messages={messages}
+      />
     </div>
   );
 }
