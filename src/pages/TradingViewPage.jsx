@@ -16,13 +16,14 @@ const dummyData = [
 ];
 
 const TradingViewDashboard = () => {
-  const chartRefs = [useRef(), useRef()]; // two charts
+  const chartRefs = [useRef(null), useRef(null)]; // two charts
+  const charts = useRef([]); // store chart instances
   const [symbol, setSymbol] = useState("AAPL");
   const [timeframe, setTimeframe] = useState("60");
   const [theme, setTheme] = useState("Dark");
 
   useEffect(() => {
-    chartRefs.forEach((ref) => {
+    chartRefs.forEach((ref, i) => {
       if (!ref.current) return;
 
       // Clear previous chart
@@ -41,15 +42,21 @@ const TradingViewDashboard = () => {
       const candleSeries = chart.addCandlestickSeries();
       candleSeries.setData(dummyData);
 
-      // Optional: resize on window
+      // Save chart instance for cleanup
+      charts.current[i] = chart;
+
+      // Handle window resize
       const handleResize = () => chart.applyOptions({ width: ref.current.clientWidth });
       window.addEventListener("resize", handleResize);
 
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        chart.remove();
-      };
+      // Cleanup
+      return () => window.removeEventListener("resize", handleResize);
     });
+
+    // Cleanup on unmount
+    return () => {
+      charts.current.forEach((chart) => chart && chart.remove());
+    };
   }, [symbol, timeframe, theme]);
 
   return (
