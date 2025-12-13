@@ -1,11 +1,23 @@
 .sidebar-menu {
   width: 250px;
-  background-color: var(--neon-bg);
-  border-right: 1px solid var(--neon-border);
+  height: 100vh; /* full viewport height */
+  overflow-y: auto; /* enable vertical scrolling */
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  background-color: var(--neon-bg);
+  border-right: 1px solid var(--neon-border);
   box-shadow: 0 0 10px var(--neon-glow);
+}
+
+/* Optional: style the scrollbar to match neon theme */
+.sidebar-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background-color: var(--neon-accent);
+  border-radius: 3px;
 }
 
 .sidebar-menu ul {
@@ -55,4 +67,3 @@
   color: var(--neon-active-text);
   box-shadow: 0 0 15px var(--neon-accent);
 }
-
