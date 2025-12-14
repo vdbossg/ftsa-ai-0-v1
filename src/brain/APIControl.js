@@ -1023,6 +1023,53 @@ const accounts = [
   }
 },
 
+async saveProfileSecurity(payload) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/settings/security`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      return { success: false, error: errData.error || "Failed to save security" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving security:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
+
+async saveProfileNotifications(notifications) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/settings/notifications`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+      },
+      body: JSON.stringify(notifications),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      return { success: false, error: errData.error || "Failed to save notifications" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving notifications:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
 
 
   // The following methods remain unchanged and still use delay and mock data:
