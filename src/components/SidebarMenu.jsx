@@ -49,14 +49,15 @@ const SidebarMenu = ({ links = defaultLinks }) => {
   const location = useLocation();
 
   return (
+  <aside className="sidebar">
     <nav className="sidebar-menu" aria-label="Main navigation">
-      <ul>
+      <ul className="sidebar-list">
         {links.map(({ label, path, icon }, index) => {
           const isActive = location.pathname === path;
           return (
             <li key={index} className={isActive ? "active" : ""}>
-              <Link to={path} className="sidebar-link" tabIndex={0}>
-                {icon && <span className="icon">{icon}</span>}
+              <Link to={path} className="sidebar-link">
+                <span className="icon">{icon}</span>
                 {label}
               </Link>
             </li>
@@ -64,7 +65,8 @@ const SidebarMenu = ({ links = defaultLinks }) => {
         })}
       </ul>
     </nav>
-  );
+  </aside>
+);
 };
 
 export default SidebarMenu;

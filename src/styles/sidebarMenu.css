@@ -1,27 +1,51 @@
-/* sidebarMenu.css */
-
-.sidebar-menu {
+/* ===== SIDEBAR CONTAINER ===== */
+.sidebar {
   width: 250px;
-  background-color: #000000; /* black background */
-  border-right: 2px solid #00ffff; /* neon blue border */
+  height: 100vh;                     /* FIXED HEIGHT */
+  background-color: #000000;         /* black background */
+  border-right: 2px solid #00ffff;   /* neon blue border */
+  box-shadow: 
+    0 0 15px 2px rgba(0, 255, 255, 0.8),
+    inset 0 0 8px #00ffff;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  box-shadow: 0 0 15px 2px rgba(0, 255, 255, 0.8), inset 0 0 8px #00FFFF;
   user-select: none;
   font-family: 'Orbitron', sans-serif;
 }
 
+/* ===== MENU WRAPPER ===== */
+.sidebar-menu {
+  flex: 1;                           /* TAKE REMAINING HEIGHT */
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+/* ===== SCROLL AREA ===== */
 .sidebar-menu ul {
+  flex: 1;                           /* REQUIRED FOR SCROLL */
+  overflow-y: auto;                  /* ENABLE SCROLL */
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+/* ===== SCROLLBAR (NEON STYLE) ===== */
+.sidebar-menu ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-menu ul::-webkit-scrollbar-thumb {
+  background-color: #00ffff;
+  border-radius: 3px;
+}
+
+/* ===== MENU ITEMS ===== */
 .sidebar-menu li {
   margin-bottom: 1rem;
 }
 
+/* ===== LINKS ===== */
 .sidebar-link {
   width: 100%;
   display: flex;
@@ -39,6 +63,7 @@
   box-shadow: 0 0 5px transparent;
 }
 
+/* ===== ICON ===== */
 .sidebar-link .icon {
   margin-right: 0.75rem;
   color: #00ffea;
@@ -47,6 +72,7 @@
   font-size: 1.3rem;
 }
 
+/* ===== HOVER / FOCUS ===== */
 .sidebar-link:hover,
 .sidebar-link:focus {
   background-color: #00ffff;
@@ -55,6 +81,7 @@
   box-shadow: 0 0 10px #00ffff;
 }
 
+/* ===== ACTIVE LINK ===== */
 .sidebar-menu li.active .sidebar-link {
   background-color: #00ffff;
   color: #000000;
