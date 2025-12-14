@@ -22,10 +22,9 @@ const updateProfile = async (userId, profileData) => {
 
   const updatedProfile = { ...settings.profile.toObject() };
 
-  // Check for uploaded file (profitPhoto)
-  if (profileData.profitPhoto && profileData.profitPhoto.path) {
-    // Save relative path in DB
-    updatedProfile.profitPhoto = profileData.profitPhoto.path;
+  // Use profitPhoto directly (frontend sends path as string after upload)
+  if (profileData.profitPhoto) {
+    updatedProfile.profitPhoto = profileData.profitPhoto;
   }
 
   // Copy other fields
@@ -40,6 +39,7 @@ const updateProfile = async (userId, profileData) => {
 
   return settings;
 };
+
 
 const updateSecurity = async (userId, securityData) => {
   // Fetch existing settings first
