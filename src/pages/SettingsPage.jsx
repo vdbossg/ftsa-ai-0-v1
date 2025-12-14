@@ -92,7 +92,7 @@ export default function SettingsPage() {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
   // Save Functions
-  const saveProfile = async () => {
+ const saveProfile = async () => {
   setLoading(true);
   try {
     const formData = new FormData();
@@ -168,16 +168,18 @@ export default function SettingsPage() {
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonGreen }}>Profile</h2>
             <img
-              src={profile.profitPhoto || "https://via.placeholder.com/100"}
-              alt="Profile"
-              style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
-            />
-            <input
+  src={profile.profitPhoto instanceof File ? URL.createObjectURL(profile.profitPhoto) : (profile.profitPhoto || "https://via.placeholder.com/100")}
+  alt="Profile"
+  style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
+/>
+
+<input
   type="file"
   accept="image/*"
   onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
   style={{ marginBottom: 10 }}
 />
+
 
             {["firstName", "middleName", "sirName", "email", "phoneNumber"].map((field) => (
               <input

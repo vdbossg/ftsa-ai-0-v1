@@ -474,6 +474,30 @@ async fetchCFAData() {
     return { success: false, data: [] };
   }
 },
+async saveProfileData(formData) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/settings/profile/${userId}`, { // <-- use your route
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        // DO NOT set Content-Type for FormData, the browser sets it automatically
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      return { success: false, error: errData.error || "Failed to save profile" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving profile:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
+
 /**
  * Fetch OCB data
  */

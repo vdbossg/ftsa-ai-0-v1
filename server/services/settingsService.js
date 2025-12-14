@@ -11,12 +11,33 @@ const getSettings = async (userId) => {
   return settings;
 };
 
+const fs = require("fs");
+const path = require("path");
+
 const updateProfile = async (userId, profileData) => {
-  const settings = await UserSettings.findOneAndUpdate(
-    { userId },
-    { profile: profileData },
-    { new: true, upsert: true }
-  );
+  let settings = await UserSettings.findOne({ userId });
+  if (!settings) {
+    settings = await UserSettings.create({ userId, profile: { email: "" }, security: { passwordHash: "" } });
+  }
+
+  const updatedProfile = { ...settings.profile.toObject() };
+
+  // Check for uploaded file (profitPhoto)
+  if (profileData.profitPhoto && profileData.profitPhoto.path) {
+    // Save relative path in DB
+    updatedProfile.profitPhoto = profileData.profitPhoto.path;
+  }
+
+  // Copy other fields
+  ["firstName", "middleName", "sirName", "email", "phoneNumber", "phoneCode", "country"].forEach(field => {
+    if (profileData[field] !== undefined) {
+      updatedProfile[field] = profileData[field];
+    }
+  });
+
+  settings.profile = updatedProfile;
+  await settings.save();
+
   return settings;
 };
 
