@@ -58,7 +58,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
   setLoading(true);
   setError(null);
 
-  APIControl.fetchSettingsData()
+  APIControl.fetchSettingsData(localStorage.getItem("authToken"))
     .then((res) => {
       if (!res) {
         setError("No settings data returned");
@@ -115,7 +115,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
         }
       }
     });
-    const result = await APIControl.saveProfileData(formData);
+    const result = await APIControl.saveProfileData(formData, localStorage.getItem("authToken"));
     if (!result.success) throw new Error(result.error || "Save failed");
     alert("Profile saved successfully!");
   } catch (err) {
@@ -137,7 +137,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
       newPassword: security.newPassword || undefined,
       twoFactorEnabled: security.twoFactorEnabled,
     };
-    const result = await APIControl.saveProfileSecurity(payload); // match your APIControl method
+    const result = await APIControl.saveProfileSecurity(payload, localStorage.getItem("authToken")); // match your APIControl method
     if (!result.success) throw new Error(result.error || "Save failed");
     alert("Security settings saved successfully!");
   } catch (err) {
@@ -151,7 +151,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
   const saveNotifications = async () => {
   setLoading(true);
   try {
-    const result = await APIControl.saveProfileNotifications(notifications); 
+    const result = await APIControl.saveProfileNotifications(notifications, localStorage.getItem("authToken")); 
 // match the function in APIControl that calls `/notifications/:userId`
 
     if (!result.success) throw new Error(result.error || "Save failed");

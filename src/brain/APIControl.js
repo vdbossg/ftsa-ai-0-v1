@@ -474,29 +474,6 @@ async fetchCFAData() {
     return { success: false, data: [] };
   }
 },
-async saveProfileData(formData) {
-  try {
-    const response = await fetch(`${BASE_URL}/api/settings/profile`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
-        // DO NOT set Content-Type for FormData, the browser sets it automatically
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errData = await response.json();
-      return { success: false, error: errData.error || "Failed to save profile" };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
-  } catch (err) {
-    console.error("Error saving profile:", err);
-    return { success: false, error: err.message || "Unexpected error" };
-  }
-},
 
 /**
  * Fetch OCB data
@@ -1023,19 +1000,45 @@ const accounts = [
   }
 },
 
-async saveProfileSecurity(payload) {
+// /src/brain/APIControl.js
+
+async saveProfileData(formData, token) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/settings/profile`, {
+      method: "PUT",
+      headers: {
+        ...(token && { "Authorization": `Bearer ${token}` }),
+        // DO NOT set Content-Type for FormData
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, error: errData.error || "Failed to save profile" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving profile:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
+
+async saveProfileSecurity(payload, token) {
   try {
     const response = await fetch(`${BASE_URL}/api/settings/security`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        ...(token && { "Authorization": `Bearer ${token}` }),
       },
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      const errData = await response.json();
+      const errData = await response.json().catch(() => ({}));
       return { success: false, error: errData.error || "Failed to save security" };
     }
 
@@ -1047,19 +1050,19 @@ async saveProfileSecurity(payload) {
   }
 },
 
-async saveProfileNotifications(notifications) {
+async saveProfileNotifications(notifications, token) {
   try {
     const response = await fetch(`${BASE_URL}/api/settings/notifications`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        ...(token && { "Authorization": `Bearer ${token}` }),
       },
       body: JSON.stringify(notifications),
     });
 
     if (!response.ok) {
-      const errData = await response.json();
+      const errData = await response.json().catch(() => ({}));
       return { success: false, error: errData.error || "Failed to save notifications" };
     }
 
@@ -1072,16 +1075,18 @@ async saveProfileNotifications(notifications) {
 },
 
 
+
   // The following methods remain unchanged and still use delay and mock data:
 
-  async fetchSettingsData() {
+  // /src/brain/APIControl.js
+
+async fetchSettingsData(token) {
   try {
-    const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: null, error: "No auth token" };
 
     const response = await fetch(`${BASE_URL}/api/settings`, {
       headers: {
-        "Authorization": `Bearer ${token}`,
+        ...(token && { "Authorization": `Bearer ${token}` }),
       },
     });
 
