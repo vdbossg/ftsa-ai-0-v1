@@ -1,3 +1,4 @@
+//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\src\pages\ProfilePage.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import NeonButton from "../components/NeonButton";
