@@ -48,25 +48,26 @@ const defaultLinks = [
 const SidebarMenu = ({ links = defaultLinks }) => {
   const location = useLocation();
 
-  return (
-  <aside className="sidebar">
-    <nav className="sidebar-menu" aria-label="Main navigation">
-      <ul className="sidebar-list">
-        {links.map(({ label, path, icon }, index) => {
-          const isActive = location.pathname === path;
-          return (
-            <li key={index} className={isActive ? "active" : ""}>
-              <Link to={path} className="sidebar-link">
-                <span className="icon">{icon}</span>
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  </aside>
-);
+    return (
+    <aside className="sidebar">   {/* ✅ wrapper with fixed height */}
+      <nav className="sidebar-menu" aria-label="Main navigation">
+        <ul>
+          {links.map(({ label, path, icon }, index) => {
+            const isActive = location.pathname === path;
+            return (
+              <li key={index} className={isActive ? "active" : ""}>
+                <Link to={path} className="sidebar-link">
+                  {icon && <span className="icon">{icon}</span>}
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </aside>
+  );
+
 };
 
 export default SidebarMenu;
