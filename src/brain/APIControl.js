@@ -1074,49 +1074,57 @@ async saveProfileNotifications(notifications) {
 
   // The following methods remain unchanged and still use delay and mock data:
 
-  /**
-   * Simulate fetching settings data
-   */
   async fetchSettingsData() {
   try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, data: null, error: "No auth token" };
+
     const response = await fetch(`${BASE_URL}/api/settings`, {
       headers: {
-  ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
-}
-
+        "Authorization": `Bearer ${token}`,
+      },
     });
 
-    if (!response.ok) return { success: false, data: null };
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, data: null, error: errData.error || "Failed to fetch settings" };
+    }
 
     const data = await response.json();
     return { success: true, data };
   } catch (err) {
     console.error("Error fetching settings data:", err);
-    return { success: false, data: null };
+    return { success: false, data: null, error: err.message || "Unexpected error" };
   }
 },
 
-
-  async saveSettingsData(settings) {
+async saveSettingsData(settings) {
   try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, error: "No auth token" };
+
     const response = await fetch(`${BASE_URL}/api/settings`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(settings),
     });
 
-    if (!response.ok) return { success: false, error: "Failed to save settings" };
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, error: errData.error || "Failed to save settings" };
+    }
 
     const data = await response.json();
     return { success: true, data };
   } catch (err) {
     console.error("Error saving settings data:", err);
-    return { success: false, error: "Failed to save settings" };
+    return { success: false, error: err.message || "Unexpected error" };
   }
 },
+
 async toggleAutoTrade(start) {
   try {
     const response = await fetch(`${BASE_URL}/api/auto-trade`, {

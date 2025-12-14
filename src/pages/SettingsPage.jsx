@@ -56,21 +56,30 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
   useEffect(() => {
   if (!isAuthenticated) return;
   setLoading(true);
-  APIControl.fetchSettingsData() // <-- remove user?.id
-    .then((data) => {
-      if (!data || !data.profile) {
-        setError("No settings data found.");
-        setLoading(false);
+  setError(null);
+
+  APIControl.fetchSettingsData()
+    .then((res) => {
+      if (!res) {
+        setError("No settings data returned");
         return;
       }
-      setProfile(data.profile);
+
+      if (!res.success) {
+        setError(res.error || "Failed to fetch settings");
+        return;
+      }
+
+      // Safe: only access data if success
+      const data = res.data || {};
+      setProfile(data.profile || profile);
       setSecurity((s) => ({
         ...s,
-        twoFactorEnabled: data.security?.twoFactorEnabled ?? false,
+        twoFactorEnabled: data.security?.twoFactorEnabled ?? s.twoFactorEnabled,
       }));
-      setNotifications(data.notifications ?? notifications);
+      setNotifications(data.notifications || notifications);
     })
-    .catch(() => setError("Failed to load settings data"))
+    .catch((err) => setError("Failed to load settings data: " + (err?.message || "")))
     .finally(() => setLoading(false));
 }, [isAuthenticated]);
 
