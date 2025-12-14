@@ -1,39 +1,44 @@
 // services/settingsService.js
 const UserSettings = require("../models/UserSettings");
 const bcrypt = require("bcrypt");
+const fs = require("fs");
+const path = require("path");
 
+// Get settings (create default if not exist)
 const getSettings = async (userId) => {
   let settings = await UserSettings.findOne({ userId });
   if (!settings) {
-    // Create default if not exist
-    settings = await UserSettings.create({ userId, profile: { email: "" }, security: { passwordHash: "" } });
+    settings = await UserSettings.create({
+      userId,
+      profile: { email: "", firstName: "", middleName: "", sirName: "", phoneNumber: "", phoneCode: "+254", country: "" },
+      security: { passwordHash: "", twoFactorEnabled: false },
+      notifications: { messages: true, alerts: true },
+    });
   }
   return settings;
 };
 
-const fs = require("fs");
-const path = require("path");
-
+// Update profile
 const updateProfile = async (userId, profileData) => {
   let settings = await UserSettings.findOne({ userId });
   if (!settings) {
-    settings = await UserSettings.create({ userId, profile: { email: "" }, security: { passwordHash: "" } });
+    settings = await getSettings(userId);
   }
 
   const updatedProfile = { ...settings.profile.toObject() };
 
-  // Check for uploaded file (profitPhoto)
+  // Handle file upload path (assuming multer sets file.path)
   if (profileData.profitPhoto && profileData.profitPhoto.path) {
-    // Save relative path in DB
     updatedProfile.profitPhoto = profileData.profitPhoto.path;
   }
 
-  // Copy other fields
-  ["firstName", "middleName", "sirName", "email", "phoneNumber", "phoneCode", "country"].forEach(field => {
-    if (profileData[field] !== undefined) {
-      updatedProfile[field] = profileData[field];
-    }
+  // Copy other profile fields
+  ["firstName", "middleName", "sirName", "email", "phoneNumber", "phoneCode", "country"].forEach((field) => {
+    if (profileData[field] !== undefined) updatedProfile[field] = profileData[field];
   });
+
+  // Ensure email exists
+  if (!updatedProfile.email) throw new Error("Profile email is required");
 
   settings.profile = updatedProfile;
   await settings.save();
@@ -41,57 +46,45 @@ const updateProfile = async (userId, profileData) => {
   return settings;
 };
 
+// Update security
 const updateSecurity = async (userId, securityData) => {
-  // Fetch existing settings first
   let settings = await UserSettings.findOne({ userId });
   if (!settings) {
-    settings = await UserSettings.create({
-      userId,
-      profile: { email: "" },
-      security: { passwordHash: "" },
-    });
+    settings = await getSettings(userId);
   }
 
   const { oldPassword, newPassword, twoFactorEnabled } = securityData;
-
-  // Safe fallback for existing security document
   const existingSecurity = settings.security?.toObject() || {};
 
-  // Verify old password only if oldPassword is provided
   if (oldPassword && existingSecurity.passwordHash) {
-    const isMatch = await bcrypt.compare(oldPassword, existingSecurity.passwordHash);
-    if (!isMatch) {
-      throw new Error("Old password is incorrect");
-    }
+    const match = await bcrypt.compare(oldPassword, existingSecurity.passwordHash);
+    if (!match) throw new Error("Old password is incorrect");
   }
 
-  const updateData = { ...existingSecurity };
-
   if (newPassword) {
-    const hash = await bcrypt.hash(newPassword, 10);
-    updateData.passwordHash = hash;
+    existingSecurity.passwordHash = await bcrypt.hash(newPassword, 10);
   }
 
   if (typeof twoFactorEnabled === "boolean") {
-    updateData.twoFactorEnabled = twoFactorEnabled;
+    existingSecurity.twoFactorEnabled = twoFactorEnabled;
   }
 
-  // Update the security subdocument safely
-  const updatedSettings = await UserSettings.findOneAndUpdate(
-    { userId },
-    { $set: { security: updateData } },
-    { new: true, upsert: true }
-  );
+  settings.security = existingSecurity;
+  await settings.save();
 
-  return updatedSettings;
+  return settings;
 };
 
+// Update notifications
 const updateNotifications = async (userId, notificationsData) => {
-  const settings = await UserSettings.findOneAndUpdate(
-    { userId },
-    { notifications: notificationsData },
-    { new: true }
-  );
+  let settings = await UserSettings.findOne({ userId });
+  if (!settings) {
+    settings = await getSettings(userId);
+  }
+
+  settings.notifications = notificationsData || { messages: true, alerts: true };
+  await settings.save();
+
   return settings;
 };
 

@@ -2,19 +2,18 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
-import NeonButton from "../components/NeonButton";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
-import Modal from "react-modal";
 import "../styles/SettingsPage.css";
 
 export default function SettingsPage() {
   const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of your component
-  // Profile
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  // Profile state
   const [profile, setProfile] = useState({
     profitPhoto: "",
     firstName: "",
@@ -26,7 +25,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
     country: "",
   });
 
-  // Security
+  // Security state
   const [security, setSecurity] = useState({
     oldPassword: "",
     newPassword: "",
@@ -35,15 +34,11 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
     showPasswords: false,
   });
 
-  // Notifications
+  // Notifications state
   const [notifications, setNotifications] = useState({
     messages: true,
     alerts: true,
   });
-
-  // Modals
-  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
-  const [isSecurityModalOpen, setSecurityModalOpen] = useState(false);
 
   const neonColors = {
     background: "#111",
@@ -53,42 +48,34 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
     neonRed: "#FF0000",
   };
 
+  // Fetch settings
   useEffect(() => {
-  if (!isAuthenticated) return;
-  setLoading(true);
-  setError(null);
+    if (!isAuthenticated) return;
+    setLoading(true);
+    setError(null);
 
-  APIControl.fetchSettingsData()
-    .then((res) => {
-      if (!res) {
-        setError("No settings data returned");
-        return;
-      }
+    APIControl.fetchSettingsData()
+      .then((res) => {
+        if (!res?.success) throw new Error(res?.error || "Failed to fetch settings");
 
-      if (!res.success) {
-        setError(res.error || "Failed to fetch settings");
-        return;
-      }
-
-      // Safe: only access data if success
-      const data = res.data || {};
-      setProfile(data.profile || profile);
-      setSecurity((s) => ({
-        ...s,
-        twoFactorEnabled: data.security?.twoFactorEnabled ?? s.twoFactorEnabled,
-      }));
-      setNotifications(data.notifications || notifications);
-    })
-    .catch((err) => setError("Failed to load settings data: " + (err?.message || "")))
-    .finally(() => setLoading(false));
-}, [isAuthenticated]);
+        const data = res.data || {};
+        setProfile({
+          ...profile,
+          ...(data.profile || {}),
+        });
+        setSecurity((prev) => ({
+          ...prev,
+          twoFactorEnabled: data.security?.twoFactorEnabled ?? prev.twoFactorEnabled,
+        }));
+        setNotifications(data.notifications || notifications);
+      })
+      .catch((err) => setError("Failed to load settings: " + err.message))
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
-    return (
-      <div style={centeredStyle(neonColors)}>
-        Please login to access settings.
-      </div>
-    );
+    return <div style={centeredStyle(neonColors)}>Please login to access settings.</div>;
   }
 
   // Handlers
@@ -101,72 +88,81 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
   const handleToggleNotifications = (key) =>
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Save Functions
- const saveProfile = async () => {
-  setLoading(true);
-  try {
-    const formData = new FormData();
-    Object.keys(profile).forEach(key => {
-      if (profile[key] !== undefined) {
-        if (key === "profitPhoto" && profile[key] instanceof File) {
-          formData.append(key, profile[key]);
-        } else {
+  // Save functions
+  const saveProfile = async () => {
+    if (!profile.email) {
+      alert("Email is required!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      Object.keys(profile).forEach((key) => {
+        if (profile[key] !== undefined) {
           formData.append(key, profile[key]);
         }
-      }
-    });
-    const result = await APIControl.saveProfileData(formData);
-    if (!result.success) throw new Error(result.error || "Save failed");
-    alert("Profile saved successfully!");
-  } catch (err) {
-    alert("Failed to save profile: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      });
 
- const saveSecurity = async () => {
-  if (security.newPassword && security.newPassword !== security.confirmNewPassword) {
-    alert("New password and confirm password do not match!");
-    return;
-  }
-  setLoading(true);
-  try {
-    const payload = {
-      oldPassword: security.oldPassword || undefined,
-      newPassword: security.newPassword || undefined,
-      twoFactorEnabled: security.twoFactorEnabled,
-    };
-    const result = await APIControl.saveProfileSecurity(payload); // match your APIControl method
-    if (!result.success) throw new Error(result.error || "Save failed");
-    alert("Security settings saved successfully!");
-  } catch (err) {
-    alert("Failed to save security: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      const result = await APIControl.saveProfileData(formData);
+      if (!result.success) throw new Error(result.error || "Save failed");
+      alert("Profile saved successfully!");
+    } catch (err) {
+      alert("Failed to save profile: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const saveSecurity = async () => {
+    if (security.newPassword && security.newPassword !== security.confirmNewPassword) {
+      alert("New password and confirm password do not match!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        oldPassword: security.oldPassword || undefined,
+        newPassword: security.newPassword || undefined,
+        twoFactorEnabled: security.twoFactorEnabled,
+      };
+      const result = await APIControl.saveProfileSecurity(payload);
+      if (!result.success) throw new Error(result.error || "Save failed");
+      alert("Security settings saved successfully!");
+      // clear passwords after save
+      setSecurity((prev) => ({ ...prev, oldPassword: "", newPassword: "", confirmNewPassword: "" }));
+    } catch (err) {
+      alert("Failed to save security: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const saveNotifications = async () => {
-  setLoading(true);
-  try {
-    const result = await APIControl.saveProfileNotifications(notifications); 
-// match the function in APIControl that calls `/notifications/:userId`
-
-    if (!result.success) throw new Error(result.error || "Save failed");
-    alert("Notifications saved successfully!");
-  } catch (err) {
-    alert("Failed to save notifications: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
+    setLoading(true);
+    try {
+      const result = await APIControl.saveProfileNotifications(notifications);
+      if (!result.success) throw new Error(result.error || "Save failed");
+      alert("Notifications saved successfully!");
+    } catch (err) {
+      alert("Failed to save notifications: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, minHeight: "100vh", padding: "2rem" }}>
+    <div
+      style={{
+        backgroundColor: neonColors.background,
+        color: neonColors.neonBlue,
+        minHeight: "100vh",
+        padding: "2rem",
+      }}
+    >
       <header style={headerStyle(neonColors)}>FTSA AI - SETTINGS</header>
+
       {loading && <LoadingSpinner size={48} color={neonColors.neonBlue} />}
       {error && <StatusBadge status="error">{error}</StatusBadge>}
 
@@ -176,39 +172,49 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonGreen }}>Profile</h2>
 
-<img
-  src={
-    profile.profitPhoto instanceof File
-      ? URL.createObjectURL(profile.profitPhoto)
-      : profile.profitPhoto
-        ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}` // ensures Windows path works
-        : "/default-profile.png" // local placeholder instead of via.placeholder.com
-  }
-  alt="Profile"
-  style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
-/>
+            <img
+              src={
+                profile.profitPhoto instanceof File
+                  ? URL.createObjectURL(profile.profitPhoto)
+                  : profile.profitPhoto
+                  ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}`
+                  : "/default-profile.png"
+              }
+              alt="Profile"
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: 12,
+                objectFit: "cover",
+                marginBottom: 10,
+              }}
+            />
 
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                setProfile({ ...profile, profitPhoto: e.target.files[0] })
+              }
+              style={{ marginBottom: 10 }}
+            />
 
-<input
-  type="file"
-  accept="image/*"
-  onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
-  style={{ marginBottom: 10 }}
-/>
+            {["firstName", "middleName", "sirName", "email", "phoneCode", "phoneNumber", "country"].map(
+              (field) => (
+                <input
+                  key={field}
+                  name={field}
+                  placeholder={field}
+                  value={profile[field]}
+                  onChange={handleProfileChange}
+                  style={inputStyle(neonColors)}
+                />
+              )
+            )}
 
-
-            {["firstName", "middleName", "sirName", "email", "phoneCode", "phoneNumber", "country"].map((field) => (
-  <input
-    key={field}
-    name={field}
-    placeholder={field}
-    value={profile[field]}
-    onChange={handleProfileChange}
-    style={inputStyle(neonColors)}
-  />
-))}
-
-            <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Profile</button>
+            <button onClick={saveProfile} style={buttonStyle(neonColors)}>
+              Save Profile
+            </button>
           </div>
 
           {/* Security Card */}
@@ -229,8 +235,11 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
               <input
                 type="checkbox"
                 checked={security.showPasswords}
-                onChange={() => setSecurity((prev) => ({ ...prev, showPasswords: !prev.showPasswords }))}
-              /> Show Passwords
+                onChange={() =>
+                  setSecurity((prev) => ({ ...prev, showPasswords: !prev.showPasswords }))
+                }
+              />{" "}
+              Show Passwords
             </label>
             <label>
               Two-Factor:
@@ -238,21 +247,28 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
                 {security.twoFactorEnabled ? "ON" : "OFF"}
               </button>
             </label>
-            <button onClick={saveSecurity} style={buttonStyle(neonColors)}>Save Security</button>
+            <button onClick={saveSecurity} style={buttonStyle(neonColors)}>
+              Save Security
+            </button>
           </div>
 
           {/* Notifications Card */}
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonBlue }}>Notifications</h2>
             {Object.entries(notifications).map(([key, val]) => (
-              <div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <div
+                key={key}
+                style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}
+              >
                 <span>{key}</span>
                 <button onClick={() => handleToggleNotifications(key)} style={buttonStyle(neonColors)}>
                   {val ? "ON" : "OFF"}
                 </button>
               </div>
             ))}
-            <button onClick={saveNotifications} style={buttonStyle(neonColors)}>Save Notifications</button>
+            <button onClick={saveNotifications} style={buttonStyle(neonColors)}>
+              Save Notifications
+            </button>
           </div>
         </div>
       )}
@@ -260,7 +276,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
   );
 }
 
-// STYLES
+// --- STYLES ---
 const headerStyle = (colors) => ({
   fontSize: 28,
   fontWeight: "bold",
