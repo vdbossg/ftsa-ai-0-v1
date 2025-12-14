@@ -57,50 +57,64 @@ export default function TopNav() {
       <div style={{ flex: 1 }}></div>
       <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>FTSA AI</div>
       <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-        
-        {/* Message Icon */}
-       <div style={{ cursor: "pointer", position: "relative" }} onClick={() => navigate("/profile")}>
-          <FaEnvelope size={24} />
-          {unreadMessages > 0 && (
-            <span style={{
-              position: "absolute",
-              top: -6,
-              right: -10,
-              background: "red",
-              color: "#fff",
-              borderRadius: "50%",
-              fontSize: "0.75rem",
-              width: 18,
-              height: 18,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>{unreadMessages}</span>
-          )}
-        </div>
+  
+  {/* Message Icon */}
+  <div
+    style={{ cursor: "pointer", position: "relative" }}
+    onClick={() => setIsModalOpen(true)}
+  >
+    <FaEnvelope size={24} />
+    {unreadMessages > 0 && (
+      <span
+        style={{
+          position: "absolute",
+          top: -6,
+          right: -10,
+          background: "red",
+          color: "#fff",
+          borderRadius: "50%",
+          fontSize: "0.75rem",
+          width: 18,
+          height: 18,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {unreadMessages}
+      </span>
+    )}
+  </div>
 
-        {/* Profile Icon */}
-        <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowMessages(true)}>
-          <FaUserCircle size={28} />
-          <span style={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            background: online ? "green" : "red",
-            border: "1px solid #111"
-          }} />
-        </div>
-      </div>
+  {/* Profile Icon */}
+  <div
+    style={{ cursor: "pointer", position: "relative" }}
+    onClick={() => navigate("/profile")}
+  >
+    <FaUserCircle size={28} />
+    <span
+      style={{
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+        width: 10,
+        height: 10,
+        borderRadius: "50%",
+        background: online ? "green" : "red",
+        border: "1px solid #111",
+      }}
+    />
+  </div>
 
-      {/* Modal */}
-      <MessageModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        messages={messages}
-      />
+</div>
+
+{/* Modal MUST be OUTSIDE the icons div */}
+<MessageModal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  messages={messages}
+/>
+
     </div>
   );
 }
