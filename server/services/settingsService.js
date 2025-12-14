@@ -21,21 +21,48 @@ const updateProfile = async (userId, profileData) => {
 };
 
 const updateSecurity = async (userId, securityData) => {
-  const updateData = {};
-  if (securityData.newPassword) {
-    const hash = await bcrypt.hash(securityData.newPassword, 10);
-    updateData.passwordHash = hash;
-  }
-  if (typeof securityData.twoFactorEnabled === "boolean") {
-    updateData.twoFactorEnabled = securityData.twoFactorEnabled;
+  // Fetch existing settings first
+  let settings = await UserSettings.findOne({ userId });
+  if (!settings) {
+    settings = await UserSettings.create({
+      userId,
+      profile: { email: "" },
+      security: { passwordHash: "" },
+    });
   }
 
-  const settings = await UserSettings.findOneAndUpdate(
+  const { oldPassword, newPassword, twoFactorEnabled } = securityData;
+
+  // Safe fallback for existing security document
+  const existingSecurity = settings.security?.toObject() || {};
+
+  // Verify old password only if oldPassword is provided
+  if (oldPassword && existingSecurity.passwordHash) {
+    const isMatch = await bcrypt.compare(oldPassword, existingSecurity.passwordHash);
+    if (!isMatch) {
+      throw new Error("Old password is incorrect");
+    }
+  }
+
+  const updateData = { ...existingSecurity };
+
+  if (newPassword) {
+    const hash = await bcrypt.hash(newPassword, 10);
+    updateData.passwordHash = hash;
+  }
+
+  if (typeof twoFactorEnabled === "boolean") {
+    updateData.twoFactorEnabled = twoFactorEnabled;
+  }
+
+  // Update the security subdocument safely
+  const updatedSettings = await UserSettings.findOneAndUpdate(
     { userId },
-    { security: updateData },
-    { new: true }
+    { $set: { security: updateData } },
+    { new: true, upsert: true }
   );
-  return settings;
+
+  return updatedSettings;
 };
 
 const updateNotifications = async (userId, notificationsData) => {

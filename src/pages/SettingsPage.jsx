@@ -95,11 +95,17 @@ export default function SettingsPage() {
   const saveProfile = async () => {
   setLoading(true);
   try {
-    const result = await APIControl.saveSettingsData({
-      profile,
-      security: undefined,       // keep unchanged
-      notifications: undefined,  // keep unchanged
+    const formData = new FormData();
+    Object.keys(profile).forEach(key => {
+      if (profile[key] !== undefined) {
+        if (key === "profitPhoto" && profile[key] instanceof File) {
+          formData.append(key, profile[key]);
+        } else {
+          formData.append(key, profile[key]);
+        }
+      }
     });
+    const result = await APIControl.saveProfileData(formData);
     if (!result.success) throw new Error(result.error || "Save failed");
     alert("Profile saved successfully!");
   } catch (err) {
@@ -116,11 +122,12 @@ export default function SettingsPage() {
   }
   setLoading(true);
   try {
-    const result = await APIControl.saveSettingsData({
-      profile: undefined,    // keep unchanged
-      security,
-      notifications: undefined,
-    });
+    const payload = {
+      oldPassword: security.oldPassword || undefined,
+      newPassword: security.newPassword || undefined,
+      twoFactorEnabled: security.twoFactorEnabled,
+    };
+    const result = await APIControl.saveSecurityData(payload); // make a separate API call
     if (!result.success) throw new Error(result.error || "Save failed");
     alert("Security settings saved successfully!");
   } catch (err) {
@@ -165,6 +172,13 @@ export default function SettingsPage() {
               alt="Profile"
               style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
             />
+            <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
+  style={{ marginBottom: 10 }}
+/>
+
             {["firstName", "middleName", "sirName", "email", "phoneNumber"].map((field) => (
               <input
                 key={field}

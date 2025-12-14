@@ -14,12 +14,20 @@ const getSettings = async (req, res) => {
 // PUT /settings/profile/:userId
 const updateProfile = async (req, res) => {
   try {
-    const updated = await settingsService.updateProfile(req.params.userId, req.body);
+    const profileData = { ...req.body };
+
+    // If a photo was uploaded, save its path
+    if (req.file) {
+      profileData.profitPhoto = `/uploads/${req.file.filename}`;
+    }
+
+    const updated = await settingsService.updateProfile(req.params.userId, profileData);
     res.json({ success: true, profile: updated.profile });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 // PUT /settings/security/:userId
 const updateSecurity = async (req, res) => {
