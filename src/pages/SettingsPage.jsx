@@ -12,7 +12,8 @@ export default function SettingsPage() {
   const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of your component
   // Profile
   const [profile, setProfile] = useState({
     profitPhoto: "",
@@ -167,11 +168,19 @@ export default function SettingsPage() {
           {/* Profile Card */}
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonGreen }}>Profile</h2>
-            <img
-  src={profile.profitPhoto instanceof File ? URL.createObjectURL(profile.profitPhoto) : (profile.profitPhoto || "https://via.placeholder.com/100")}
+
+<img
+  src={
+    profile.profitPhoto instanceof File
+      ? URL.createObjectURL(profile.profitPhoto)
+      : profile.profitPhoto
+        ? `${BACKEND_URL}${profile.profitPhoto}`
+        : "/default-profile.png" // optional: local placeholder instead of via.placeholder.com
+  }
   alt="Profile"
   style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
 />
+
 
 <input
   type="file"

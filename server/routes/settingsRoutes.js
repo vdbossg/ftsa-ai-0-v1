@@ -1,3 +1,4 @@
+// server/routes/settingsRoutes.js
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -21,12 +22,12 @@ const {
 } = require("../controllers/settingsController");
 
 // Middleware
-const { requireAuth } = require("../middlewares/auth");
+const auth = require("../middleware/authMiddleware"); // ✅ correct path
 
 // Routes
-router.get("/:userId", requireAuth, getSettings);
-router.put("/profile/:userId", requireAuth, upload.single("profitPhoto"), updateProfile);
-router.put("/security/:userId", requireAuth, updateSecurity);
-router.put("/notifications/:userId", requireAuth, updateNotifications);
+router.get("/:userId", auth, getSettings);
+router.put("/profile/:userId", auth, upload.single("profitPhoto"), updateProfile);
+router.put("/security/:userId", auth, updateSecurity);
+router.put("/notifications/:userId", auth, updateNotifications);
 
 module.exports = router;
