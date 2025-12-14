@@ -9,9 +9,9 @@ router.get("/", async (req, res) => {
     if (!channel) {
       // Create default if not exists
       channel = await SupportChannel.create({
-        email: "support@ftsa-ai.com",
-        phone: ["+254700000001", "+254700000002"],
-        whatsapp: "+254712345678",
+        email: "support@ftsa-ai.org",
+        phone: [ "+254118194945"],
+        whatsapp: "+254118194945",
         categories: [
           {
             name: "Subscriptions",
