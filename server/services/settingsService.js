@@ -5,30 +5,28 @@ const bcrypt = require("bcrypt");
 const getSettings = async (userId) => {
   let settings = await UserSettings.findOne({ userId });
   if (!settings) {
-    // Create default if not exist
-    settings = await UserSettings.create({ userId, profile: { email: "" }, security: { passwordHash: "" } });
+    // Create default settings if not exist
+    settings = await UserSettings.create({
+      userId,
+      profile: { email: "", firstName: "", middleName: "", sirName: "", phoneNumber: "", phoneCode: "+254", country: "" },
+      security: { passwordHash: "", twoFactorEnabled: false },
+      notifications: { messages: true, alerts: true },
+    });
   }
   return settings;
 };
 
-const fs = require("fs");
-const path = require("path");
-
 const updateProfile = async (userId, profileData) => {
   let settings = await UserSettings.findOne({ userId });
+
   if (!settings) {
-    settings = await UserSettings.create({ userId, profile: { email: "" }, security: { passwordHash: "" } });
+    settings = await getSettings(userId); // ensures defaults exist
   }
 
-  const updatedProfile = { ...settings.profile.toObject() };
+  const updatedProfile = { ...settings.profile }; // remove .toObject()
 
-  // Use profitPhoto directly (frontend sends path as string after upload)
-  if (profileData.profitPhoto) {
-    updatedProfile.profitPhoto = profileData.profitPhoto;
-  }
-
-  // Copy other fields
-  ["firstName", "middleName", "sirName", "email", "phoneNumber", "phoneCode", "country"].forEach(field => {
+  // Update fields from profileData
+  ["profitPhoto", "firstName", "middleName", "sirName", "email", "phoneNumber", "phoneCode", "country"].forEach(field => {
     if (profileData[field] !== undefined) {
       updatedProfile[field] = profileData[field];
     }
@@ -36,28 +34,19 @@ const updateProfile = async (userId, profileData) => {
 
   settings.profile = updatedProfile;
   await settings.save();
-
   return settings;
 };
 
-
 const updateSecurity = async (userId, securityData) => {
-  // Fetch existing settings first
   let settings = await UserSettings.findOne({ userId });
   if (!settings) {
-    settings = await UserSettings.create({
-      userId,
-      profile: { email: "" },
-      security: { passwordHash: "" },
-    });
+    settings = await getSettings(userId);
   }
 
   const { oldPassword, newPassword, twoFactorEnabled } = securityData;
+  const existingSecurity = { ...(settings.security || {}) }; // remove .toObject() and fallback safely
 
-  // Safe fallback for existing security document
-  const existingSecurity = settings.security?.toObject() || {};
-
-  // Verify old password only if oldPassword is provided
+  // Verify old password only if provided
   if (oldPassword && existingSecurity.passwordHash) {
     const isMatch = await bcrypt.compare(oldPassword, existingSecurity.passwordHash);
     if (!isMatch) {
@@ -68,18 +57,19 @@ const updateSecurity = async (userId, securityData) => {
   const updateData = { ...existingSecurity };
 
   if (newPassword) {
-    const hash = await bcrypt.hash(newPassword, 10);
-    updateData.passwordHash = hash;
+    updateData.passwordHash = await bcrypt.hash(newPassword, 10);
   }
 
   if (typeof twoFactorEnabled === "boolean") {
     updateData.twoFactorEnabled = twoFactorEnabled;
   }
 
-  // Update the security subdocument safely
+  // Merge existing profile to avoid validation errors
+  const profileCopy = { ...settings.profile }; // remove .toObject()
+
   const updatedSettings = await UserSettings.findOneAndUpdate(
     { userId },
-    { $set: { security: updateData } },
+    { profile: profileCopy, security: updateData },
     { new: true, upsert: true }
   );
 
@@ -87,12 +77,13 @@ const updateSecurity = async (userId, securityData) => {
 };
 
 const updateNotifications = async (userId, notificationsData) => {
-  const settings = await UserSettings.findOneAndUpdate(
+  const updatedSettings = await UserSettings.findOneAndUpdate(
     { userId },
     { notifications: notificationsData },
-    { new: true }
+    { new: true, upsert: true } // ensure document exists
   );
-  return settings;
+
+  return updatedSettings;
 };
 
 module.exports = {

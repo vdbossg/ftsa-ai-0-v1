@@ -6,7 +6,7 @@ export { AuthContext };
 
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('authToken') || null);
+  const token = localStorage.getItem('authToken'); // get token from localStorage
   const [user, setUser] = useState(() => {
     try {
       const storedUser = localStorage.getItem('authUser');
@@ -16,18 +16,16 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const login = (userInfo, newToken) => {
+  const login = (userInfo, token) => {
   setUser(userInfo);
-  setToken(newToken);  // <-- add this line
   localStorage.setItem('authUser', JSON.stringify(userInfo));
-  localStorage.setItem('authToken', newToken);
+  localStorage.setItem('authToken', token); // now uses passed token
 };
 
 const logout = () => {
   setUser(null);
-  setToken(null);  // <-- add this line
   localStorage.removeItem('authUser');
-  localStorage.removeItem('authToken');
+  localStorage.removeItem('authToken'); // also clear token
 };
 
 
