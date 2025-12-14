@@ -37,6 +37,7 @@ const MTTradeService = require('./services/mtTradeService');
 const propTradeRoutes = require('./routes/propTradeRoutes');
 const mtTradeRoutes = require('./routes/mtTradeRoutes');
 const licenseRoutes = require('./routes/license');
+const settingsRoutes = require('./routes/settingsRoutes'); // CommonJS style
 
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -125,6 +126,8 @@ app.use('/api', mtTradeRoutes);
 console.log('✅ /api/closed-mt-trades routes mounted')
 app.use('/api/license', licenseRoutes);
 console.log('✅ /api/license routes mounted');
+app.use('/api/settings', settingsRoutes);
+console.log('✅ /api/settings routes mounted');
 
 
 
