@@ -1,19 +1,21 @@
 // controllers/settingsController.js
 const settingsService = require("../services/settingsService");
 
-// GET /settings/:userId
+// GET /settings
 const getSettings = async (req, res) => {
   try {
-    const settings = await settingsService.getSettings(req.params.userId);
+    const userId = req.user.id; // comes from auth middleware
+    const settings = await settingsService.getSettings(userId);
     res.json({ success: true, settings });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// PUT /settings/profile/:userId
+// PUT /settings/profile
 const updateProfile = async (req, res) => {
   try {
+    const userId = req.user.id;
     const profileData = { ...req.body };
 
     // If a photo was uploaded, save its path
@@ -21,28 +23,29 @@ const updateProfile = async (req, res) => {
       profileData.profitPhoto = `/uploads/${req.file.filename}`;
     }
 
-    const updated = await settingsService.updateProfile(req.params.userId, profileData);
+    const updated = await settingsService.updateProfile(userId, profileData);
     res.json({ success: true, profile: updated.profile });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-
-// PUT /settings/security/:userId
+// PUT /settings/security
 const updateSecurity = async (req, res) => {
   try {
-    const updated = await settingsService.updateSecurity(req.params.userId, req.body);
+    const userId = req.user.id;
+    const updated = await settingsService.updateSecurity(userId, req.body);
     res.json({ success: true, security: updated.security });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// PUT /settings/notifications/:userId
+// PUT /settings/notifications
 const updateNotifications = async (req, res) => {
   try {
-    const updated = await settingsService.updateNotifications(req.params.userId, req.body);
+    const userId = req.user.id;
+    const updated = await settingsService.updateNotifications(userId, req.body);
     res.json({ success: true, notifications: updated.notifications });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

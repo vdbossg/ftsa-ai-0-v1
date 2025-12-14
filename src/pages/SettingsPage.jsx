@@ -53,25 +53,25 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    setLoading(true);
-    APIControl.fetchSettingsData(user?.id)
-      .then((data) => {
-        if (!data || !data.profile) {
-          setError("No settings data found.");
-          setLoading(false);
-          return;
-        }
-        setProfile(data.profile);
-        setSecurity((s) => ({
-          ...s,
-          twoFactorEnabled: data.security?.twoFactorEnabled ?? false,
-        }));
-        setNotifications(data.notifications ?? notifications);
-      })
-      .catch(() => setError("Failed to load settings data"))
-      .finally(() => setLoading(false));
-  }, [isAuthenticated, user?.id]);
+  if (!isAuthenticated) return;
+  setLoading(true);
+  APIControl.fetchSettingsData() // <-- remove user?.id
+    .then((data) => {
+      if (!data || !data.profile) {
+        setError("No settings data found.");
+        setLoading(false);
+        return;
+      }
+      setProfile(data.profile);
+      setSecurity((s) => ({
+        ...s,
+        twoFactorEnabled: data.security?.twoFactorEnabled ?? false,
+      }));
+      setNotifications(data.notifications ?? notifications);
+    })
+    .catch(() => setError("Failed to load settings data"))
+    .finally(() => setLoading(false));
+}, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return (
@@ -181,16 +181,17 @@ export default function SettingsPage() {
 />
 
 
-            {["firstName", "middleName", "sirName", "email", "phoneNumber"].map((field) => (
-              <input
-                key={field}
-                name={field}
-                placeholder={field}
-                value={profile[field]}
-                onChange={handleProfileChange}
-                style={inputStyle(neonColors)}
-              />
-            ))}
+            {["firstName", "middleName", "sirName", "email", "phoneCode", "phoneNumber", "country"].map((field) => (
+  <input
+    key={field}
+    name={field}
+    placeholder={field}
+    value={profile[field]}
+    onChange={handleProfileChange}
+    style={inputStyle(neonColors)}
+  />
+))}
+
             <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Profile</button>
           </div>
 

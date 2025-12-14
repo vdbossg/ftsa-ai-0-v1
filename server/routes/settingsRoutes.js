@@ -1,8 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" }); // temporary storage for uploaded files
 
+// Multer storage config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const ext = file.originalname.split(".").pop();
+    cb(null, `${Date.now()}-${file.fieldname}.${ext}`);
+  },
+});
+const upload = multer({ storage });
+
+// Controllers
 const {
   getSettings,
   updateProfile,
@@ -10,12 +20,13 @@ const {
   updateNotifications,
 } = require("../controllers/settingsController");
 
-// GET settings for a user
-router.get("/:userId", getSettings);
+// Middleware
+const { requireAuth } = require("../middlewares/auth");
 
-// UPDATE sections
-router.put("/profile/:userId", upload.single("profitPhoto"), updateProfile); // ✅ handle file upload
-router.put("/security/:userId", updateSecurity);
-router.put("/notifications/:userId", updateNotifications);
+// Routes
+router.get("/:userId", requireAuth, getSettings);
+router.put("/profile/:userId", requireAuth, upload.single("profitPhoto"), updateProfile);
+router.put("/security/:userId", requireAuth, updateSecurity);
+router.put("/notifications/:userId", requireAuth, updateNotifications);
 
 module.exports = router;

@@ -1,34 +1,52 @@
+// src/components/TopNav.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { FaEnvelope, FaUserCircle, FaBell } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import APIControl from "../brain/APIControl";
 
 export default function TopNav() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsSettings, setNotificationsSettings] = useState({
+    messages: true,
+    alerts: true,
+  });
   const [online, setOnline] = useState(navigator.onLine);
   const [openMenu, setOpenMenu] = useState(null); // messages | profile | notifications
 
   const ref = useRef(null);
 
-  /* ===== FETCH REAL MESSAGES ===== */
+  /* ===== FETCH MESSAGES & SETTINGS ===== */
   useEffect(() => {
     if (!isAuthenticated) return;
 
     async function load() {
-      const res = await fetch("/api/messages");
-      const data = await res.json();
-      setMessages(data);
-      setUnreadCount(data.filter(m => !m.read).length);
+      // Load user settings
+      const settingsData = await APIControl.fetchSettingsData(user?.id);
+      if (settingsData?.notifications) {
+        setNotificationsSettings(settingsData.notifications);
+      }
+
+      // Load messages only if messages toggle is ON
+      if (settingsData?.notifications?.messages) {
+        const res = await fetch("/api/messages");
+        const data = await res.json();
+        setMessages(data);
+        setUnreadCount(data.filter(m => !m.read).length);
+      } else {
+        setMessages([]);
+        setUnreadCount(0);
+      }
     }
 
     load();
     const id = setInterval(load, 30000);
     return () => clearInterval(id);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.id]);
 
   /* ===== ONLINE / OFFLINE ===== */
   useEffect(() => {
@@ -51,6 +69,14 @@ export default function TopNav() {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
+
+  /* ===== HANDLERS FOR TOGGLES ===== */
+  const toggleNotification = async (key) => {
+    const newVal = !notificationsSettings[key];
+    const updatedSettings = { ...notificationsSettings, [key]: newVal };
+    setNotificationsSettings(updatedSettings);
+    await APIControl.saveSettingsData({ notifications: updatedSettings });
+  };
 
   return (
     <div style={styles.nav}>
@@ -75,14 +101,8 @@ export default function TopNav() {
                   unread={!m.read}
                   onClick={async () => {
                     if (!m.read) {
-                      await fetch(`/api/messages/${m.id}/read`, {
-                        method: "PATCH"
-                      });
-                      setMessages(prev =>
-                        prev.map(x =>
-                          x.id === m.id ? { ...x, read: true } : x
-                        )
-                      );
+                      await fetch(`/api/messages/${m.id}/read`, { method: "PATCH" });
+                      setMessages(prev => prev.map(x => x.id === m.id ? { ...x, read: true } : x));
                       setUnreadCount(c => Math.max(c - 1, 0));
                     }
                   }}
@@ -95,12 +115,27 @@ export default function TopNav() {
           )}
         </Icon>
 
-        {/* 🔔 NOTIFICATIONS (READY) */}
+        {/* 🔔 NOTIFICATIONS */}
         <Icon onClick={() => setOpenMenu(openMenu === "notifications" ? null : "notifications")}>
           <FaBell size={22} />
           {openMenu === "notifications" && (
             <Dropdown>
-              <Item>No notifications yet</Item>
+              <label style={labelStyle}>
+                Messages
+                <input
+                  type="checkbox"
+                  checked={notificationsSettings.messages}
+                  onChange={() => toggleNotification("messages")}
+                />
+              </label>
+              <label style={labelStyle}>
+                Alerts
+                <input
+                  type="checkbox"
+                  checked={notificationsSettings.alerts}
+                  onChange={() => toggleNotification("alerts")}
+                />
+              </label>
             </Dropdown>
           )}
         </Icon>
@@ -154,6 +189,12 @@ const Item = ({ children, unread, onClick }) => (
     {children}
   </div>
 );
+
+const labelStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  padding: "0.5rem",
+};
 
 /* ===== STYLES ===== */
 

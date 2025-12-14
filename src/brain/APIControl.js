@@ -476,7 +476,7 @@ async fetchCFAData() {
 },
 async saveProfileData(formData) {
   try {
-    const response = await fetch(`${BASE_URL}/api/settings/profile/${userId}`, { // <-- use your route
+    const response = await fetch(`${BASE_URL}/api/settings/profile`, {
       method: "PUT",
       headers: {
         "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
