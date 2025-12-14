@@ -1,19 +1,15 @@
 const mongoose = require("mongoose");
 
 const ProfileSchema = new mongoose.Schema({
-  profitPhoto: { type: String, default: "" },
   firstName: { type: String, default: "" },
   middleName: { type: String, default: "" },
-  sirName: { type: String, default: "" },
-  email: { type: String, required: true }, // removed unique
-  phoneNumber: { type: String, default: "" },
-  phoneCode: { type: String, default: "+254" },
-  country: { type: String, default: "" },
+  email: { type: String, required: true },
+  phone: { type: String, default: "" },
+  profitPhoto: { type: String, default: "" },
 });
 
 const SecuritySchema = new mongoose.Schema({
-  passwordHash: { type: String, default: "" }, // optional for OAuth users
-  twoFactorEnabled: { type: Boolean, default: false },
+  passwordHash: { type: String, default: "" },
 });
 
 const NotificationsSchema = new mongoose.Schema({
