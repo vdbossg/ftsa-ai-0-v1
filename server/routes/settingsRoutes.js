@@ -1,4 +1,3 @@
-// server/routes/settingsRoutes.js
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -24,10 +23,10 @@ const {
 // Middleware
 const auth = require("../middleware/authMiddleware"); // ✅ correct path
 
-// Routes
-router.get("/:userId", auth, getSettings);
-router.put("/profile/:userId", auth, upload.single("profitPhoto"), updateProfile);
-router.put("/security/:userId", auth, updateSecurity);
-router.put("/notifications/:userId", auth, updateNotifications);
+// Routes without userId in URL
+router.get("/", auth, getSettings);
+router.put("/profile", auth, upload.single("profitPhoto"), updateProfile);
+router.put("/security", auth, updateSecurity);
+router.put("/notifications", auth, updateNotifications);
 
 module.exports = router;

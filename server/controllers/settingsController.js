@@ -4,7 +4,7 @@ const settingsService = require("../services/settingsService");
 // GET /settings
 const getSettings = async (req, res) => {
   try {
-    const userId = req.user.id; // comes from auth middleware
+    const userId = req.user._id; // comes from auth middleware
     const settings = await settingsService.getSettings(userId);
     res.json({ success: true, settings });
   } catch (err) {
@@ -15,7 +15,7 @@ const getSettings = async (req, res) => {
 // PUT /settings/profile
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const profileData = { ...req.body };
 
     // If a photo was uploaded, save its path
@@ -33,7 +33,7 @@ const updateProfile = async (req, res) => {
 // PUT /settings/security
 const updateSecurity = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const updated = await settingsService.updateSecurity(userId, req.body);
     res.json({ success: true, security: updated.security });
   } catch (err) {
@@ -44,7 +44,7 @@ const updateSecurity = async (req, res) => {
 // PUT /settings/notifications
 const updateNotifications = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const updated = await settingsService.updateNotifications(userId, req.body);
     res.json({ success: true, notifications: updated.notifications });
   } catch (err) {

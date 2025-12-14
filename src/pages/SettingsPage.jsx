@@ -128,7 +128,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
       newPassword: security.newPassword || undefined,
       twoFactorEnabled: security.twoFactorEnabled,
     };
-    const result = await APIControl.saveSecurityData(payload); // make a separate API call
+    const result = await APIControl.saveProfileSecurity(payload); // match your APIControl method
     if (!result.success) throw new Error(result.error || "Save failed");
     alert("Security settings saved successfully!");
   } catch (err) {
@@ -142,11 +142,9 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
   const saveNotifications = async () => {
   setLoading(true);
   try {
-    const result = await APIControl.saveSettingsData({
-      profile: undefined,
-      security: undefined,
-      notifications,
-    });
+    const result = await APIControl.saveProfileNotifications(notifications); 
+// match the function in APIControl that calls `/notifications/:userId`
+
     if (!result.success) throw new Error(result.error || "Save failed");
     alert("Notifications saved successfully!");
   } catch (err) {
@@ -174,8 +172,8 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // add this at the top of 
     profile.profitPhoto instanceof File
       ? URL.createObjectURL(profile.profitPhoto)
       : profile.profitPhoto
-        ? `${BACKEND_URL}${profile.profitPhoto}`
-        : "/default-profile.png" // optional: local placeholder instead of via.placeholder.com
+        ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}` // ensures Windows path works
+        : "/default-profile.png" // local placeholder instead of via.placeholder.com
   }
   alt="Profile"
   style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
