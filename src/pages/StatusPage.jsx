@@ -12,6 +12,12 @@ const PLAN_CONFIG = {
   Unlimited: { price: 2400, days: 36500 }, // Lifetime
 };
 
+const SELAR_CHECKOUT_URLS = {
+  Basic: "https://selar.com/qh11u57775",
+  Plus: "https://selar.com/m4x0043015",
+  Unlimited: "https://selar.com/1i416146s6",
+};
+
 const StatusPage = () => {
   const { isAuthenticated, user } = useAuth();
 
@@ -34,11 +40,11 @@ const StatusPage = () => {
         if (res.success) {
           setStatusData(res.data);
           if (
-            res.data.subscription?.status === "active" &&
-            res.data.subscription.expiryDate
-          ) {
-            startCountdown(res.data.subscription.expiryDate);
-          }
+  res.data.subscription?.status === "active" &&
+  res.data.subscription.expiryDate
+) {
+  startCountdown(res.data.subscription.expiryDate);
+}
         } else {
           setError(res.error || "Failed to load status");
         }
@@ -51,74 +57,73 @@ const StatusPage = () => {
   }, [isAuthenticated]);
 
   // ---------------- COUNTDOWN ----------------
-  const startCountdown = (expiry) => {
-    const interval = setInterval(() => {
-      const diff = new Date(expiry) - new Date();
-      if (diff <= 0) {
-        setTimeLeft(null);
-        clearInterval(interval);
-        return;
-      }
-
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / 1000 / 60) % 60),
-        seconds: Math.floor((diff / 1000) % 60),
-      });
-    }, 1000);
-  };
-
-  // ---------------- ACTIVATE PLAN (TEST ONLY) ----------------
-  const activatePlan = () => {
-    if (!broker || !mtLogin || !selectedPlan) {
-      alert("Broker, MT Login, and Plan are required");
+const startCountdown = (expiry) => {
+  const interval = setInterval(() => {
+    const diff = new Date(expiry) - new Date();
+    if (diff <= 0) {
+      setTimeLeft(null);
+      clearInterval(interval);
       return;
     }
 
-    // Simulate immediate active subscription for testing
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + PLAN_CONFIG[selectedPlan].days);
-
-    setStatusData({
-      subscription: {
-        plan: selectedPlan,
-        status: "active",
-        broker,
-        mtLogin,
-        expiryDate: expiryDate.toISOString(),
-      },
+    setTimeLeft({
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((diff / 1000 / 60) % 60),
+      seconds: Math.floor((diff / 1000) % 60),
     });
+  }, 1000);
+};
 
-    startCountdown(expiryDate.toISOString());
-    setModalOpen(false);
-    alert(`Subscription ${selectedPlan} is now ACTIVE (Test Mode)!`);
-  };
+  // ---------------- SELAR REDIRECT ----------------
+  const redirectToSelar = () => {
+  if (!broker || !mtLogin) {
+    alert("Broker and MT Login are required");
+    return;
+  }
+  
+  const planUrl = SELAR_CHECKOUT_URLS[selectedPlan];
+  if (!planUrl) {
+    alert("Invalid plan selected");
+    return;
+  }
+
+  const url =
+    `${planUrl}` +
+    `?metadata[user_id]=${user.id}` +
+    `&metadata[plan]=${selectedPlan}` +
+    `&metadata[broker]=${encodeURIComponent(broker)}` +
+    `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
+
+  window.location.href = url;
+};
+
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in</div>;
   if (loading) return <LoadingSpinner />;
   if (error) return <StatusBadge status="error" label={error} />;
 
   const hasActive =
-    statusData?.subscription?.status === "active" &&
-    new Date(statusData.subscription.expiryDate) > new Date();
+  statusData?.subscription?.status === "active" &&
+  new Date(statusData.subscription.expiryDate) > new Date();
 
-  const isPending = statusData?.subscription?.status === "pending";
+const isPending =
+  statusData?.subscription?.status === "pending";
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <h1 style={styles.title}>FTSA AI Subscription Status</h1>
         <StatusBadge
-          status={hasActive ? "online" : isPending ? "pending" : "offline"}
-          label={
-            hasActive
-              ? `${statusData.subscription.plan} Subscription ACTIVE`
-              : isPending
-              ? `${statusData.subscription.plan} Subscription PENDING`
-              : "No Active Subscription"
-          }
-        />
+  status={hasActive ? "online" : isPending ? "pending" : "offline"}
+  label={
+    hasActive
+      ? `${statusData.subscription.plan} Subscription ACTIVE`
+      : isPending
+      ? `${statusData.subscription.plan} Subscription PENDING`
+      : "No Active Subscription"
+  }
+/>
 
         {hasActive && timeLeft && (
           <p style={{ color: neonGreen }}>
@@ -142,15 +147,15 @@ const StatusPage = () => {
                   setModalOpen(true);
                 }}
               >
-                Activate (Test)
+                Pay with Selar
               </NeonButton>
             )}
 
             {hasActive && statusData.subscription.plan === plan && (
               <span style={{ color: neonGreen }}>
-                Active until{" "}
-                {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
-              </span>
+  Active until {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
+</span>
+
             )}
           </div>
         ))}
@@ -158,10 +163,7 @@ const StatusPage = () => {
 
       {/* -------- MODAL -------- */}
       {modalOpen && (
-        <Modal
-          title={`Subscribe: ${selectedPlan}`}
-          onClose={() => setModalOpen(false)}
-        >
+        <Modal title={`Subscribe: ${selectedPlan}`} onClose={() => setModalOpen(false)}>
           <input
             style={styles.input}
             placeholder="Broker name"
@@ -174,15 +176,16 @@ const StatusPage = () => {
             value={mtLogin}
             onChange={(e) => setMtLogin(e.target.value)}
           />
-          <p style={{ color: neonGreen }}>Payment Method: Test Activation</p>
+          <p style={{ color: neonGreen }}>Payment Method: Selar Secure Checkout</p>
 
           <button
-            style={styles.modalButton}
-            onClick={activatePlan}
-            disabled={!broker || !mtLogin}
-          >
-            Activate {selectedPlan}
-          </button>
+  style={styles.modalButton}
+  onClick={redirectToSelar}
+  disabled={!broker || !mtLogin}
+>
+  Pay ${PLAN_CONFIG[selectedPlan].price}
+</button>
+
         </Modal>
       )}
 
@@ -206,13 +209,7 @@ const styles = {
   sectionTitle: { fontSize: "1.5rem" },
   planCard: { border: `2px solid ${neonBlue}`, padding: "1rem", marginBottom: "1rem" },
   input: { width: "100%", marginBottom: "1rem", padding: "0.5rem" },
-  modalButton: {
-    background: neonBlue,
-    color: "#000",
-    padding: "0.6rem",
-    border: "none",
-    cursor: "pointer",
-  },
+  modalButton: { background: neonBlue, color: "#000", padding: "0.6rem", border: "none", cursor: "pointer" },
   footer: { textAlign: "center", borderTop: `2px solid ${neonBlue}` },
   footerText: { color: neonGreen },
   notAuth: { color: neonRed, padding: "2rem" },

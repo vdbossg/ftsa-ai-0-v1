@@ -1,73 +1,84 @@
 // src/pages/EA_DownloadPage.jsx
 import React, { useEffect, useState } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import NeonButton from "../components/NeonButton";
-import LoadingSpinner from "../components/LoadingSpinner";
+import APIControl from "../brain/APIControl";
 import { useAuth } from "../contexts/AuthContext";
 
 const EADownloadPage = () => {
   const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [licenses, setLicenses] = useState([]);
 
-  // ---------------- MOCK LICENSES FOR TESTING ----------------
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  // Fetch licenses
+  // --- WITH THIS MOCK FOR TESTING ---
+useEffect(() => {
+  if (!isAuthenticated) return;
 
-    const mockLicenses = [
-      {
-        _id: "LIC001",
-        status: "active",
-        plan: "Basic",
-        broker: "TestBroker",
-        mtLogin: "123456",
-        startDate: new Date().toISOString(),
-        endDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString(),
-        licenseKey: "TESTLIC123"
-      },
-      {
-        _id: "LIC002",
-        status: "inactive",
-        plan: "Plus",
-        broker: "OldBroker",
-        mtLogin: "654321",
-        startDate: new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString(),
-        endDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
-        licenseKey: "OLDLIC456"
+  // Mock a license for testing
+  const testLicense = {
+    _id: "TEST123",
+    status: "active",
+    plan: "Basic",
+    broker: "TestBroker",
+    mtLogin: "123456",
+    startDate: new Date().toISOString(),
+    endDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString(),
+    licenseKey: "TESTLIC123"
+  };
+
+  setLicenses([testLicense]);
+  setLoading(false);
+}, [isAuthenticated]);
+  // Generate EA
+  const generateEA = async (licenseKey) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await APIControl.generateAndDownloadEA(licenseKey);
+      if (!res.success) {
+        setError(res.error || "EA generation failed");
+      } else {
+        const link = document.createElement("a");
+        link.href = res.downloadUrl;
+        link.download = res.filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
       }
-    ];
-
-    setLicenses(mockLicenses);
-    setLoading(false);
-  }, [isAuthenticated]);
-
-  // ---------------- MOCK EA DOWNLOAD ----------------
-  const generateEA = (licenseKey) => {
-    const eaContent = `// FTSA AI EA EX5\n// License: ${licenseKey}\n// Generated on ${new Date().toLocaleString()}`;
-    const blob = new Blob([eaContent], { type: "application/octet-stream" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `FTSA_EA_${licenseKey}.ex5`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    } catch {
+      setError("EA generation error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in to continue</div>;
   if (loading) return <LoadingSpinner />;
 
+  // Categorize licenses
   const activeLicenses = licenses.filter(l => l.status === "active");
+  const pendingLicenses = licenses.filter(l => l.status === "pending");
   const inactiveLicenses = licenses.filter(l => l.status === "inactive");
 
   return (
     <div style={styles.page}>
       {/* Header */}
       <header style={styles.header}>
-        <h1 style={styles.title}>FTSA-AI EA Download (Test Mode)</h1>
+        <h1 style={styles.title}>FTSA-AI EA-DOWNLOAD</h1>
         <StatusBadge status="online" label="FTSA AI Brain Online" />
       </header>
 
-      {/* Active Licenses */}
+      {/* Top status cards */}
+      <div style={styles.statusCards}>
+        <div style={styles.statusCard}><strong>Pending:</strong> {pendingLicenses.length}</div>
+        <div style={styles.statusCard}><strong>Active:</strong> {activeLicenses.length}</div>
+        <div style={styles.statusCard}><strong>Inactive:</strong> {inactiveLicenses.length}</div>
+      </div>
+
+      {/* Active EA Licenses */}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Active EA Licenses</h2>
         {activeLicenses.length === 0 && <p>No active licenses available.</p>}
@@ -77,11 +88,11 @@ const EADownloadPage = () => {
               <StatusBadge status="online" label="Active License" />
               <p><strong>Plan:</strong> {lic.plan}</p>
               <p><strong>Broker:</strong> {lic.broker}</p>
-              <p><strong>MT Login:</strong> {lic.mtLogin}</p>
+              <p><strong>MT Login:</strong> {lic.mtLogin || lic.login}</p>
               <p><strong>Start Date:</strong> {new Date(lic.startDate).toLocaleDateString()}</p>
               <p><strong>Expiry Date:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
-              <p><strong>License Key:</strong> {lic.licenseKey}</p>
-              <NeonButton onClick={() => generateEA(lic.licenseKey)}>
+              <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
+              <NeonButton onClick={() => generateEA(lic.licenseKey || lic.license_key)}>
                 Generate & Download EA
               </NeonButton>
             </div>
@@ -89,7 +100,7 @@ const EADownloadPage = () => {
         </div>
       </section>
 
-      {/* Inactive / Historical Licenses */}
+      {/* Inactive / History Licenses */}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Inactive / Historical EAs</h2>
         {inactiveLicenses.length === 0 && <p>No historical licenses.</p>}
@@ -99,11 +110,11 @@ const EADownloadPage = () => {
               <StatusBadge status="offline" label="Inactive License" />
               <p><strong>Plan:</strong> {lic.plan}</p>
               <p><strong>Broker:</strong> {lic.broker}</p>
-              <p><strong>MT Login:</strong> {lic.mtLogin}</p>
+              <p><strong>MT Login:</strong> {lic.mtLogin || lic.login}</p>
               <p><strong>Start Date:</strong> {new Date(lic.startDate).toLocaleDateString()}</p>
               <p><strong>Expiry Date:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
-              <p><strong>License Key:</strong> {lic.licenseKey}</p>
-              <NeonButton onClick={() => generateEA(lic.licenseKey)}>
+              <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
+              <NeonButton onClick={() => generateEA(lic.licenseKey || lic.license_key)}>
                 Re-download EA
               </NeonButton>
             </div>
@@ -113,7 +124,7 @@ const EADownloadPage = () => {
 
       {/* Footer */}
       <footer style={styles.footer}>
-        <p>FTSA AI - Test Mode | Copyright © 2025</p>
+        <p>FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025</p>
       </footer>
     </div>
   );
@@ -136,10 +147,39 @@ const styles = {
     paddingBottom: "1rem",
     marginBottom: "1rem",
   },
-  title: { fontSize: "2rem", margin: 0 },
-  section: { marginBottom: "2rem" },
-  sectionTitle: { fontSize: "1.5rem", marginBottom: "1rem", textShadow: `0 0 10px ${neonCyan}` },
-  scrollableCards: { display: "flex", flexDirection: "column", gap: "1rem", maxHeight: "400px", overflowY: "auto" },
+  title: {
+    fontSize: "2rem",
+    margin: 0,
+  },
+  statusCards: {
+    display: "flex",
+    gap: "1rem",
+    marginBottom: "2rem",
+  },
+  statusCard: {
+    flex: 1,
+    padding: "1rem",
+    backgroundColor: "#111111",
+    border: `2px solid ${neonCyan}`,
+    borderRadius: "10px",
+    textAlign: "center",
+    boxShadow: `0 0 10px ${neonCyan}`,
+  },
+  section: {
+    marginBottom: "2rem",
+  },
+  sectionTitle: {
+    fontSize: "1.5rem",
+    marginBottom: "1rem",
+    textShadow: `0 0 10px ${neonCyan}`,
+  },
+  scrollableCards: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    maxHeight: "400px",
+    overflowY: "auto",
+  },
   licenseCard: {
     backgroundColor: "#111111",
     border: `2px solid ${neonCyan}`,
@@ -147,8 +187,17 @@ const styles = {
     padding: "1rem",
     boxShadow: `0 0 10px ${neonCyan}`,
   },
-  footer: { borderTop: `2px solid ${neonCyan}`, paddingTop: "1rem", textAlign: "center", marginTop: "2rem" },
-  notAuth: { color: "#FF0000", padding: "2rem", fontFamily: "'Orbitron', sans-serif" },
+  footer: {
+    borderTop: `2px solid ${neonCyan}`,
+    paddingTop: "1rem",
+    textAlign: "center",
+    marginTop: "2rem",
+  },
+  notAuth: {
+    color: "#FF0000",
+    padding: "2rem",
+    fontFamily: "'Orbitron', sans-serif",
+  },
 };
 
 export default EADownloadPage;

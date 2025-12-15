@@ -424,7 +424,7 @@ async fetchPropFirmAccountsData() {
  */
 async getActiveLicense() {
   try {
-    const response = await fetch(`${BASE_URL}/api/license/my`, {
+    const response = await fetch(`${BASE_URL}/api/licenses/my`, {
       headers: {
         ...(localStorage.getItem("authToken") && { 
           "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
