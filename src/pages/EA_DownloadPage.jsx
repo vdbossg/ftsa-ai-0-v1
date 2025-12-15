@@ -13,37 +13,26 @@ const EADownloadPage = () => {
   const [licenses, setLicenses] = useState([]);
 
   // Fetch licenses
-  // ---------------- FAKE LICENSE DATA FOR TEST ----------------
-useEffect(() => {
-  if (!isAuthenticated) return;
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
-  const fakeLicenses = [
-    {
-      _id: "TESTLIC123",
-      plan: "Basic",
-      broker: "TestBroker",
-      mtLogin: "123456",
-      startDate: new Date().toISOString(),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString(),
-      status: "active",
-      licenseKey: "TESTLIC123",
-    },
-    {
-      _id: "TESTLIC456",
-      plan: "Plus",
-      broker: "DemoBroker",
-      mtLogin: "654321",
-      startDate: new Date().toISOString(),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
-      status: "inactive",
-      licenseKey: "TESTLIC456",
-    },
-  ];
+    const fetchLicenses = async () => {
+      try {
+        const res = await APIControl.getUserLicenses(user.id);
+        if (!res.success || !res.licenses?.length) {
+          setError("No licenses found. Please subscribe first.");
+        } else {
+          setLicenses(res.licenses);
+        }
+      } catch {
+        setError("Failed to fetch licenses.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  setLicenses(fakeLicenses);
-  setLoading(false);
-}, [isAuthenticated]);
-
+    fetchLicenses();
+  }, [isAuthenticated, user]);
 
   // Generate EA
   const generateEA = async (licenseKey) => {

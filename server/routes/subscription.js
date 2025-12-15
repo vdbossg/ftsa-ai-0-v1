@@ -72,6 +72,46 @@ router.post("/", authenticateToken, async (req, res) => {
 });
 
 // -----------------------------
+// TEST ONLY: Activate Subscription Without Payment
+// -----------------------------
+router.post("/test-activate", authenticateToken, async (req, res) => {
+  try {
+    // Only allow in test environment
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({ success: false, error: "Forbidden in production" });
+    }
+
+    const userId = req.user.id;
+    const { subscriptionId, plan, mtLogin } = req.body;
+
+    // Mark subscription as active
+    const subscription = await Subscription.findById(subscriptionId);
+    if (!subscription) return res.status(404).json({ success: false, error: "Subscription not found" });
+
+    subscription.status = "active";
+    subscription.startDate = new Date();
+    subscription.endDate = new Date(new Date().setDate(new Date().getDate() + (plan === "Basic" ? 30 : plan === "Plus" ? 365 : 36500)));
+    await subscription.save();
+
+    // Create license
+    const license = await License.create({
+      userId,
+      licenseKey: generateLicenseKey(userId, plan),
+      plan,
+      mtLogin,
+      startDate: subscription.startDate,
+      endDate: subscription.endDate,
+      status: "active",
+    });
+
+    res.json({ success: true, message: "Subscription activated (TEST)", license });
+  } catch (err) {
+    console.error("Test activate failed:", err);
+    res.status(500).json({ success: false, error: "Test activate failed" });
+  }
+});
+
+// -----------------------------
 // EA Download Route
 // -----------------------------
 router.post("/download", authenticateToken, async (req, res) => {

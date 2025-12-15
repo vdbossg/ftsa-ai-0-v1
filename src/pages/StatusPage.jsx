@@ -6,7 +6,6 @@ import Modal from "../components/Modal";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
 
-// ---------- CONFIG ----------
 const PLAN_CONFIG = {
   Basic: { price: 60, days: 30 },
   Plus: { price: 630, days: 360 },
@@ -18,9 +17,6 @@ const SELAR_CHECKOUT_URLS = {
   Plus: "https://selar.com/m4x0043015",
   Unlimited: "https://selar.com/1i416146s6",
 };
-
-// ---------- TEST MODE ----------
-const TEST_MODE = true; // Set false for production
 
 const StatusPage = () => {
   const { isAuthenticated, user } = useAuth();
@@ -37,124 +33,120 @@ const StatusPage = () => {
 
   // ---------------- FETCH STATUS ----------------
   useEffect(() => {
-    if (!isAuthenticated) return;
+  if (!isAuthenticated) return;
 
-    if (TEST_MODE) {
-      // Create a fake expired license if none
-      setStatusData({
-        subscription: null,
-      });
-      setLoading(false);
-      return;
-    }
+  const fetchStatus = async () => {
+    try {
+      // ✅ TEST MODE: bypass Selar
+      if (process.env.REACT_APP_TEST_MODE === "true") {
+        const now = new Date();
+        const expiry = new Date();
+        expiry.setDate(now.getDate() + 30); // active for 30 days
 
-    APIControl.fetchStatusData()
-      .then((res) => {
-        if (res.success) {
-          setStatusData(res.data);
-          if (
-            res.data.subscription?.status === "active" &&
-            res.data.subscription.expiryDate
-          ) {
-            startCountdown(res.data.subscription.expiryDate);
-          }
-        } else {
-          setError(res.error || "Failed to load status");
-        }
+        setStatusData({
+          subscription: {
+            status: "active",
+            plan: "Basic",
+            expiryDate: expiry.toISOString(),
+            mtLogin: "123456",
+          },
+        });
+        startCountdown(expiry.toISOString());
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load status");
-        setLoading(false);
-      });
-  }, [isAuthenticated]);
-
-  // ---------------- COUNTDOWN ----------------
-  const startCountdown = (expiry) => {
-    const interval = setInterval(() => {
-      const diff = new Date(expiry) - new Date();
-      if (diff <= 0) {
-        setTimeLeft(null);
-        clearInterval(interval);
         return;
       }
 
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / 1000 / 60) % 60),
-        seconds: Math.floor((diff / 1000) % 60),
-      });
-    }, 1000);
+      // Normal fetch
+      const res = await APIControl.fetchStatusData();
+      if (res.success) {
+        setStatusData(res.data);
+        if (
+          res.data.subscription?.status === "active" &&
+          res.data.subscription.expiryDate
+        ) {
+          startCountdown(res.data.subscription.expiryDate);
+        }
+      } else {
+        setError(res.error || "Failed to load status");
+      }
+    } catch {
+      setError("Failed to load status");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // ---------------- PAYMENT / TEST REDIRECT ----------------
-  const handleSubscribe = () => {
-    if (!broker || !mtLogin) {
-      alert("Broker and MT Login are required");
+  fetchStatus();
+}, [isAuthenticated]);
+
+  // ---------------- COUNTDOWN ----------------
+const startCountdown = (expiry) => {
+  const interval = setInterval(() => {
+    const diff = new Date(expiry) - new Date();
+    if (diff <= 0) {
+      setTimeLeft(null);
+      clearInterval(interval);
       return;
     }
 
-    if (TEST_MODE) {
-      // ---------- TEST MODE LICENSE ----------
-      const fakeExpiry = new Date();
-      fakeExpiry.setDate(fakeExpiry.getDate() + PLAN_CONFIG[selectedPlan].days);
+    setTimeLeft({
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((diff / 1000 / 60) % 60),
+      seconds: Math.floor((diff / 1000) % 60),
+    });
+  }, 1000);
+};
 
-      setStatusData({
-        subscription: {
-          plan: selectedPlan,
-          status: "active",
-          expiryDate: fakeExpiry.toISOString(),
-        },
-      });
+  // ---------------- SELAR REDIRECT ----------------
+  const redirectToSelar = () => {
+  if (!broker || !mtLogin) {
+    alert("Broker and MT Login are required");
+    return;
+  }
+  
+  const planUrl = SELAR_CHECKOUT_URLS[selectedPlan];
+  if (!planUrl) {
+    alert("Invalid plan selected");
+    return;
+  }
 
-      startCountdown(fakeExpiry.toISOString());
-      setModalOpen(false);
-      alert(`Test license for ${selectedPlan} created successfully!`);
-      return;
-    }
+  const url =
+    `${planUrl}` +
+    `?metadata[user_id]=${user.id}` +
+    `&metadata[plan]=${selectedPlan}` +
+    `&metadata[broker]=${encodeURIComponent(broker)}` +
+    `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
 
-    // ---------- PRODUCTION MODE: SELAR ----------
-    const planUrl = SELAR_CHECKOUT_URLS[selectedPlan];
-    if (!planUrl) {
-      alert("Invalid plan selected");
-      return;
-    }
+  window.location.href = url;
+};
 
-    const url =
-      `${planUrl}` +
-      `?metadata[user_id]=${user.id}` +
-      `&metadata[plan]=${selectedPlan}` +
-      `&metadata[broker]=${encodeURIComponent(broker)}` +
-      `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
-
-    window.location.href = url;
-  };
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in</div>;
   if (loading) return <LoadingSpinner />;
   if (error) return <StatusBadge status="error" label={error} />;
 
   const hasActive =
-    statusData?.subscription?.status === "active" &&
-    new Date(statusData.subscription.expiryDate) > new Date();
+  statusData?.subscription?.status === "active" &&
+  new Date(statusData.subscription.expiryDate) > new Date();
 
-  const isPending = statusData?.subscription?.status === "pending";
+const isPending =
+  statusData?.subscription?.status === "pending";
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <h1 style={styles.title}>FTSA AI Subscription Status</h1>
         <StatusBadge
-          status={hasActive ? "online" : isPending ? "pending" : "offline"}
-          label={
-            hasActive
-              ? `${statusData.subscription.plan} Subscription ACTIVE`
-              : isPending
-              ? `${statusData.subscription.plan} Subscription PENDING`
-              : "No Active Subscription"
-          }
-        />
+  status={hasActive ? "online" : isPending ? "pending" : "offline"}
+  label={
+    hasActive
+      ? `${statusData.subscription.plan} Subscription ACTIVE`
+      : isPending
+      ? `${statusData.subscription.plan} Subscription PENDING`
+      : "No Active Subscription"
+  }
+/>
 
         {hasActive && timeLeft && (
           <p style={{ color: neonGreen }}>
@@ -178,15 +170,15 @@ const StatusPage = () => {
                   setModalOpen(true);
                 }}
               >
-                {TEST_MODE ? "Generate Test License" : "Pay with Selar"}
+                Pay with Selar
               </NeonButton>
             )}
 
             {hasActive && statusData.subscription.plan === plan && (
               <span style={{ color: neonGreen }}>
-                Active until{" "}
-                {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
-              </span>
+  Active until {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
+</span>
+
             )}
           </div>
         ))}
@@ -194,10 +186,7 @@ const StatusPage = () => {
 
       {/* -------- MODAL -------- */}
       {modalOpen && (
-        <Modal
-          title={`Subscribe: ${selectedPlan}`}
-          onClose={() => setModalOpen(false)}
-        >
+        <Modal title={`Subscribe: ${selectedPlan}`} onClose={() => setModalOpen(false)}>
           <input
             style={styles.input}
             placeholder="Broker name"
@@ -210,19 +199,16 @@ const StatusPage = () => {
             value={mtLogin}
             onChange={(e) => setMtLogin(e.target.value)}
           />
-          <p style={{ color: neonGreen }}>
-            Payment Method: {TEST_MODE ? "Test Mode" : "Selar Secure Checkout"}
-          </p>
+          <p style={{ color: neonGreen }}>Payment Method: Selar Secure Checkout</p>
 
           <button
-            style={styles.modalButton}
-            onClick={handleSubscribe}
-            disabled={!broker || !mtLogin}
-          >
-            {TEST_MODE
-              ? `Generate Test License (${PLAN_CONFIG[selectedPlan].days} days)`
-              : `Pay $${PLAN_CONFIG[selectedPlan].price}`}
-          </button>
+  style={styles.modalButton}
+  onClick={redirectToSelar}
+  disabled={!broker || !mtLogin}
+>
+  Pay ${PLAN_CONFIG[selectedPlan].price}
+</button>
+
         </Modal>
       )}
 
