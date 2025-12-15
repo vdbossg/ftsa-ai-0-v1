@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema(
@@ -18,10 +19,8 @@ const transactionSchema = new mongoose.Schema(
       required: true,
       default: "pending" 
     },
-    ocbTransactionId: { type: String }, // sync reference from OCB Bank
+    // ocbTransactionId: { type: String }, // ❌ Commented out since OCB is disabled
     metadata: { type: mongoose.Schema.Types.Mixed }, // extra details
   },
   { timestamps: true }
 );
-
-module.exports = mongoose.model("Transaction", transactionSchema);

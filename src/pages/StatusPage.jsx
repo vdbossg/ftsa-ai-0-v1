@@ -39,7 +39,12 @@ const StatusPage = () => {
       .then((res) => {
         if (res.success) {
           setStatusData(res.data);
-          if (res.data.subscription?.expiryDate) startCountdown(res.data.subscription.expiryDate);
+          if (
+  res.data.subscription?.status === "active" &&
+  res.data.subscription.expiryDate
+) {
+  startCountdown(res.data.subscription.expiryDate);
+}
         } else {
           setError(res.error || "Failed to load status");
         }
@@ -52,20 +57,23 @@ const StatusPage = () => {
   }, [isAuthenticated]);
 
   // ---------------- COUNTDOWN ----------------
-  const startCountdown = (expiry) => {
-    const tick = () => {
-      const diff = new Date(expiry) - new Date();
-      if (diff <= 0) return null;
-      return {
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / 1000 / 60) % 60),
-        seconds: Math.floor((diff / 1000) % 60),
-      };
-    };
-    setTimeLeft(tick());
-    setInterval(() => setTimeLeft(tick()), 1000);
-  };
+const startCountdown = (expiry) => {
+  const interval = setInterval(() => {
+    const diff = new Date(expiry) - new Date();
+    if (diff <= 0) {
+      setTimeLeft(null);
+      clearInterval(interval);
+      return;
+    }
+
+    setTimeLeft({
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((diff / 1000 / 60) % 60),
+      seconds: Math.floor((diff / 1000) % 60),
+    });
+  }, 1000);
+};
 
   // ---------------- SELAR REDIRECT ----------------
   const redirectToSelar = () => {
@@ -95,16 +103,28 @@ const StatusPage = () => {
   if (loading) return <LoadingSpinner />;
   if (error) return <StatusBadge status="error" label={error} />;
 
-  const hasActive = Boolean(statusData?.subscription);
+  const hasActive =
+  statusData?.subscription?.status === "active" &&
+  new Date(statusData.subscription.expiryDate) > new Date();
+
+const isPending =
+  statusData?.subscription?.status === "pending";
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <h1 style={styles.title}>FTSA AI Subscription Status</h1>
         <StatusBadge
-          status={hasActive ? "online" : "offline"}
-          label={hasActive ? `${statusData.subscription.plan} Subscription ACTIVE` : "No Active Subscription"}
-        />
+  status={hasActive ? "online" : isPending ? "pending" : "offline"}
+  label={
+    hasActive
+      ? `${statusData.subscription.plan} Subscription ACTIVE`
+      : isPending
+      ? `${statusData.subscription.plan} Subscription PENDING`
+      : "No Active Subscription"
+  }
+/>
+
         {hasActive && timeLeft && (
           <p style={{ color: neonGreen }}>
             Expires in {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
@@ -133,10 +153,9 @@ const StatusPage = () => {
 
             {hasActive && statusData.subscription.plan === plan && (
               <span style={{ color: neonGreen }}>
-                Active until {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
-                <br />
-                License Key: {statusData.subscription.licenseKey}
-              </span>
+  Active until {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
+</span>
+
             )}
           </div>
         ))}
@@ -159,9 +178,14 @@ const StatusPage = () => {
           />
           <p style={{ color: neonGreen }}>Payment Method: Selar Secure Checkout</p>
 
-          <button style={styles.modalButton} onClick={redirectToSelar}>
-            Pay ${PLAN_CONFIG[selectedPlan].price}
-          </button>
+          <button
+  style={styles.modalButton}
+  onClick={redirectToSelar}
+  disabled={!broker || !mtLogin}
+>
+  Pay ${PLAN_CONFIG[selectedPlan].price}
+</button>
+
         </Modal>
       )}
 

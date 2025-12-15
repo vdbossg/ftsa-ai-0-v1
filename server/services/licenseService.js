@@ -1,15 +1,17 @@
-//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\server\services\licenseService.js
 const License = require("../models/License");
+const Subscription = require("../models/Subscription");
 const PendingSubscription = require("../models/PendingSubscription");
+const Transaction = require("../models/Transaction");
+const CFAAccount = require("../services/cfaAccount"); // EA generator
 const User = require("../models/User");
 
-// Helper to generate unique license key
+// Helper: generate unique license
 const generateLicenseKey = (userId, plan) => {
-  const timestamp = new Date().toISOString().replace(/[-:.]/g, "");
+  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "");
   return `LIC_${userId}_${plan}_${timestamp}`;
 };
 
-// Helper to calculate expiry based on plan
+// Helper: calculate expiry
 const calculateExpiry = (plan) => {
   const now = new Date();
   if (plan === "Basic") now.setDate(now.getDate() + 30);
@@ -18,44 +20,56 @@ const calculateExpiry = (plan) => {
   return now;
 };
 
-// ---------------------- Deposit / Subscription ----------------------
+// ---------------------- Webhook: Create License from Selar ----------------------
 async function createLicenseFromSelarWebhook(metadata) {
-  const { USER_ID, LOGIN_ID, BROKER, PLAN } = metadata;
+  const { userId, mtLogin, broker, plan, orderId } = metadata;
 
   // Avoid duplicate license
-  const existing = await License.findOne({
-    userId: USER_ID,
-    mtLogin: LOGIN_ID,
-    endDate: { $gte: new Date() },
-  });
-
+  let existing = await License.findOne({ selarOrderId: orderId });
   if (existing) return existing;
 
-  const licenseKey = generateLicenseKey(USER_ID, PLAN);
-  const endDate = calculateExpiry(PLAN);
+  // Create license
+  const licenseKey = generateLicenseKey(userId, plan);
+  const endDate = calculateExpiry(plan);
 
   const license = await License.create({
-    userId: USER_ID,
-    mtLogin: LOGIN_ID,
-    broker: BROKER || "",
-    plan: PLAN,
+    userId,
+    mtLogin,
+    broker: broker || "",
+    plan,
     licenseKey,
     startDate: new Date(),
     endDate,
+    selarOrderId: orderId,
   });
 
-  // Mark pending subscription as paid
-  await PendingSubscription.updateOne(
-    { userId: USER_ID, mtLogin: LOGIN_ID },
-    { $set: { paid: true } }
+  // Update subscription to active & attach license
+await Subscription.findOneAndUpdate(
+  { userId, mtLogin },
+  { status: "active", licenseKey, expiryDate: endDate }
+);
+
+  // Mark Transaction as completed
+  await Transaction.updateMany(
+    { "metadata.orderId": orderId },
+    { $set: { status: "completed" } }
   );
 
+  // Generate EA (one-time)
+  await CFAAccount.generateEA(userId, licenseKey);
+
+  console.log(`✅ License created & EA generated for user ${userId}, plan ${plan}`);
   return license;
 }
 
-// ---------------------- Download License ----------------------
+// ---------------------- Get Active License ----------------------
 async function getUserLicense(userId) {
-  return await License.findOne({ userId }).sort({ createdAt: -1 }).lean();
+  const license = await License.findOne({
+    userId,
+    endDate: { $gte: new Date() },
+  }).sort({ createdAt: -1 });
+
+  return license;
 }
 
 module.exports = {

@@ -124,7 +124,7 @@ app.use('/api', propTradeRoutes);
 console.log('✅ /api/closed-prop-trades routes mounted');
 app.use('/api', mtTradeRoutes);
 console.log('✅ /api/closed-mt-trades routes mounted')
-app.use('/api/license', licenseRoutes);
+app.use('/api/licenses', licenseRoutes);
 console.log('✅ /api/license routes mounted');
 app.use('/api/settings', settingsRoutes);
 console.log('✅ /api/settings routes mounted');

@@ -419,11 +419,16 @@ async fetchPropFirmAccountsData() {
 /**
  * Fetch the active EA license for the logged-in user
  */
-async getActiveLicense(userId) {
+/**
+ * Fetch the active EA license for the logged-in user
+ */
+async getActiveLicense() {
   try {
-    const response = await fetch(`${BASE_URL}/api/licenses/active?userId=${userId}`, {
+    const response = await fetch(`${BASE_URL}/api/license/my`, {
       headers: {
-        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+        ...(localStorage.getItem("authToken") && { 
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
+        }),
       },
     });
 
@@ -438,6 +443,34 @@ async getActiveLicense(userId) {
     return { success: false, data: null };
   }
 },
+/**
+ * Generate EA automatically for the logged-in user and get download URL
+ */
+async generateAndDownloadEA() {
+  try {
+    // Step 1: Fetch active license
+    const licenseRes = await this.getActiveLicense();
+    if (!licenseRes.success || !licenseRes.data?.key) {
+      return { success: false, error: "No active license found" };
+    }
+    const licenseKey = licenseRes.data.key;
+
+    // Step 2: Generate EA
+    const generateRes = await this.generateEA(licenseKey);
+    if (!generateRes.success || !generateRes.filename) {
+      return { success: false, error: generateRes.error || "EA generation failed" };
+    }
+
+    // Step 3: Prepare download URL
+    const downloadUrl = this.downloadEA(generateRes.filename);
+
+    return { success: true, downloadUrl, filename: generateRes.filename };
+  } catch (err) {
+    console.error("Error in generateAndDownloadEA:", err);
+    return { success: false, error: "Unexpected error generating EA" };
+  }
+},
+
 /**
  * Fetch Selar subscription or payment info
  */
@@ -478,21 +511,21 @@ async fetchCFAData() {
 /**
  * Fetch OCB data
  */
-async fetchOCBData() {
-  try {
-    const response = await fetch(`${BASE_URL}/api/ocb`, {
-      headers: {
-        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
-      },
-    });
-    if (!response.ok) return { success: false, data: [] };
-    const data = await response.json();
-    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
-  } catch (err) {
-    console.error("Error fetching OCB data:", err);
-    return { success: false, data: [] };
-  }
-},
+//async fetchOCBData() {
+  //try {
+    //const response = await fetch(`${BASE_URL}/api/ocb`, {
+      //headers: {
+        //...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` }),
+      //},
+    //});
+    //if (!response.ok) return { success: false, data: [] };
+    //const data = await response.json();
+    //return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  //} catch (err) {
+    //console.error("Error fetching OCB data:", err);
+    //return { success: false, data: [] };
+  //}
+//},
 
 
 /**

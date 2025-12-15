@@ -1,65 +1,29 @@
-// backend/controllers/subscriptionController.js
 import Subscription from "../models/Subscription.js";
-import CFAAccount from "../services/cfaAccount.js";  // CFA service
-import axios from "axios";
+import CFAAccount from "../services/cfaAccount.js";  
+import License from "../models/License.js";
 import Affiliate from "../models/Affiliate.js";
+import Transaction from "../models/Transaction.js";  // <-- ADD THIS
 
-// OCB Bank API
-const OCB_API = process.env.OCB_API || "http://ocb-bank:5000/api";
-
+// ---------------- CREATE PENDING SUBSCRIPTION ----------------
 export const subscribe = async (req, res, next) => {
   try {
-    const { userId, plan, paymentMethod, amount, mtLogin, broker } = req.body;
+    const { userId, plan, amount, mtLogin, broker } = req.body;
 
-    // 1️⃣ Determine expiry date based on plan
-    let expiryDate;
-    if (plan === "Basic") expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    else if (plan === "Plus") expiryDate = new Date(Date.now() + 360 * 24 * 60 * 60 * 1000);
-    else if (plan === "Unlimited") expiryDate = new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000);
-
-    // 2️⃣ Save subscription locally
+    // Save subscription as pending until webhook confirms payment
     const subscription = await Subscription.create({
       userId,
       plan,
-      paymentMethod,
+      paymentMethod: "Selar",
       amount,
-      status: "active",
-      expiryDate,
+      status: "pending",  // ❌ will become "active" after payment
+      expiryDate: null,   // set after webhook
       mtLogin,
       broker,
     });
 
-    // 3️⃣ Deposit into CFA account (local tracking)
-    await CFAAccount.deposit(userId, amount, paymentMethod);
-
-    // 4️⃣ Sync deposit to OCB Bank
-    await axios.post(`${OCB_API}/transactions/sync`, {
-      accountId: "CFA_ACCOUNT",
-      type: "deposit",
-      userId,
-      amount,
-      method: paymentMethod,
-      source: "FTSA_AI_APP",
-    });
-
-    // 5️⃣ Handle affiliate commission
-    const affiliate = await Affiliate.findOne({ referredUsers: userId });
-    if (affiliate) {
-      let commission = 0;
-      if (plan === "Basic") commission = 5;
-      else if (plan === "Plus") commission = 15;
-      else if (plan === "Unlimited") commission = 30;
-
-      affiliate.totalCommission += commission;
-      affiliate.pendingCommission += commission;
-      affiliate.newSubscribersCount = (affiliate.newSubscribersCount || 0) + 1;
-
-      await affiliate.save();
-    }
-
     res.status(201).json({
       success: true,
-      message: "Subscription successful & funds synced to OCB Bank",
+      message: "Subscription created. Pending payment confirmation via Selar.",
       subscription,
     });
   } catch (error) {
@@ -68,16 +32,77 @@ export const subscribe = async (req, res, next) => {
   }
 };
 
-// ✅ Get subscription status
+// ---------------- GET SUBSCRIPTION STATUS ----------------
 export const getStatus = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const subscription = await Subscription.findOne({ userId });
 
-    if (!subscription) return res.status(404).json({ success: false, message: "No subscription found" });
+    // Fetch the most recent subscription
+    const subscription = await Subscription.findOne({ userId }).sort({ createdAt: -1 });
 
-    res.json({ success: true, subscription });
+    if (!subscription)
+      return res.status(404).json({ success: false, message: "No subscription found" });
+
+    // Active only if webhook confirmed
+    const isActive = subscription.status === "active";
+
+    res.json({ success: true, subscription, isActive });
   } catch (error) {
+    console.error("❌ Get Status Error:", error.message);
+    next(error);
+  }
+};
+
+// ---------------- SELAR WEBHOOK TO ACTIVATE SUBSCRIPTION ----------------
+export const selarWebhook = async (req, res, next) => {
+  try {
+    const { metadata, status } = req.body;
+
+    if (status !== "paid") return res.status(200).send("Payment not completed, ignoring");
+
+    const { userId, plan, mtLogin, broker, orderId } = metadata;
+
+    // Find pending subscription
+    const subscription = await Subscription.findOne({ userId, plan, status: "pending" });
+    if (!subscription) return res.status(404).send("Pending subscription not found");
+
+    // Calculate expiry
+    let expiryDate = new Date();
+    if (plan === "Basic") expiryDate.setDate(expiryDate.getDate() + 30);
+    else if (plan === "Plus") expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    else if (plan === "Unlimited") expiryDate.setFullYear(expiryDate.getFullYear() + 100);
+
+    // Update subscription to active
+    subscription.status = "active";
+    subscription.expiryDate = expiryDate;
+    await subscription.save();
+
+    // -------------------- ADD THIS --------------------
+await Transaction.findOneAndUpdate(
+  { userId, "metadata.plan": plan, status: "pending" },
+  { status: "completed" }
+);
+// ---------------------------------------------------
+
+    // Record deposit in CFAAccount after confirmed payment
+    await CFAAccount.deposit(userId, subscription.amount, "Selar");
+
+    // Generate License
+    const licenseKey = `LIC_${userId}_${plan}_${new Date().toISOString().replace(/[-:.TZ]/g, "")}`;
+    const license = await License.create({
+      userId,
+      plan,
+      mtLogin,
+      broker,
+      licenseKey,
+      startDate: new Date(),
+      endDate: expiryDate,
+      selarOrderId: orderId,
+    });
+
+    res.status(200).send("Subscription activated and license generated");
+  } catch (error) {
+    console.error("❌ Selar Webhook Error:", error.message);
     next(error);
   }
 };
