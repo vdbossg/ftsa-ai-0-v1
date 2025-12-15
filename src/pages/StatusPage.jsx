@@ -6,26 +6,10 @@ import Modal from "../components/Modal";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
 
-// --------- TEST CONFIG ----------
-const TEST_ACTIVE_SUBSCRIPTION = true; // Toggle true/false to test
-const mockStatusData = {
-  subscription: {
-    status: "active",
-    plan: "Plus",
-    expiryDate: new Date(new Date().setDate(new Date().getDate() + 30)), // 30 days from now
-  },
-};
-
 const PLAN_CONFIG = {
   Basic: { price: 60, days: 30 },
   Plus: { price: 630, days: 360 },
   Unlimited: { price: 2400, days: 36500 }, // Lifetime
-};
-
-const SELAR_CHECKOUT_URLS = {
-  Basic: "https://selar.com/qh11u57775",
-  Plus: "https://selar.com/m4x0043015",
-  Unlimited: "https://selar.com/1i416146s6",
 };
 
 const StatusPage = () => {
@@ -44,13 +28,6 @@ const StatusPage = () => {
   // ---------------- FETCH STATUS ----------------
   useEffect(() => {
     if (!isAuthenticated) return;
-
-    if (TEST_ACTIVE_SUBSCRIPTION) {
-      setStatusData(mockStatusData);
-      startCountdown(mockStatusData.subscription.expiryDate);
-      setLoading(false);
-      return;
-    }
 
     APIControl.fetchStatusData()
       .then((res) => {
@@ -92,27 +69,30 @@ const StatusPage = () => {
     }, 1000);
   };
 
-  // ---------------- SELAR REDIRECT ----------------
-  const redirectToSelar = () => {
-    if (!broker || !mtLogin) {
-      alert("Broker and MT Login are required");
+  // ---------------- ACTIVATE PLAN (TEST ONLY) ----------------
+  const activatePlan = () => {
+    if (!broker || !mtLogin || !selectedPlan) {
+      alert("Broker, MT Login, and Plan are required");
       return;
     }
 
-    const planUrl = SELAR_CHECKOUT_URLS[selectedPlan];
-    if (!planUrl) {
-      alert("Invalid plan selected");
-      return;
-    }
+    // Simulate immediate active subscription for testing
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + PLAN_CONFIG[selectedPlan].days);
 
-    const url =
-      `${planUrl}` +
-      `?metadata[user_id]=${user.id}` +
-      `&metadata[plan]=${selectedPlan}` +
-      `&metadata[broker]=${encodeURIComponent(broker)}` +
-      `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
+    setStatusData({
+      subscription: {
+        plan: selectedPlan,
+        status: "active",
+        broker,
+        mtLogin,
+        expiryDate: expiryDate.toISOString(),
+      },
+    });
 
-    window.location.href = url;
+    startCountdown(expiryDate.toISOString());
+    setModalOpen(false);
+    alert(`Subscription ${selectedPlan} is now ACTIVE (Test Mode)!`);
   };
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in</div>;
@@ -162,7 +142,7 @@ const StatusPage = () => {
                   setModalOpen(true);
                 }}
               >
-                Pay with Selar
+                Activate (Test)
               </NeonButton>
             )}
 
@@ -194,22 +174,20 @@ const StatusPage = () => {
             value={mtLogin}
             onChange={(e) => setMtLogin(e.target.value)}
           />
-          <p style={{ color: neonGreen }}>Payment Method: Selar Secure Checkout</p>
+          <p style={{ color: neonGreen }}>Payment Method: Test Activation</p>
 
           <button
             style={styles.modalButton}
-            onClick={redirectToSelar}
+            onClick={activatePlan}
             disabled={!broker || !mtLogin}
           >
-            Pay ${PLAN_CONFIG[selectedPlan].price}
+            Activate {selectedPlan}
           </button>
         </Modal>
       )}
 
       <footer style={styles.footer}>
-        <p style={styles.footerText}>
-          FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
-        </p>
+        <p style={styles.footerText}>FTSA AI © 2025</p>
       </footer>
     </div>
   );
@@ -228,7 +206,13 @@ const styles = {
   sectionTitle: { fontSize: "1.5rem" },
   planCard: { border: `2px solid ${neonBlue}`, padding: "1rem", marginBottom: "1rem" },
   input: { width: "100%", marginBottom: "1rem", padding: "0.5rem" },
-  modalButton: { background: neonBlue, color: "#000", padding: "0.6rem", border: "none", cursor: "pointer" },
+  modalButton: {
+    background: neonBlue,
+    color: "#000",
+    padding: "0.6rem",
+    border: "none",
+    cursor: "pointer",
+  },
   footer: { textAlign: "center", borderTop: `2px solid ${neonBlue}` },
   footerText: { color: neonGreen },
   notAuth: { color: neonRed, padding: "2rem" },
