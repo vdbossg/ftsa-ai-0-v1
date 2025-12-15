@@ -7,14 +7,36 @@ import APIControl from "../brain/APIControl";
 import { useAuth } from "../contexts/AuthContext";
 
 const EADownloadPage = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [licenses, setLicenses] = useState([]);
 
   // Fetch licenses
-  // --- WITH THIS MOCK FOR TESTING ---
-useEffect(() => {
+  //useEffect(() => {
+    //if (!isAuthenticated) return;
+
+    //const fetchLicenses = async () => {
+      //try {
+        //const res = await APIControl.getActiveLicense();
+
+//if (!res.success || !res.data) {
+  //setError("No active subscription found. Please subscribe first.");
+  //setLicenses([]);
+//} else {
+  //setLicenses([res.data]);
+//}
+
+      //} catch {
+        //setError("Failed to fetch licenses.");
+      //} finally {
+        //setLoading(false);
+      //}
+    //};
+
+    //fetchLicenses();
+  //}, [isAuthenticated]);
+  useEffect(() => {
   if (!isAuthenticated) return;
 
   // Mock a license for testing
@@ -32,21 +54,23 @@ useEffect(() => {
   setLicenses([testLicense]);
   setLoading(false);
 }, [isAuthenticated]);
+
   // Generate EA
-  const generateEA = async (licenseKey) => {
+  const generateEA = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await APIControl.generateAndDownloadEA(licenseKey);
+      const res = await APIControl.generateAndDownloadEA();
       if (!res.success) {
         setError(res.error || "EA generation failed");
       } else {
         const link = document.createElement("a");
-        link.href = res.downloadUrl;
-        link.download = res.filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+link.href = res.downloadUrl;
+link.setAttribute("download", res.filename);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+
       }
     } catch {
       setError("EA generation error");
@@ -92,7 +116,7 @@ useEffect(() => {
               <p><strong>Start Date:</strong> {new Date(lic.startDate).toLocaleDateString()}</p>
               <p><strong>Expiry Date:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
               <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
-              <NeonButton onClick={() => generateEA(lic.licenseKey || lic.license_key)}>
+              <NeonButton onClick={generateEA}>
                 Generate & Download EA
               </NeonButton>
             </div>

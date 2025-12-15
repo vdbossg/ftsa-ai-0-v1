@@ -450,13 +450,17 @@ async generateAndDownloadEA() {
   try {
     // Step 1: Fetch active license
     const licenseRes = await this.getActiveLicense();
-    if (!licenseRes.success || !licenseRes.data?.key) {
+
+    const license =
+      licenseRes.data?.licenseKey ||
+      licenseRes.data?.license_key;
+
+    if (!licenseRes.success || !license) {
       return { success: false, error: "No active license found" };
     }
-    const licenseKey = licenseRes.data.key;
 
     // Step 2: Generate EA
-    const generateRes = await this.generateEA(licenseKey);
+    const generateRes = await this.generateEA(license);
     if (!generateRes.success || !generateRes.filename) {
       return { success: false, error: generateRes.error || "EA generation failed" };
     }
