@@ -7,70 +7,48 @@ import APIControl from "../brain/APIControl";
 import { useAuth } from "../contexts/AuthContext";
 
 const EADownloadPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [licenses, setLicenses] = useState([]);
 
   // Fetch licenses
-  //useEffect(() => {
-    //if (!isAuthenticated) return;
-
-    //const fetchLicenses = async () => {
-      //try {
-        //const res = await APIControl.getActiveLicense();
-
-//if (!res.success || !res.data) {
-  //setError("No active subscription found. Please subscribe first.");
-  //setLicenses([]);
-//} else {
-  //setLicenses([res.data]);
-//}
-
-      //} catch {
-        //setError("Failed to fetch licenses.");
-      //} finally {
-        //setLoading(false);
-      //}
-    //};
-
-    //fetchLicenses();
-  //}, [isAuthenticated]);
   useEffect(() => {
-  if (!isAuthenticated) return;
+    if (!isAuthenticated) return;
 
-  // Mock a license for testing
-  const testLicense = {
-    _id: "TEST123",
-    status: "active",
-    plan: "Basic",
-    broker: "TestBroker",
-    mtLogin: "123456",
-    startDate: new Date().toISOString(),
-    endDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString(),
-    licenseKey: "TESTLIC123"
-  };
+    const fetchLicenses = async () => {
+      try {
+        const res = await APIControl.getUserLicenses(user.id);
+        if (!res.success || !res.licenses?.length) {
+          setError("No licenses found. Please subscribe first.");
+        } else {
+          setLicenses(res.licenses);
+        }
+      } catch {
+        setError("Failed to fetch licenses.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  setLicenses([testLicense]);
-  setLoading(false);
-}, [isAuthenticated]);
+    fetchLicenses();
+  }, [isAuthenticated, user]);
 
   // Generate EA
-  const generateEA = async () => {
+  const generateEA = async (licenseKey) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await APIControl.generateAndDownloadEA();
+      const res = await APIControl.generateAndDownloadEA(licenseKey);
       if (!res.success) {
         setError(res.error || "EA generation failed");
       } else {
         const link = document.createElement("a");
-link.href = res.downloadUrl;
-link.setAttribute("download", res.filename);
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-
+        link.href = res.downloadUrl;
+        link.download = res.filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
       }
     } catch {
       setError("EA generation error");
@@ -116,7 +94,7 @@ document.body.removeChild(link);
               <p><strong>Start Date:</strong> {new Date(lic.startDate).toLocaleDateString()}</p>
               <p><strong>Expiry Date:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
               <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
-              <NeonButton onClick={generateEA}>
+              <NeonButton onClick={() => generateEA(lic.licenseKey || lic.license_key)}>
                 Generate & Download EA
               </NeonButton>
             </div>
