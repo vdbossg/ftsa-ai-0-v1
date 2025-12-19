@@ -324,11 +324,11 @@ useEffect(() => {
     </table>
   </div>
 </section>
-   {/* Trading View Signals */}
+    {/* Trading View Signals */}
 <section style={{ ...scrollableTableContainer, maxHeight: "300px", overflowY: "auto" }}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trading View Signals</h2>
   <div style={{ overflowX: "auto" }}>
-    <table style={{ ...tableStyle, minWidth: "700px" }}>
+    <table style={{ ...tableStyle, minWidth: "750px" }}>
       <thead>
         <tr>
           <th style={thShadowStyle}>Symbol</th>
@@ -336,6 +336,7 @@ useEffect(() => {
           <th style={thShadowStyle}>Mode</th>
           <th style={thShadowStyle}>Choch</th>
           <th style={thShadowStyle}>Resistance</th>
+          <th style={thShadowStyle}>Support</th> {/* New column */}
           <th style={thShadowStyle}>Entry</th>
           <th style={thShadowStyle}>SL</th>
           <th style={thShadowStyle}>TP</th>
@@ -355,10 +356,13 @@ useEffect(() => {
               }}
             >
               <td style={tdVerticalLineStyle}>{signal.symbol}</td>
-              <td style={tdVerticalLineStyle}>{signal.type}</td>
+              <td style={tdVerticalLineStyle}>
+                {signal.type === "BUY" ? "↑ BUY" : signal.type === "SELL" ? "↓ SELL" : signal.type}
+              </td>
               <td style={tdVerticalLineStyle}>{signal.mode}</td>
               <td style={tdVerticalLineStyle}>{signal.choch}</td>
-              <td style={tdVerticalLineStyle}>{signal.resistance}</td>
+              <td style={tdVerticalLineStyle}>{signal.resistance || "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.support || "-"}</td> {/* Support value */}
               <td style={tdVerticalLineStyle}>{signal.entry}</td>
               <td style={tdVerticalLineStyle}>{signal.sl}</td>
               <td style={tdVerticalLineStyle}>{signal.tp}</td>
@@ -367,7 +371,7 @@ useEffect(() => {
           ))
         ) : (
           <tr>
-            <td colSpan={9} style={{ textAlign: "center" }}>No signals available</td>
+            <td colSpan={10} style={{ textAlign: "center" }}>No signals available</td>
           </tr>
         )}
       </tbody>
