@@ -324,7 +324,7 @@ useEffect(() => {
     </table>
   </div>
 </section>
-    {/* Trading View Signals */}
+   {/* Trading View Signals */}
 <section style={{ ...scrollableTableContainer, maxHeight: "300px", overflowY: "auto" }}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trading View Signals</h2>
   <div style={{ overflowX: "auto" }}>
@@ -336,7 +336,7 @@ useEffect(() => {
           <th style={thShadowStyle}>Mode</th>
           <th style={thShadowStyle}>Choch</th>
           <th style={thShadowStyle}>Resistance</th>
-          <th style={thShadowStyle}>Support</th> {/* New column */}
+          <th style={thShadowStyle}>Support</th>
           <th style={thShadowStyle}>Entry</th>
           <th style={thShadowStyle}>SL</th>
           <th style={thShadowStyle}>TP</th>
@@ -357,16 +357,18 @@ useEffect(() => {
             >
               <td style={tdVerticalLineStyle}>{signal.symbol}</td>
               <td style={tdVerticalLineStyle}>
-                {signal.type === "BUY" ? "↑ BUY" : signal.type === "SELL" ? "↓ SELL" : signal.type}
+                {signal.type === "BUY" && <span style={{ color: "#00FF00" }}>↑ BUY</span>}
+                {signal.type === "SELL" && <span style={{ color: "#FF0000" }}>↓ SELL</span>}
+                {!["BUY","SELL"].includes(signal.type) && signal.type}
               </td>
-              <td style={tdVerticalLineStyle}>{signal.mode}</td>
-              <td style={tdVerticalLineStyle}>{signal.choch}</td>
-              <td style={tdVerticalLineStyle}>{signal.resistance || "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.support || "-"}</td> {/* Support value */}
-              <td style={tdVerticalLineStyle}>{signal.entry}</td>
-              <td style={tdVerticalLineStyle}>{signal.sl}</td>
-              <td style={tdVerticalLineStyle}>{signal.tp}</td>
-              <td style={lastTdStyle}>{signal.timeframe}</td>
+              <td style={tdVerticalLineStyle}>{signal.mode || "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.choch || "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.resistance ?? "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.support ?? "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.entry ?? "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.sl ?? "-"}</td>
+              <td style={tdVerticalLineStyle}>{signal.tp ?? "-"}</td>
+              <td style={lastTdStyle}>{signal.timeframe || "-"}</td>
             </tr>
           ))
         ) : (
@@ -378,6 +380,8 @@ useEffect(() => {
     </table>
   </div>
 </section>
+
+
 
       {/* Brain Settings */}
 <section

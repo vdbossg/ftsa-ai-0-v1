@@ -6,22 +6,24 @@ const REQUIRED_FIELDS = [
   "type",
   "mode",
   "choch",
-  "resistance",
   "entry",
   "sl",
   "tp"
+  // Removed resistance from REQUIRED_FIELDS to allow support-only signals
 ];
 
 exports.getValidSignals = async () => {
   const signals = await Signal.find();
 
-  // Filter valid signals
+  // Filter valid signals: either resistance or support can exist
   const validSignals = signals.filter(s => {
-    return REQUIRED_FIELDS.every(f => {
+    const hasSupportOrResistance = s.resistance || s.support; // at least one
+    const otherFieldsValid = REQUIRED_FIELDS.every(f => {
       const value = s[f];
       // Ignore if false, "false", 0, null, or undefined
       return value !== false && value !== "false" && value !== 0 && value !== null && value !== undefined;
     });
+    return hasSupportOrResistance && otherFieldsValid;
   });
 
   // Delete invalid signals in bulk
@@ -39,7 +41,8 @@ exports.getValidSignals = async () => {
     type: s.type,
     mode: s.mode,
     choch: s.choch,
-    resistance: s.resistance,
+    resistance: s.resistance || false,
+    support: s.support || false,
     entry: s.entry,
     sl: s.sl,
     tp: s.tp,

@@ -16,7 +16,8 @@ exports.receiveSignal = async (req, res) => {
         type: saved.type,
         mode: saved.mode,
         choch: saved.choch,
-        resistance: saved.resistance,
+        resistance: saved.resistance || false,
+        support: saved.support || false, // <-- added support
         entry: saved.entry,
         sl: saved.sl,
         tp: saved.tp,

@@ -2,7 +2,7 @@ const filterService = require("../services/filter.service");
 
 exports.getFilteredSignals = async (req, res) => {
   try {
-    // Get only valid signals
+    // Get only valid signals (with support or resistance)
     const filtered = await filterService.getValidSignals();
 
     // Return exactly the array of valid signals
