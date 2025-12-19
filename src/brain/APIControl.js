@@ -668,25 +668,23 @@ async fetchChochData() {
 async fetchFilteredSignals(filters = {}) {
   try {
     const params = new URLSearchParams(filters).toString();
-    const response = await fetch(`${BASE_URL}/api/brain/filtered-signals?${params}`, {
+    const response = await fetch(`${BASE_URL}/api/filter/filteredSignals?${params}`, {
       headers: {
         ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       }
     });
 
-    if (!response.ok) {
-      console.error("Failed to fetch filtered signals:", response.statusText);
-      return { success: false, data: [] };
-    }
+    if (!response.ok) return { success: false, data: [] };
 
     const data = await response.json();
-    // Ensure we always return an array
-    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+    // Ensure always return an array
+    return { success: true, data: Array.isArray(data) ? data : [] };
   } catch (err) {
     console.error("Error fetching filtered signals:", err);
     return { success: false, data: [] };
   }
 },
+
 
 /**
  * Fetch next command for MT account
