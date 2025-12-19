@@ -38,7 +38,9 @@ const propTradeRoutes = require('./routes/propTradeRoutes');
 const mtTradeRoutes = require('./routes/mtTradeRoutes');
 const licenseRoutes = require('./routes/license');
 const settingsRoutes = require('./routes/settingsRoutes'); // CommonJS style
-
+const fcsRoutes = require("./routes/fcsRoutes");
+const tvspRoutes = require("./routes/tvsp.routes")
+const filterRoutes = require("./routes/filter.routes");
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -128,7 +130,12 @@ app.use('/api/licenses', licenseRoutes);
 console.log('✅ /api/license routes mounted');
 app.use('/api/settings', settingsRoutes);
 console.log('✅ /api/settings routes mounted');
-
+app.use("/api/fcs", fcsRoutes);
+console.log('✅ /api/fcs routes mounted');
+app.use("/api", tvspRoutes)
+console.log('✅ /api/tvsp routes mounted');
+app.use("/api/filter", filterRoutes);
+console.log('✅ /api/filter routes mounted');
 
 
 // FTSA AI Brain Routes

@@ -661,6 +661,32 @@ async fetchChochData() {
   }
 },
 
+/**
+ * Fetch filtered signals for the new Brain table
+ * @param {Object} filters - e.g. { strengthMin: 50, trend: 'Bullish' }
+ */
+async fetchFilteredSignals(filters = {}) {
+  try {
+    const params = new URLSearchParams(filters).toString();
+    const response = await fetch(`${BASE_URL}/api/brain/filtered-signals?${params}`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
+      }
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch filtered signals:", response.statusText);
+      return { success: false, data: [] };
+    }
+
+    const data = await response.json();
+    // Ensure we always return an array
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("Error fetching filtered signals:", err);
+    return { success: false, data: [] };
+  }
+},
 
 /**
  * Fetch next command for MT account

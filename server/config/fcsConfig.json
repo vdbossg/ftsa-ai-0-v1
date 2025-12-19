@@ -1,0 +1,7 @@
+{
+  "allowedSymbols": ["*"],
+  "defaultLot": 0.1,
+  "defaultSl": 50,
+  "defaultTp": 100,
+  "jsonPath": "MQL5/Files/FCS_LatestSignal.json"
+}

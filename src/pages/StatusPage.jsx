@@ -33,51 +33,28 @@ const StatusPage = () => {
 
   // ---------------- FETCH STATUS ----------------
   useEffect(() => {
-  if (!isAuthenticated) return;
+    if (!isAuthenticated) return;
 
-  const fetchStatus = async () => {
-    try {
-      // ✅ TEST MODE: bypass Selar
-      if (process.env.REACT_APP_TEST_MODE === "true") {
-        const now = new Date();
-        const expiry = new Date();
-        expiry.setDate(now.getDate() + 30); // active for 30 days
-
-        setStatusData({
-          subscription: {
-            status: "active",
-            plan: "Basic",
-            expiryDate: expiry.toISOString(),
-            mtLogin: "123456",
-          },
-        });
-        startCountdown(expiry.toISOString());
-        setLoading(false);
-        return;
-      }
-
-      // Normal fetch
-      const res = await APIControl.fetchStatusData();
-      if (res.success) {
-        setStatusData(res.data);
-        if (
-          res.data.subscription?.status === "active" &&
-          res.data.subscription.expiryDate
-        ) {
-          startCountdown(res.data.subscription.expiryDate);
+    APIControl.fetchStatusData()
+      .then((res) => {
+        if (res.success) {
+          setStatusData(res.data);
+          if (
+  res.data.subscription?.status === "active" &&
+  res.data.subscription.expiryDate
+) {
+  startCountdown(res.data.subscription.expiryDate);
+}
+        } else {
+          setError(res.error || "Failed to load status");
         }
-      } else {
-        setError(res.error || "Failed to load status");
-      }
-    } catch {
-      setError("Failed to load status");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchStatus();
-}, [isAuthenticated]);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load status");
+        setLoading(false);
+      });
+  }, [isAuthenticated]);
 
   // ---------------- COUNTDOWN ----------------
 const startCountdown = (expiry) => {

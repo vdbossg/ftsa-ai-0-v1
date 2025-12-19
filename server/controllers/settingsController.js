@@ -63,6 +63,7 @@ const updateSecurity = async (req, res) => {
   }
 };
 
+
 // PUT /settings/notifications
 const updateNotifications = async (req, res) => {
   try {

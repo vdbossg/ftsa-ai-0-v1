@@ -10,7 +10,7 @@ export default function BrainPage() {
   const [tradeHistory, setTradeHistory] = useState([]);
   const [topPair, setTopPair] = useState(null);
   const [marketStrength, setMarketStrength] = useState([]);
-  const [chochData, setChochData] = useState([]);
+  const [filteredSignals, setFilteredSignals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [settings, setSettings] = useState({
@@ -92,17 +92,6 @@ const loadBrainData = async () => {
 );
 
 
-
-    // Fetch CHoCH direction
-   const chochResp = await APIControl.fetchChochData();
-if (!chochResp.success) throw new Error("Failed to fetch CHoCH data");
-const chochJson = chochResp.data;
-
-setChochData(
-  Array.isArray(chochJson) ? chochJson : []
-);
-
-
   } catch (err) {
     setError("Failed to load brain data");
     console.error(err);
@@ -134,24 +123,6 @@ useEffect(() => {
   );
 }
 
-    if (data.type === "CHOCH_DATA") {
-  // Ensure chochData is always an array
-  const choch = Array.isArray(data.payload) ? data.payload : [];
-  // Fill missing pairs with default invalid values
-  const allPairsList = [
-    "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
-    "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
-    "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
-    "AUDJPY","AUDNZD","AUDCHF",
-    "CADJPY","CADCHF",
-    "CHFJPY","NZDJPY","NZDCHF"
-  ];
-  const filledChoch = allPairsList.map(p => {
-    const found = choch.find(c => c.symbol === p);
-    return found || { symbol: p, side: null, valid: false };
-  });
-  setChochData(filledChoch);
-}
 
 
       if (data.type === "TOP_PAIR") setTopPair(data.payload);
@@ -174,6 +145,18 @@ useEffect(() => {
   }, 5000); // 5000ms = 5 seconds
 
   return () => clearInterval(interval); // cleanup on unmount
+}, []);
+useEffect(() => {
+  const fetchFilteredSignals = async () => {
+    try {
+      const resp = await APIControl.fetchFilteredSignals();
+      if (resp.success) setFilteredSignals(resp.data);
+    } catch (err) {
+      console.error("Failed to fetch filtered signals:", err);
+    }
+  };
+
+  fetchFilteredSignals();
 }, []);
 
 useEffect(() => {
@@ -333,32 +316,44 @@ useEffect(() => {
     </table>
   </div>
 </section>
-      {/* CHoCH Data */}
-      <section style={scrollableTableContainer}>
-  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>CHoCH (Lower TF)</h2>
+   {/* Trading View Signals */}
+<section style={scrollableTableContainer}>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trading View Signals</h2>
   <div style={{ overflowX: "auto" }}>
-    <table style={{ ...tableStyle, minWidth: "400px" }}>
+    <table style={{ ...tableStyle, minWidth: "700px" }}>
       <thead>
         <tr>
-          <th style={{ ...thShadowStyle, textAlign: "left" }}>Pair</th>
-<th style={{ ...thShadowStyle, textAlign: "center" }}>Side</th>
-<th style={{ ...thShadowStyle, textAlign: "center" }}>Valid</th>
+          <th style={thShadowStyle}>Symbol</th>
+          <th style={thShadowStyle}>Type</th>
+          <th style={thShadowStyle}>Mode</th>
+          <th style={thShadowStyle}>Choch</th>
+          <th style={thShadowStyle}>Resistance</th>
+          <th style={thShadowStyle}>Entry</th>
+          <th style={thShadowStyle}>SL</th>
+          <th style={thShadowStyle}>TP</th>
+          <th style={thShadowStyle}>Timeframe</th>
         </tr>
       </thead>
       <tbody>
-        {chochData.map((item, idx) => (
-          <tr
-            key={idx}
-            style={{
-              backgroundColor: item.symbol === topPair ? "#002255" : "transparent",
-              fontWeight: item.symbol === topPair ? "bold" : "normal",
-            }}
-          >
-            <td style={tdVerticalLineStyle}>{item.symbol}</td>
-<td style={{ ...tdVerticalLineStyle, textAlign: "center" }}>{item.side ? item.side : "-"}</td>
-<td style={{ ...lastTdStyle, textAlign: "center" }}>{item.valid ? "✅" : "❌"}</td>
+        {filteredSignals.length > 0 ? (
+          filteredSignals.map((signal, idx) => (
+            <tr key={idx}>
+              <td style={tdVerticalLineStyle}>{signal.symbol}</td>
+              <td style={tdVerticalLineStyle}>{signal.type}</td>
+              <td style={tdVerticalLineStyle}>{signal.mode}</td>
+              <td style={tdVerticalLineStyle}>{signal.choch}</td>
+              <td style={tdVerticalLineStyle}>{signal.resistance}</td>
+              <td style={tdVerticalLineStyle}>{signal.entry}</td>
+              <td style={tdVerticalLineStyle}>{signal.sl}</td>
+              <td style={tdVerticalLineStyle}>{signal.tp}</td>
+              <td style={lastTdStyle}>{signal.timeframe}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={9} style={{ textAlign: "center" }}>No signals available</td>
           </tr>
-        ))}
+        )}
       </tbody>
     </table>
   </div>
