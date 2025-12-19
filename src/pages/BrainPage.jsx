@@ -151,7 +151,11 @@ useEffect(() => {
   const fetchFilteredSignals = async () => {
     try {
       const resp = await APIControl.fetchFilteredSignals();
-      if (resp.success) setFilteredSignals(resp.data);
+      if (resp.success) {
+        // Make sure it's a new array reference to force re-render
+        setFilteredSignals([...resp.data]);
+        console.log("Filtered signals updated:", resp.data);
+      }
     } catch (err) {
       console.error("Failed to fetch filtered signals:", err);
     }
