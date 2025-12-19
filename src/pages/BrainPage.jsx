@@ -146,6 +146,7 @@ useEffect(() => {
 
   return () => clearInterval(interval); // cleanup on unmount
 }, []);
+// Auto-refresh filtered signals every 5 seconds
 useEffect(() => {
   const fetchFilteredSignals = async () => {
     try {
@@ -156,8 +157,11 @@ useEffect(() => {
     }
   };
 
-  fetchFilteredSignals();
+  fetchFilteredSignals(); // initial fetch
+  const interval = setInterval(fetchFilteredSignals, 5000); // refresh every 5 seconds
+  return () => clearInterval(interval); // cleanup on unmount
 }, []);
+
 
 useEffect(() => {
   const initialize = async () => {
