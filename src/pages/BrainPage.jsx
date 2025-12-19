@@ -317,7 +317,7 @@ useEffect(() => {
   </div>
 </section>
    {/* Trading View Signals */}
-<section style={scrollableTableContainer}>
+<section style={{ ...scrollableTableContainer, maxHeight: "300px", overflowY: "auto" }}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Trading View Signals</h2>
   <div style={{ overflowX: "auto" }}>
     <table style={{ ...tableStyle, minWidth: "700px" }}>
@@ -337,7 +337,15 @@ useEffect(() => {
       <tbody>
         {filteredSignals.length > 0 ? (
           filteredSignals.map((signal, idx) => (
-            <tr key={idx}>
+            <tr
+              key={idx}
+              style={{
+                backgroundColor: signal.type === "BUY" ? "#003300" :
+                                 signal.type === "SELL" ? "#330000" : "transparent",
+                color: signal.type === "BUY" ? "#00FF00" :
+                       signal.type === "SELL" ? "#FF0000" : "#00FFFF"
+              }}
+            >
               <td style={tdVerticalLineStyle}>{signal.symbol}</td>
               <td style={tdVerticalLineStyle}>{signal.type}</td>
               <td style={tdVerticalLineStyle}>{signal.mode}</td>
