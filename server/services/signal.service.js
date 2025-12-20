@@ -6,22 +6,24 @@ exports.save = async (data) => {
   // Ensure only one signal per symbol
   await Signal.deleteMany({ symbol: data.symbol });
 
-  // Normalize support/resistance: if one is missing, set to '-'
-  const resistanceValue = data.resistance !== undefined ? data.resistance : "-";
-  const supportValue = data.support !== undefined ? data.support : "-";
-
   return await Signal.create({
     symbol: data.symbol,
-    type: data.type !== undefined ? data.type : false,
-    mode: data.mode !== undefined ? data.mode : false,
-    choch: data.choch !== undefined ? data.choch : false,
-    resistance: resistanceValue,
-    support: supportValue,
-    entry: data.entry !== undefined ? data.entry : false,
-    sl: data.sl !== undefined ? data.sl : false,
-    tp: data.tp !== undefined ? data.tp : false,
+
+    type: data.type !== undefined && data.type !== "false" ? data.type : false,
+    mode: data.mode !== undefined && data.mode !== "false" ? data.mode : false,
+
+    choch: typeof data.choch === "number" ? data.choch : false,
+
+    // ✅ CORRECT normalization
+    resistance: typeof data.resistance === "number" ? data.resistance : false,
+    support: typeof data.support === "number" ? data.support : false,
+
+    entry: typeof data.entry === "number" ? data.entry : false,
+    sl: typeof data.sl === "number" ? data.sl : false,
+    tp: typeof data.tp === "number" ? data.tp : false,
+
     timeframe: data.timeframe || "NA",
-    expiresAt,
+    expiresAt
   });
 };
 

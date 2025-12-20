@@ -11,6 +11,12 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+const [accountTotals, setAccountTotals] = useState({
+  balance: 0,
+  equity: 0,
+  freeMargin: 0,
+  profitLoss: 0,
+});
 
   const impactColor = (impact) => {
     switch (impact) {
@@ -58,6 +64,57 @@ const HomePage = () => {
       isMounted = false;
     };
   }, [isAuthenticated]);
+useEffect(() => {
+  if (!isAuthenticated) return;
+
+  const fetchAccounts = async () => {
+    try {
+      const [mtRes, propRes] = await Promise.all([
+        fetch("http://localhost:5000/api/mtaccounts"),
+        fetch("http://localhost:5000/api/propaccounts")
+      ]);
+      const mtData = await mtRes.json();
+      const propData = await propRes.json();
+
+      let balance = 0, equity = 0, freeMargin = 0, profitLoss = 0;
+
+      if (mtData.success && Array.isArray(mtData.accounts)) {
+        mtData.accounts.forEach(acc => {
+          if (acc.account?.isConnected) {
+            const summary = acc.summary?.data || {};
+            const trades = acc.trades?.data || [];
+            balance += summary.balance || 0;
+            equity += summary.equity || 0;
+            freeMargin += summary.freeMargin || 0;
+            profitLoss += trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+          }
+        });
+      }
+
+      if (propData.success && Array.isArray(propData.accounts)) {
+        propData.accounts.forEach(acc => {
+          if (acc.account?.isConnected) {
+            const summary = acc.summary?.data || {};
+            const trades = acc.account.trades?.data || [];
+            balance += summary.balance || 0;
+            equity += summary.equity || 0;
+            freeMargin += summary.freeMargin || 0;
+            profitLoss += trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+          }
+        });
+      }
+
+      setAccountTotals({ balance, equity, freeMargin, profitLoss });
+    } catch (err) {
+      console.error("Failed to fetch accounts:", err);
+    }
+  };
+
+  fetchAccounts(); // run immediately
+
+  const interval = setInterval(fetchAccounts, 1000); // live update every second
+  return () => clearInterval(interval); // cleanup
+}, [isAuthenticated]);
 
   // Auto-refresh news every 1 min
   useEffect(() => {
@@ -95,24 +152,34 @@ const HomePage = () => {
       </header>
 
       {/* Account Overview */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Account Overview</h2>
-        <div style={styles.card}>
-          <p>
-            Balance:{" "}
-            {data?.accountBalance != null ? `$${data.accountBalance}` : "—"}
-          </p>
-          <p>
-            Open Positions:{" "}
-            {data?.openPositions != null ? data.openPositions : "—"}
-          </p>
-          <p>
-            Profit/Loss:{" "}
-            {data?.profitLoss != null ? `$${data.profitLoss}` : "—"}
-          </p>
-          <NeonButton>Go to Dashboard</NeonButton>
-        </div>
-      </section>
+<section style={styles.section}>
+  <h2 style={styles.sectionTitle}>Account Overview</h2>
+  <div style={styles.card}>
+    {loading ? (
+      <LoadingSpinner size={32} color="#00FFFF" />
+    ) : (
+      (() => {
+        const isRunning = accountTotals.balance !== accountTotals.equity || accountTotals.profitLoss !== 0;
+        const equityColor =
+          accountTotals.equity > accountTotals.balance
+            ? "#00FF00" // green
+            : accountTotals.equity < accountTotals.balance
+            ? "#FF0000" // red
+            : "#00FFFF"; // default neon cyan
+
+        return (
+          <>
+            <p>Balance: ${accountTotals.balance.toFixed(2)}</p>
+            <p style={{ color: equityColor }}>Equity: ${accountTotals.equity.toFixed(2)}</p>
+            <p>Free Margin: ${accountTotals.freeMargin.toFixed(2)}</p>
+            <p style={{ color: equityColor }}>P/L: ${isRunning ? accountTotals.profitLoss.toFixed(2) : "0.00"}</p>
+          </>
+        );
+      })()
+    )}
+  </div>
+</section>
+
 
       {/* Prop Firm Accounts */}
       {data?.propFirmAccounts && (
