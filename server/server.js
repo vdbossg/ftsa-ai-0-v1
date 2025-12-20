@@ -41,7 +41,7 @@ const settingsRoutes = require('./routes/settingsRoutes'); // CommonJS style
 const fcsRoutes = require("./routes/fcsRoutes");
 const tvspRoutes = require("./routes/tvsp.routes")
 const filterRoutes = require("./routes/filter.routes");
-
+const rmsRouter = require("./routes/rms");
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
 
@@ -136,7 +136,8 @@ app.use("/api", tvspRoutes)
 console.log('✅ /api/tvsp routes mounted');
 app.use("/api/filter", filterRoutes);
 console.log('✅ /api/filter routes mounted');
-
+app.use("/api/rms", rmsRouter);
+console.log('✅ /api/rms routes mounted');
 
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));

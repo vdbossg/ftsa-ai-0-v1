@@ -14,11 +14,12 @@ export default function BrainPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [settings, setSettings] = useState({
-  pairs: [],    // array of selected pairs
-  risk: 1,      // risk % (default 1%)
-  dailyTP: 2,   // daily take profit %
-  dailySL: 1,   // daily stop loss %
+  maxTrades: 1,
+  risk: 1,
+  dailyMaxLoss: 1,
+  tpTargets: "tp1",
 });
+
 
 const scrollableTableContainer = {
   marginBottom: "2rem",
@@ -52,7 +53,7 @@ const thShadowStyle = {
 };
 
 const tdVerticalLineStyle = {
-  borderBottom: "1px solid #00FFFF",
+  borderBottom: "1px solid #252e2eff",
   borderRight: "1px solid #00FFFF",
   padding: "0.5rem",
 };
@@ -65,14 +66,6 @@ const lastTdStyle = {
 const tradeHistoryRef = useRef(tradeHistory);
 const marketStrengthRef = useRef(marketStrength);
 
-
-const saveSettings = async (newSettings) => {
-  try {
-    await APIControl.saveSettings(newSettings); // backend endpoint
-  } catch (err) {
-    console.error("Failed to save settings", err);
-  }
-};
 const loadBrainData = async () => {
   setLoading(true);
   setError(null);
@@ -166,32 +159,31 @@ useEffect(() => {
   return () => clearInterval(interval); // cleanup on unmount
 }, []);
 
-
 useEffect(() => {
   const initialize = async () => {
     try {
-      // Load saved settings
-      const resp = await APIControl.fetchSettingsData();
-      if (resp.success && resp.data?.tradingSettings) {
-        const s = resp.data.tradingSettings;
+      // Load saved RMS settings
+      const resp = await APIControl.fetchRmsSettings();
+      if (resp.success && resp.data) {
+        const s = resp.data;
         setSettings({
-  pairs: s.pairs || [],
-  risk: s.risk ?? 1,
-  dailyTP: s.dailyTP ?? s.dailyTarget ?? 2,
-  dailySL: s.dailySL ?? s.dailyStopLoss ?? 1,
-});
-
+          maxTrades: s.maxTrades ?? 1,
+          risk: s.risk ?? 1,
+          dailyMaxLoss: s.dailyMaxLoss ?? 1,
+          tpTargets: s.tpTargets ?? "tp1",
+        });
       }
 
       // Load initial brain data once
       await loadBrainData();
     } catch (err) {
-      console.error("Failed to initialize settings or brain data", err);
+      console.error("Failed to initialize RMS settings or brain data", err);
     }
   };
 
   initialize();
 }, []);
+
 
 
 // List of all major and minor currency pairs
@@ -380,10 +372,7 @@ useEffect(() => {
     </table>
   </div>
 </section>
-
-
-
-      {/* Brain Settings */}
+{/* Risk Management Settings */}
 <section
   style={{
     marginBottom: "2rem",
@@ -393,70 +382,103 @@ useEffect(() => {
     boxShadow: "0 0 10px #00FFFF",
   }}
 >
-  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>EA Settings</h2>
-{/* Risk % */}
-<div style={{ marginBottom: "1rem" }}>
-  <p>Risk %:</p>
-  <select
-    value={settings.risk}
-    onChange={(e) => {
-  const newRisk = parseFloat(e.target.value);
-  setSettings(prev => {
-    const updated = { ...prev, risk: newRisk };
-    saveSettings(updated);
-    return updated;
-  });
-}}
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Risk Management Settings</h2>
 
-  >
-    <option value={0.5}>0.5%</option>
-    <option value={1}>1%</option>
-    <option value={1.5}>1.5%</option>
-    <option value={2}>2%</option>
-  </select>
-</div>
+  {/* Max Trades / Day */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Max Trades / Day:</p>
+    <select
+      value={settings.maxTrades || 1}
+      onChange={(e) => {
+        const maxTrades = parseInt(e.target.value);
+        setSettings(prev => {
+          const updated = { ...prev, maxTrades };
+          APIControl.saveRmsSettings(updated);
+          return updated;
+        });
+      }}
+    >
+      <option value={1}>1</option>
+      <option value={2}>2</option>
+      <option value={3}>3</option>
+    </select>
+  </div>
 
-{/* Daily TP % */}
-<div style={{ marginBottom: "1rem" }}>
-  <p>Daily Take Profit %:</p>
-  <select
-    value={settings.dailyTP}
-    onChange={(e) => {
-  const newTP = parseFloat(e.target.value);
-  setSettings(prev => {
-    const updated = { ...prev, dailyTP: newTP };
-    saveSettings(updated);
-    return updated;
-  });
-}}
-  >
-    <option value={2}>2%</option>
-    <option value={3}>3%</option>
-    <option value={4}>4%</option>
-    <option value={5}>5%</option>
-  </select>
-</div>
+  {/* Risk % per Trade */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Risk % per Trade:</p>
+    <select
+      value={settings.risk || 1}
+      onChange={(e) => {
+        const risk = parseFloat(e.target.value);
+        setSettings(prev => {
+          const updated = { ...prev, risk };
+          APIControl.saveRmsSettings(updated);
+          return updated;
+        });
+      }}
+    >
+      <option value={0.25}>0.25%</option>
+      <option value={0.5}>0.5%</option>
+      <option value={0.75}>0.75%</option>
+      <option value={1}>1%</option>
+      <option value={1.25}>1.25%</option>
+      <option value={1.5}>1.5%</option>
+      <option value={1.75}>1.75%</option>
+      <option value={2}>2%</option>
+    </select>
+  </div>
 
-{/* Daily SL % */}
-<div style={{ marginBottom: "1rem" }}>
-  <p>Daily Stop Loss %:</p>
-  <select
-    value={settings.dailySL}
-    onChange={(e) => {
-  const newSL = parseFloat(e.target.value);
-  setSettings(prev => {
-    const updated = { ...prev, dailySL: newSL };
-    saveSettings(updated);
-    return updated;
-  });
-}}
-  >
-    <option value={0.5}>0.5%</option>
-    <option value={1}>1%</option>
-    <option value={2}>2%</option>
-  </select>
-</div>
+  {/* Daily Max Loss % */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>Daily Max Loss %:</p>
+    <select
+      value={settings.dailyMaxLoss || 1}
+      onChange={(e) => {
+        const dailyMaxLoss = parseFloat(e.target.value);
+        setSettings(prev => {
+          const updated = { ...prev, dailyMaxLoss };
+          saveSettings(updated);
+          return updated;
+        });
+      }}
+    >
+      <option value={0.25}>0.25%</option>
+      <option value={0.5}>0.5%</option>
+      <option value={0.75}>0.75%</option>
+      <option value={1}>1%</option>
+      <option value={1.25}>1.25%</option>
+      <option value={1.5}>1.5%</option>
+      <option value={1.75}>1.75%</option>
+      <option value={2}>2%</option>
+    </select>
+  </div>
+
+  {/* TP Targets */}
+  <div style={{ marginBottom: "1rem" }}>
+    <p>TP Targets:</p>
+    <select
+      value={settings.tpTargets || "tp1"}
+      onChange={(e) => {
+        const tpTargets = e.target.value;
+        setSettings(prev => {
+          const updated = { ...prev, tpTargets };
+          saveSettings(updated);
+          return updated;
+        });
+      }}
+    >
+      <option value="tp1">TP1</option>
+      <option value="tp2">TP2</option>
+      <option value="tp3">TP3</option>
+    </select>
+  </div>
+
+  <div>
+    <NeonButton onClick={() => APIControl.saveRmsSettings(settings)}>Save Risk Management Settings</NeonButton>
+  </div>
 </section>
+
 
       {/* Auto Trade Control */}
       <section

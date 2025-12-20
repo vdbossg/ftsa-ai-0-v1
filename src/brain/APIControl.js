@@ -662,6 +662,63 @@ async fetchChochData() {
 },
 
 /**
+ * Save RMS settings
+ */
+async saveRmsSettings(settings) {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/api/rms`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(settings),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, error: errData.error || "Failed to save RMS settings" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving RMS settings:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
+
+/**
+ * Fetch latest RMS settings
+ */
+async fetchRmsSettings() {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, data: null, error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/api/rms`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, data: null, error: errData.error || "Failed to fetch RMS settings" };
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data || null };
+  } catch (err) {
+    console.error("Error fetching RMS settings:", err);
+    return { success: false, data: null, error: err.message || "Unexpected error" };
+  }
+},
+
+/**
  * Fetch filtered signals for the new Brain table
  * @param {Object} filters - e.g. { strengthMin: 50, trend: 'Bullish' }
  */

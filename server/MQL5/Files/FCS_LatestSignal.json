@@ -1,10 +1,8 @@
 {
-  "symbol": "XAUUSD",
-  "type": "BUY",
-  "mode": "PENDING",
-  "price": 4338.21,
-  "lots": 0.27,
-  "sl": 4327.31,
-  "tp": 4371.18,
-  "id": "1766139341503"
+  "symbol": "EURUSD",
+  "type": "SELL",
+  "lots": 0.15,
+  "sl": 1.17987,
+  "tp": 1.17062,
+  "id": "1766212694252"
 }
