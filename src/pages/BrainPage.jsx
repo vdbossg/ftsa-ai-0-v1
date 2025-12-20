@@ -184,6 +184,28 @@ useEffect(() => {
 
   initialize();
 }, []);
+useEffect(() => {
+  const fetchTodaysTrade = async () => {
+    try {
+      const resp = await fetch('http://localhost:5000/api/ftsacalculator');
+      if (!resp.ok) throw new Error('Failed to fetch latest trade');
+      const data = await resp.json();
+
+      // Store as array so the table mapping works
+      setTradeHistory([data]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Initial fetch
+  fetchTodaysTrade();
+
+  // Refresh every 5 seconds
+  const interval = setInterval(fetchTodaysTrade, 5000);
+
+  return () => clearInterval(interval); // cleanup on unmount
+}, []);
 
 
 
@@ -246,14 +268,14 @@ useEffect(() => {
       <thead>
         <tr>
           <th style={thShadowStyle}>Time</th>
-          <th style={thShadowStyle}>Type / Mode</th>
+          <th style={thShadowStyle}>Type</th>
+          <th style={thShadowStyle}>Mode</th>
           <th style={thShadowStyle}>Pair</th>
-          <th style={thShadowStyle}>Strength %</th>
           <th style={thShadowStyle}>Trend</th>
-          <th style={thShadowStyle}>Trade Activated</th>
           <th style={thShadowStyle}>Entry</th>
           <th style={thShadowStyle}>SL</th>
           <th style={thShadowStyle}>TP</th>
+          <th style={thShadowStyle}>Trade Activated</th>
         </tr>
       </thead>
       <tbody>
@@ -261,31 +283,14 @@ useEffect(() => {
           tradeHistory.map((t, idx) => (
             <tr key={idx} style={{ backgroundColor: "#000000" }}>
               <td style={tdVerticalLineStyle}>{t.time}</td>
-              <td style={tdVerticalLineStyle}>
-                {t.tradeActivated
-                  ? <span style={{ color: "#00FF00" }}>{t.type || "Buy"}</span>
-                  : <span style={{ color: "#FFA500" }}>{t.mode || "Pending"}</span>}
-              </td>
+              <td style={tdVerticalLineStyle}>{t.type}</td>
+              <td style={tdVerticalLineStyle}>{t.mode}</td>
               <td style={tdVerticalLineStyle}>{t.pair}</td>
-              <td style={{ ...tdVerticalLineStyle, textAlign: "right" }}>{t.strength}</td>
-              <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: t.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
-                {t.trend}
-              </td>
-              <td style={tdVerticalLineStyle}>
-                <span style={{
-                  display: "inline-block",
-                  padding: "2px 8px",
-                  borderRadius: "8px",
-                  backgroundColor: t.tradeActivated ? "#00FF00" : "#FFA500",
-                  color: "#000",
-                  fontWeight: "bold"
-                }}>
-                  {t.tradeActivated ? "Active" : "Pending"}
-                </span>
-              </td>
-              <td style={tdVerticalLineStyle}>{t.entry || "-"}</td>
-              <td style={tdVerticalLineStyle}>{t.sl || "-"}</td>
-              <td style={lastTdStyle}>{t.tp || "-"}</td>
+              <td style={tdVerticalLineStyle}>{t.trend}</td>
+              <td style={tdVerticalLineStyle}>{t.entry}</td>
+              <td style={tdVerticalLineStyle}>{t.sl}</td>
+              <td style={tdVerticalLineStyle}>{t.tp}</td>
+              <td style={lastTdStyle}>{t.tradeActivated}</td>
             </tr>
           ))
         ) : (
