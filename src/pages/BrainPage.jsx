@@ -238,32 +238,64 @@ useEffect(() => {
 
       {loading && <p style={{ color: "#00FFFF" }}>Loading AI brain data...</p>}
       {error && <p style={{ color: "#FF0000" }}>{error}</p>}
-
       {/* Today's Trade */}
 <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Today's Trade</h2>
-  {tradeHistory.length > 0 ? (
-    <>
-      {tradeHistory.slice(0, 1).map((t, idx) => (
-        <div key={idx} style={{ padding: "1rem", border: "1px solid #00FFFF", borderRadius: "12px", marginBottom: "1rem", backgroundColor: t.tradeActivated ? "#002255" : "#1a1a00" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", rowGap: "0.5rem" }}>
-            <span>Time:</span> <span>{t.time}</span>
-            <span>Type:</span> <span>{t.type || "BUY"}</span>
-            {t.mode && <><span>Mode:</span> <span>{t.mode}</span></>}
-            <span>Pair:</span> <span>{t.pair}</span>
-            <span>Strength %:</span> <span>{t.strength}</span>
-            <span>Trend:</span> <span style={{ color: t.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>{t.trend}</span>
-            <span>Trade Activated:</span> <span style={{ color: t.tradeActivated ? "#00FF00" : "#FFA500" }}>{t.tradeActivated ? "Active" : "Pending"}</span>
-            <span>Entry:</span> <span>{t.entry || "-"}</span>
-            <span>SL:</span> <span>{t.sl || "-"}</span>
-            <span>TP:</span> <span>{t.tp || "-"}</span>
-          </div>
-        </div>
-      ))}
-    </>
-  ) : (
-    <p style={{ textAlign: "center" }}>No trades yet</p>
-  )}
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ ...tableStyle, minWidth: "700px" }}>
+      <thead>
+        <tr>
+          <th style={thShadowStyle}>Time</th>
+          <th style={thShadowStyle}>Type / Mode</th>
+          <th style={thShadowStyle}>Pair</th>
+          <th style={thShadowStyle}>Strength %</th>
+          <th style={thShadowStyle}>Trend</th>
+          <th style={thShadowStyle}>Trade Activated</th>
+          <th style={thShadowStyle}>Entry</th>
+          <th style={thShadowStyle}>SL</th>
+          <th style={thShadowStyle}>TP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {tradeHistory.length > 0 ? (
+          tradeHistory.map((t, idx) => (
+            <tr key={idx} style={{ backgroundColor: "#000000" }}>
+              <td style={tdVerticalLineStyle}>{t.time}</td>
+              <td style={tdVerticalLineStyle}>
+                {t.tradeActivated
+                  ? <span style={{ color: "#00FF00" }}>{t.type || "Buy"}</span>
+                  : <span style={{ color: "#FFA500" }}>{t.mode || "Pending"}</span>}
+              </td>
+              <td style={tdVerticalLineStyle}>{t.pair}</td>
+              <td style={{ ...tdVerticalLineStyle, textAlign: "right" }}>{t.strength}</td>
+              <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: t.trend === "Bullish" ? "#00FF00" : "#FF0000" }}>
+                {t.trend}
+              </td>
+              <td style={tdVerticalLineStyle}>
+                <span style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  borderRadius: "8px",
+                  backgroundColor: t.tradeActivated ? "#00FF00" : "#FFA500",
+                  color: "#000",
+                  fontWeight: "bold"
+                }}>
+                  {t.tradeActivated ? "Active" : "Pending"}
+                </span>
+              </td>
+              <td style={tdVerticalLineStyle}>{t.entry || "-"}</td>
+              <td style={tdVerticalLineStyle}>{t.sl || "-"}</td>
+              <td style={lastTdStyle}>{t.tp || "-"}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={9} style={{ textAlign: "center" }}>No trades yet</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
 </section>
 
       {/* Market Strength Table */}
