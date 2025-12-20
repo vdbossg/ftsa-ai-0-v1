@@ -381,11 +381,8 @@ useEffect(() => {
     padding: "1rem",
     borderRadius: "12px",
     boxShadow: "0 0 10px #00FFFF",
-    maxHeight: "350px",   // limits height
-    overflowY: "auto",    // makes it scrollable
   }}
 >
-
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Risk Management Settings</h2>
 
   {/* Max Trades / Day */}
