@@ -189,12 +189,15 @@ useEffect(() => {
     try {
       const resp = await fetch('http://localhost:5000/api/ftsacalculator');
       if (!resp.ok) throw new Error('Failed to fetch latest trade');
+
       const data = await resp.json();
 
-      // Store as array so the table mapping works
-      setTradeHistory([data]);
+      // Use only trendJson for today's trade
+      if (data.trendJson) {
+        setTradeHistory([data.trendJson]);
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching today\'s trade:', err);
     }
   };
 
@@ -204,7 +207,7 @@ useEffect(() => {
   // Refresh every 5 seconds
   const interval = setInterval(fetchTodaysTrade, 5000);
 
-  return () => clearInterval(interval); // cleanup on unmount
+  return () => clearInterval(interval);
 }, []);
 
 
@@ -286,11 +289,24 @@ useEffect(() => {
               <td style={tdVerticalLineStyle}>{t.type}</td>
               <td style={tdVerticalLineStyle}>{t.mode}</td>
               <td style={tdVerticalLineStyle}>{t.pair}</td>
-              <td style={tdVerticalLineStyle}>{t.trend}</td>
+              <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: t.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
+                {t.trend}
+              </td>
               <td style={tdVerticalLineStyle}>{t.entry}</td>
               <td style={tdVerticalLineStyle}>{t.sl}</td>
               <td style={tdVerticalLineStyle}>{t.tp}</td>
-              <td style={lastTdStyle}>{t.tradeActivated}</td>
+              <td style={lastTdStyle}>
+                <span style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  borderRadius: "8px",
+                  backgroundColor: t.tradeActivated === "PENDING" ? "#FFA500" : "#00FF00",
+                  color: "#000",
+                  fontWeight: "bold"
+                }}>
+                  {t.tradeActivated === "PENDING" ? "Pending" : "Active"}
+                </span>
+              </td>
             </tr>
           ))
         ) : (
@@ -302,7 +318,6 @@ useEffect(() => {
     </table>
   </div>
 </section>
-
       {/* Market Strength Table */}
       <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Market Strength</h2>
