@@ -20,6 +20,7 @@ export default function BrainPage() {
   tpTargets: "tp1",
 });
 
+const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 
 const scrollableTableContainer = {
   marginBottom: "2rem",
@@ -380,8 +381,11 @@ useEffect(() => {
     padding: "1rem",
     borderRadius: "12px",
     boxShadow: "0 0 10px #00FFFF",
+    maxHeight: "350px",   // limits height
+    overflowY: "auto",    // makes it scrollable
   }}
 >
+
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Risk Management Settings</h2>
 
   {/* Max Trades / Day */}
@@ -438,7 +442,7 @@ useEffect(() => {
         const dailyMaxLoss = parseFloat(e.target.value);
         setSettings(prev => {
           const updated = { ...prev, dailyMaxLoss };
-          saveSettings(updated);
+          APIControl.saveRmsSettings(updated)
           return updated;
         });
       }}
@@ -460,13 +464,14 @@ useEffect(() => {
     <select
       value={settings.tpTargets || "tp1"}
       onChange={(e) => {
-        const tpTargets = e.target.value;
-        setSettings(prev => {
-          const updated = { ...prev, tpTargets };
-          saveSettings(updated);
-          return updated;
-        });
-      }}
+  const tpTargets = e.target.value;
+  setSettings(prev => {
+    const updated = { ...prev, tpTargets };
+    APIControl.saveRmsSettings(updated); // ✅ Fixed
+    return updated;
+  });
+}}
+
     >
       <option value="tp1">TP1</option>
       <option value="tp2">TP2</option>
@@ -475,7 +480,22 @@ useEffect(() => {
   </div>
 
   <div>
-    <NeonButton onClick={() => APIControl.saveRmsSettings(settings)}>Save Risk Management Settings</NeonButton>
+    <NeonButton
+  onClick={async () => {
+    try {
+      await APIControl.saveRmsSettings(settings);
+      setSaveMessage("✅ Settings saved successfully!");
+      setTimeout(() => setSaveMessage(""), 3000); // hide after 3s
+    } catch (err) {
+      console.error(err);
+      setSaveMessage("❌ Failed to save settings.");
+      setTimeout(() => setSaveMessage(""), 3000);
+    }
+  }}
+>
+  Save Risk Management Settings
+</NeonButton>
+{saveMessage && <p style={{ color: "#00FF00", marginTop: "0.5rem" }}>{saveMessage}</p>}
   </div>
 </section>
 
