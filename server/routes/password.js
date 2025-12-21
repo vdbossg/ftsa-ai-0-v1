@@ -13,10 +13,10 @@ async function sendResetEmail(email, token) {
   const subject = "FTSA AI – Password Reset Request";
   const html = `
     <div style="text-align:center; margin-bottom:20px;">
-      <img src="https://ftsa-ai-0-v1.netlify.app/assets/images/ftsa-email-logo.png" 
-           alt="FTSA AI Logo" 
-           style="width:200px; max-width:100%;"/>
-    </div>
+  <img src="https://ftsa-ai-0-v1.netlify.app/assets/images/ftsa-email-logo.png" 
+       alt="FTSA AI Logo" 
+       style="width:200px; max-width:100%;"/>
+</div>
     <p>Hi,</p>
     <p>We received a request to reset the password for your FTSA AI account (${email}).</p>
     <p>Click the button below to securely reset your password:</p>
