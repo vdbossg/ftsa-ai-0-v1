@@ -76,7 +76,9 @@ const [notifications, setNotifications] = useState({
     .finally(() => setLoading(false));
 
   // Fetch profile photo separately from MongoDB
-  APIControl.fetchProfilePhoto()
+  APIControl.fetch// Set profile photo from fetched settings data
+setProfilePhoto(data.photo || null); // adjust "photo" if your backend returns a different field
+ProfilePhoto()
     .then((res) => {
       if (res?.success && res.data?.photoUrl) {
         setProfilePhoto(res.data.photoUrl);
