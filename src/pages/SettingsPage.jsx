@@ -49,43 +49,41 @@ const [notifications, setNotifications] = useState({
     neonRed: "#FF0000",
   };
 
-  useEffect(() => {
+ useEffect(() => {
   if (!isAuthenticated) return;
+
   setLoading(true);
   setError(null);
 
   const token = localStorage.getItem("authToken");
 
-  // Fetch profile info from signup/login backend
   APIControl.fetchSettingsData(token)
     .then((res) => {
       if (!res || !res.success) {
         setError(res?.error || "Failed to load profile data");
         return;
       }
+
       const data = res.data;
+
       setProfile({
         firstName: data.firstName || "",
         middleName: data.middleName || "",
         email: data.email || "",
         phone: data.phone || "",
       });
-      setNotifications(data.notifications || notifications);
-    })
-    .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
-    .finally(() => setLoading(false));
 
-  // Fetch profile photo separately from MongoDB
-  APIControl.fetch// Set profile photo from fetched settings data
-setProfilePhoto(data.photo || null); // adjust "photo" if your backend returns a different field
-ProfilePhoto()
-    .then((res) => {
-      if (res?.success && res.data?.photoUrl) {
-        setProfilePhoto(res.data.photoUrl);
-      }
+      setNotifications(data.notifications || notifications);
+
+      // ✅ PROFILE PHOTO IS SET HERE (SAFE + VALID)
+      setProfilePhoto(data.photo || null);
     })
-    .catch((err) => console.warn("Failed to fetch profile photo:", err));
+    .catch((err) =>
+      setError("Failed to load profile: " + (err?.message || ""))
+    )
+    .finally(() => setLoading(false));
 }, [isAuthenticated]);
+
 
   if (!isAuthenticated) {
     return (
