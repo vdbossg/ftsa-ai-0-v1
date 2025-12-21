@@ -45,6 +45,8 @@ const rmsRouter = require("./routes/rms");
 const validTradeRoutes = require("./routes/validTradeRoutes");
 const validTradeDataRoutes = require("./routes/validTradeDataRoutes");
 const ftsaRoutes = require('./routes/ftsacalculatorRoutes');
+const { startBridge } = require("./services/ftsafcsBridgeService");
+startBridge();
 
 
 

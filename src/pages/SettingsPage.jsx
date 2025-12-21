@@ -15,28 +15,31 @@ export default function SettingsPage() {
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // Profile fields matching signup
-  const [profile, setProfile] = useState({
-    firstName: "",
-    middleName: "",
-    email: "",
-    phone: "",
-    profitPhoto: "",
-  });
+  // Profile info (signup/login backend)
+const [profile, setProfile] = useState({
+  firstName: "",
+  middleName: "",
+  email: "",
+  phone: "",
+});
 
-  // Security fields
-  const [security, setSecurity] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirmNewPassword: "",
-    showPasswords: false,
-  });
+// Profile photo (MongoDB independent)
+const [profilePhoto, setProfilePhoto] = useState(null);
 
-  // Notifications remain untouched
-  const [notifications, setNotifications] = useState({
-    messages: true,
-    alerts: true,
-  });
+// Security settings
+const [security, setSecurity] = useState({
+  oldPassword: "",
+  newPassword: "",
+  confirmNewPassword: "",
+  showPasswords: false,
+});
+
+// Notifications (for future)
+const [notifications, setNotifications] = useState({
+  messages: true,
+  alerts: true,
+});
+
 
   const neonColors = {
     background: "#111",
@@ -46,34 +49,41 @@ export default function SettingsPage() {
     neonRed: "#FF0000",
   };
 
-  // Fetch current user profile on mount
   useEffect(() => {
-    if (!isAuthenticated) return;
-    setLoading(true);
-    setError(null);
+  if (!isAuthenticated) return;
+  setLoading(true);
+  setError(null);
 
-    const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("authToken");
 
-    APIControl.fetchSettingsData(token)
-      .then((res) => {
-        if (!res || !res.success) {
-          setError(res?.error || "Failed to load profile data");
-          return;
-        }
+  // Fetch profile info from signup/login backend
+  APIControl.fetchSettingsData(token)
+    .then((res) => {
+      if (!res || !res.success) {
+        setError(res?.error || "Failed to load profile data");
+        return;
+      }
+      const data = res.data;
+      setProfile({
+        firstName: data.firstName || "",
+        middleName: data.middleName || "",
+        email: data.email || "",
+        phone: data.phone || "",
+      });
+      setNotifications(data.notifications || notifications);
+    })
+    .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
+    .finally(() => setLoading(false));
 
-        const data = res.data;
-        setProfile({
-          firstName: data.firstName || "",
-          middleName: data.middleName || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          profitPhoto: data.profitPhoto || "",
-        });
-        setNotifications(data.notifications || notifications);
-      })
-      .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
-      .finally(() => setLoading(false));
-  }, [isAuthenticated]);
+  // Fetch profile photo separately from MongoDB
+  APIControl.fetchProfilePhoto()
+    .then((res) => {
+      if (res?.success && res.data?.photoUrl) {
+        setProfilePhoto(res.data.photoUrl);
+      }
+    })
+    .catch((err) => console.warn("Failed to fetch profile photo:", err));
+}, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return (
@@ -91,36 +101,59 @@ export default function SettingsPage() {
   const handleToggleNotifications = (key) =>
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Save profile (connected to login/signup data)
-  const saveProfile = async () => {
-    setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
+  // Save profile info (signup/login backend)
+const saveProfile = async () => {
+  setLoading(true);
+  setError(null);
+  setSuccessMsg(null);
 
-    try {
-      const token = localStorage.getItem("authToken");
-      const formData = new FormData();
-      ["firstName", "middleName", "email", "phone"].forEach((key) => {
-        formData.append(key, profile[key]);
-      });
+  try {
+    const token = localStorage.getItem("authToken");
+    const payload = {
+      firstName: profile.firstName,
+      middleName: profile.middleName,
+      email: profile.email,
+      phone: profile.phone,
+    };
+    const result = await APIControl.saveProfileData(payload, token);
+    if (!result.success) throw new Error(result.error || "Save failed");
 
-      // Add profitPhoto only if changed
-      if (profile.profitPhoto instanceof File) {
-        formData.append("profitPhoto", profile.profitPhoto);
-      }
+    setSuccessMsg("Profile info updated successfully!");
+    if (updateUser) updateUser(result.data);
+  } catch (err) {
+    setError("Failed to save profile info: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
-      const result = await APIControl.saveProfileData(formData, token);
-      if (!result.success) throw new Error(result.error || "Save failed");
+// Save profile photo (MongoDB independent)
+const saveProfilePhoto = async () => {
+  if (!profilePhoto) {
+    setError("No new photo selected.");
+    return;
+  }
 
-      setSuccessMsg("Profile saved successfully!");
-      // Update auth context user info if needed
-      if (updateUser) updateUser(result.data);
-    } catch (err) {
-      setError("Failed to save profile: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setError(null);
+  setSuccessMsg(null);
+
+  try {
+    const formData = new FormData();
+    formData.append("photo", profilePhoto instanceof File ? profilePhoto : null);
+
+    const result = await APIControl.saveProfilePhoto(formData);
+    if (!result.success) throw new Error(result.error || "Photo upload failed");
+
+    setSuccessMsg("Profile photo updated!");
+    setProfilePhoto(result.data.photoUrl);
+  } catch (err) {
+    setError("Failed to save profile photo: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Save security (password update)
   const saveSecurity = async () => {
@@ -187,42 +220,49 @@ const saveNotifications = async () => {
 
       {!loading && (
         <div style={gridStyle}>
-          {/* Profile Card */}
-          <div style={cardStyle(neonColors)}>
-            <h2 style={{ color: neonColors.neonGreen }}>Profile</h2>
+          {/* Profile Photo Card */}
+<div style={cardStyle(neonColors)}>
+  <h2 style={{ color: neonColors.neonGreen }}>Profile Photo</h2>
 
-            <img
-              src={
-                profile.profitPhoto instanceof File
-                  ? URL.createObjectURL(profile.profitPhoto)
-                  : profile.profitPhoto
-                    ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}`
-                    : "/default-profile.png"
-              }
-              alt="Profile"
-              style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
-            />
+  <img
+    src={
+      profilePhoto instanceof File
+        ? URL.createObjectURL(profilePhoto)
+        : profilePhoto
+          ? profilePhoto
+          : "/default-profile.png"
+    }
+    alt="Profile"
+    style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
+  />
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
-              style={{ marginBottom: 10 }}
-            />
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setProfilePhoto(e.target.files[0])}
+    style={{ marginBottom: 10 }}
+  />
+  <button onClick={saveProfilePhoto} style={buttonStyle(neonColors)}>Save Photo</button>
+</div>
 
-            {["firstName", "middleName", "email", "phone"].map((field) => (
-              <input
-                key={field}
-                name={field}
-                placeholder={field}
-                value={profile[field]}
-                onChange={handleProfileChange}
-                style={inputStyle(neonColors)}
-              />
-            ))}
+{/* Profile Info Card */}
+<div style={cardStyle(neonColors)}>
+  <h2 style={{ color: neonColors.neonGreen }}>Profile Info</h2>
 
-            <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Profile</button>
-          </div>
+  {["firstName", "middleName", "email", "phone"].map((field) => (
+    <input
+      key={field}
+      name={field}
+      placeholder={field}
+      value={profile[field]}
+      onChange={(e) => setProfile({ ...profile, [field]: e.target.value })}
+      style={inputStyle(neonColors)}
+    />
+  ))}
+
+  <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Info</button>
+</div>
+
 
           {/* Security Card */}
           <div style={cardStyle(neonColors)}>
