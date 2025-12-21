@@ -9,11 +9,33 @@ const { JWT_SECRET, BASE_URL } = process.env;
 
 // Helper: send reset email using sendEmail utility
 async function sendResetEmail(email, token) {
-  const resetLink = `${BASE_URL}/reset-password?token=${token}`;
-  const subject = "Password Reset";
-  const html = `<p>You requested a password reset.</p>
-                <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-                <p>This link expires in 1 hour.</p>`;
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  const subject = "FTSA AI – Password Reset Request";
+  const html = `
+    <div style="text-align:center; margin-bottom:20px;">
+      <img src="https://ftsa-ai-0-v1.netlify.app/assets/images/ftsa-email-logo.png" 
+           alt="FTSA AI Logo" 
+           style="width:200px; max-width:100%;"/>
+    </div>
+    <p>Hi,</p>
+    <p>We received a request to reset the password for your FTSA AI account (${email}).</p>
+    <p>Click the button below to securely reset your password:</p>
+    <p style="text-align:center;">
+      <a href="${resetLink}" style="
+        display:inline-block;
+        padding:12px 24px;
+        font-size:16px;
+        color:#ffffff;
+        background-color:#007bff;
+        text-decoration:none;
+        border-radius:5px;
+        font-weight:bold;
+      ">Reset Password</a>
+    </p>
+    <p>This password reset link will expire in <strong>1 hour</strong>.</p>
+    <p>If you did not request a password reset, please ignore this email or contact our support immediately.</p>
+    <p>Thank you,<br/>FTSA AI Team</p>
+  `;
   await sendEmail(email, subject, html);
 }
 

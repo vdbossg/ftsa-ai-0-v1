@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto"); // For generating tokens
 const User = require("../models/User");
 const { JWT_SECRET, BASE_URL } = process.env; // BASE_URL for email links
-const sendEmail = require("../utils/sendEmail"); // We'll use a simple email util
+const { sendEmail } = require("../utils/emailService");
 
 // -----------------------
 // Signup

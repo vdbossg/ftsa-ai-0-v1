@@ -18,16 +18,17 @@ const transporter = nodemailer.createTransport({
  * @param {string} subject - email subject
  * @param {string} text - email body
  */
-export const sendEmail = async (to, subject, text) => {
+export const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
       from: `"FTSA AI" <${process.env.SMTP_USER || "your_email@example.com"}>`,
       to,
       subject,
-      text,
+      html, // <- use html instead of text
     });
     console.log("Email sent:", info.messageId);
   } catch (err) {
     console.error("Error sending email:", err);
   }
 };
+
