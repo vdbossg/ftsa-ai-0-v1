@@ -4,6 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { sendWelcomeEmail } = require("./ftsaWelcomeRoutes");
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret"; // put in .env in production
 
@@ -30,6 +31,8 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
     });
     await user.save();
+    await sendWelcomeEmail(user.email, user.firstName);
+
 
     res.json({ success: true, message: "User registered successfully" });
   } catch (err) {
