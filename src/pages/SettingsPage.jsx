@@ -46,25 +46,27 @@ export default function SettingsPage() {
 
     const token = localStorage.getItem("authToken");
 
-    APIControl.fetchSettingsData(token)
-      .then((res) => {
-        if (!res || !res.success) {
-          setError(res?.error || "Failed to load profile data");
-          return;
-        }
+    APIControl.fetchUserInfo()
+  .then((res) => {
+    if (!res || !res.success) {
+      setError(res?.error || "Failed to load profile data");
+      return;
+    }
 
-        const data = res.data;
-        setProfile({
-          firstName: data.firstName || "",
-          middleName: data.middleName || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          profitPhoto: data.profitPhoto || "",
-        });
-        setNotifications(data.notifications || notifications);
-      })
-      .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
-      .finally(() => setLoading(false));
+    const data = res.data;
+    setProfile({
+      firstName: data.firstName || "",
+      middleName: data.middleName || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      profitPhoto: data.profitPhoto || "",
+    });
+
+    // If notifications exist on backend
+    setNotifications(data.notifications || notifications);
+  })
+  .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
+  .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   if (!isAuthenticated) {
@@ -89,14 +91,14 @@ export default function SettingsPage() {
 
     try {
       const token = localStorage.getItem("authToken");
-      const payload = {
-        firstName: profile.firstName,
-        middleName: profile.middleName,
-        email: profile.email,
-        phone: profile.phone,
-      };
+      const formData = new FormData();
+formData.append("firstName", profile.firstName);
+formData.append("middleName", profile.middleName);
+formData.append("email", profile.email);
+formData.append("phone", profile.phone);
 
-      const result = await APIControl.saveProfileData(payload, token);
+const result = await APIControl.saveProfileData(formData, token);
+
       if (!result.success) throw new Error(result.error || "Save failed");
 
       setSuccessMsg("Profile saved successfully!");
