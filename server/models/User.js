@@ -33,30 +33,28 @@ const UserSchema = new mongoose.Schema(
     phone: { type: String, required: true, unique: true, trim: true },
     password: { type: String, required: true },
 
-
     // PROFILE
-sirName: { type: String, default: "" },
-profitPhoto: { type: String, default: "" },
-country: { type: String, default: "" },
-phoneCode: { type: String, default: "+254" },
+    sirName: { type: String, default: "" },
+    profitPhoto: { type: String, default: "" },
+    country: { type: String, default: "" },
+    phoneCode: { type: String, default: "+254" },
 
-// SECURITY
-twoFactorEnabled: { type: Boolean, default: false },
+    // SECURITY
+    twoFactorEnabled: { type: Boolean, default: false },
 
-// NOTIFICATIONS
-notifications: {
-  appUpdate: { type: Boolean, default: true },
-  tradesUpdate: { type: Boolean, default: true },
-  newsHeadlines: { type: Boolean, default: true },
-  marketOffers: { type: Boolean, default: false },
-},
+    // NOTIFICATIONS
+    notifications: {
+      appUpdate: { type: Boolean, default: true },
+      tradesUpdate: { type: Boolean, default: true },
+      newsHeadlines: { type: Boolean, default: true },
+      marketOffers: { type: Boolean, default: false },
+    },
 
-// THEME
-theme: {
-  darkMode: { type: Boolean, default: true },
-  neonAccentColor: { type: String, default: "Blue" },
-},
-
+    // THEME
+    theme: {
+      darkMode: { type: Boolean, default: true },
+      neonAccentColor: { type: String, default: "Blue" },
+    },
 
     // ✅ BrainPage settings
     tradingSettings: { type: TradingSettingsSchema, default: () => ({}) },
@@ -64,8 +62,13 @@ theme: {
     // ✅ Subscription info
     subscription: { type: SubscriptionSchema },
 
-    // ✅ Affiliate reference (who referred this user)
+    // ✅ Affiliate reference
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "Affiliate", default: null },
+
+    // -----------------------
+    // FORGOT PASSWORD
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
 
   },
   { timestamps: true }

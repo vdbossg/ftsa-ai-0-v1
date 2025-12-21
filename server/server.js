@@ -45,6 +45,8 @@ const rmsRouter = require("./routes/rms");
 const validTradeRoutes = require("./routes/validTradeRoutes");
 const validTradeDataRoutes = require("./routes/validTradeDataRoutes");
 const ftsaRoutes = require('./routes/ftsacalculatorRoutes');
+const passwordRoutes = require("./routes/password");
+
 
 
 const { startBridge } = require("./services/ftsafcsBridgeService");
@@ -154,6 +156,9 @@ app.use("/api", validTradeDataRoutes);
 console.log('✅ /api/validTradeData routes mounted');
 app.use('/api', ftsaRoutes);
 console.log('✅ /api/ftsacalculator routes mounted');
+app.use("/api/auth", passwordRoutes);
+console.log('✅ /api/passwordRoutes routes mounted');
+
 
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));
