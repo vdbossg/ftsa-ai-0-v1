@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Profile fields matching signup
   const [profile, setProfile] = useState({
@@ -63,7 +63,7 @@ export default function SettingsPage() {
     });
 
     // If notifications exist on backend
-    setNotifications(data.notifications || notifications);
+    setNotifications(data.notifications || { messages: true, alerts: true });
   })
   .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
   .finally(() => setLoading(false));

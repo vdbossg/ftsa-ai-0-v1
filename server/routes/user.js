@@ -168,5 +168,42 @@ router.get("/profile", async (req, res) => {
     return res.status(401).json({ success: false, error: "Unauthorized." });
   }
 });
+// -----------------------
+// Update Profile
+// -----------------------
+router.put("/profile", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ success: false, error: "Unauthorized." });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ success: false, error: "User not found." });
+
+    // Update fields from req.body (or req.formData if using multipart)
+    const allowedFields = ["firstName", "middleName", "phone", "email"];
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) user[field] = req.body[field];
+    });
+
+    await user.save();
+
+    return res.json({ success: true, data: { 
+      id: user._id, 
+      firstName: user.firstName, 
+      middleName: user.middleName,
+      email: user.email,
+      phone: user.phone
+    }});
+  } catch (err) {
+    console.error("Update profile error:", err);
+    return res.status(500).json({ success: false, error: "Failed to update profile." });
+  }
+});
+
 
 module.exports = router;

@@ -1117,16 +1117,13 @@ const accounts = [
     return { success: false, error: "Failed to send command" };
   }
 },
-
-// /src/brain/APIControl.js
-
 async saveProfileData(formData, token) {
   try {
-    const response = await fetch(`${BASE_URL}/api/settings/profile`, {
+    const response = await fetch(`${BASE_URL}/api/user/profile`, { // <- correct route
       method: "PUT",
       headers: {
         ...(token && { "Authorization": `Bearer ${token}` }),
-        // DO NOT set Content-Type for FormData
+        // DO NOT set Content-Type when sending FormData
       },
       body: formData,
     });
