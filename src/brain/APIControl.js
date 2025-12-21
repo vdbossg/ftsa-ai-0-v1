@@ -1221,6 +1221,55 @@ async fetchSettingsData(token) {
     return { success: false, data: null, error: err.message || "Unexpected error" };
   }
 },
+/**
+ * Send password reset email
+ * @param {string} email
+ */
+async forgotPassword(email) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim() }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return { success: false, error: data.error || "Failed to send reset email" };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return { success: false, error: err.message || "Something went wrong" };
+  }
+},
+/**
+ * Reset password with token
+ * @param {string} token - token from reset email link
+ * @param {string} newPassword - new password
+ */
+async resetPassword(token, newPassword) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, password: newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return { success: false, error: data.error || "Failed to reset password" };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Reset password error:", err);
+    return { success: false, error: err.message || "Something went wrong" };
+  }
+},
 
 async saveSettingsData(settings) {
   try {
