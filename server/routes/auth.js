@@ -14,7 +14,12 @@ router.post("/signup", async (req, res) => {
     const { firstName, middleName, email, phone, password } = req.body;
 
     // check duplicate email/phone
-    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    const existingUser = await User.findOne({
+  $or: [
+    email ? { email } : null,
+    phone ? { phone } : null
+  ].filter(Boolean)
+});
     if (existingUser) {
       return res.status(400).json({ success: false, error: "Email or phone already registered" });
     }

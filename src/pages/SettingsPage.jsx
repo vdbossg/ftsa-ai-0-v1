@@ -24,15 +24,7 @@ export default function SettingsPage() {
     profitPhoto: "",
   });
 
-  // Security fields
-  const [security, setSecurity] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirmNewPassword: "",
-    showPasswords: false,
-  });
-
-  // Notifications remain untouched
+  // Notifications
   const [notifications, setNotifications] = useState({
     messages: true,
     alerts: true,
@@ -86,12 +78,10 @@ export default function SettingsPage() {
   // Handlers
   const handleProfileChange = (e) =>
     setProfile({ ...profile, [e.target.name]: e.target.value });
-  const handleSecurityChange = (e) =>
-    setSecurity({ ...security, [e.target.name]: e.target.value });
   const handleToggleNotifications = (key) =>
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Save profile (connected to login/signup data)
+  // Save profile (firstName, middleName, email, phone)
   const saveProfile = async () => {
     setLoading(true);
     setError(null);
@@ -99,21 +89,17 @@ export default function SettingsPage() {
 
     try {
       const token = localStorage.getItem("authToken");
-      const formData = new FormData();
-      ["firstName", "middleName", "email", "phone"].forEach((key) => {
-        formData.append(key, profile[key]);
-      });
+      const payload = {
+        firstName: profile.firstName,
+        middleName: profile.middleName,
+        email: profile.email,
+        phone: profile.phone,
+      };
 
-      // Add profitPhoto only if changed
-      if (profile.profitPhoto instanceof File) {
-        formData.append("profitPhoto", profile.profitPhoto);
-      }
-
-      const result = await APIControl.saveProfileData(formData, token);
+      const result = await APIControl.saveProfileData(payload, token);
       if (!result.success) throw new Error(result.error || "Save failed");
 
       setSuccessMsg("Profile saved successfully!");
-      // Update auth context user info if needed
       if (updateUser) updateUser(result.data);
     } catch (err) {
       setError("Failed to save profile: " + err.message);
@@ -122,60 +108,49 @@ export default function SettingsPage() {
     }
   };
 
-  // Save security (password update)
-  const saveSecurity = async () => {
+  // Save photo
+  const savePhoto = async () => {
+    if (!(profile.profitPhoto instanceof File)) return;
+
+    setLoading(true);
     setError(null);
     setSuccessMsg(null);
 
-    if (!security.oldPassword) {
-      setError("Please enter your old password to change password.");
-      return;
-    }
-    if (security.newPassword !== security.confirmNewPassword) {
-      setError("New password and confirm password do not match.");
-      return;
-    }
-    if (!security.newPassword) {
-      setError("New password cannot be empty.");
-      return;
-    }
-
-    setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const payload = {
-        oldPassword: security.oldPassword,
-        newPassword: security.newPassword,
-      };
-      const result = await APIControl.saveProfileSecurity(payload, token);
-      if (!result.success) throw new Error(result.error || "Password update failed");
+      const formData = new FormData();
+      formData.append("profitPhoto", profile.profitPhoto);
 
-      setSuccessMsg("Password updated successfully!");
-      setSecurity((prev) => ({ ...prev, oldPassword: "", newPassword: "", confirmNewPassword: "" }));
+      const result = await APIControl.saveProfileData(formData, token);
+      if (!result.success) throw new Error(result.error || "Photo save failed");
+
+      setSuccessMsg("Profile photo updated!");
+      if (updateUser) updateUser(result.data);
     } catch (err) {
-      setError("Failed to update password: " + err.message);
+      setError("Failed to save photo: " + err.message);
     } finally {
       setLoading(false);
     }
   };
-// Save notifications
-const saveNotifications = async () => {
-  setLoading(true);
-  setError(null);
-  setSuccessMsg(null);
 
-  try {
-    const token = localStorage.getItem("authToken");
-    const result = await APIControl.saveProfileNotifications(notifications, token);
-    if (!result.success) throw new Error(result.error || "Failed to save notifications");
+  // Save notifications
+  const saveNotifications = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
 
-    setSuccessMsg("Notifications updated successfully!");
-  } catch (err) {
-    setError("Failed to save notifications: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const token = localStorage.getItem("authToken");
+      const result = await APIControl.saveProfileNotifications(notifications, token);
+      if (!result.success) throw new Error(result.error || "Failed to save notifications");
+
+      setSuccessMsg("Notifications updated successfully!");
+    } catch (err) {
+      setError("Failed to save notifications: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, minHeight: "100vh", padding: "2rem" }}>
@@ -187,9 +162,9 @@ const saveNotifications = async () => {
 
       {!loading && (
         <div style={gridStyle}>
-          {/* Profile Card */}
+          {/* Photo Edit Card */}
           <div style={cardStyle(neonColors)}>
-            <h2 style={{ color: neonColors.neonGreen }}>Profile</h2>
+            <h2 style={{ color: neonColors.neonGreen }}>Profile Photo</h2>
 
             <img
               src={
@@ -209,6 +184,12 @@ const saveNotifications = async () => {
               onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
               style={{ marginBottom: 10 }}
             />
+            <button onClick={savePhoto} style={buttonStyle(neonColors)}>Save Photo</button>
+          </div>
+
+          {/* Profile Info Card */}
+          <div style={cardStyle(neonColors)}>
+            <h2 style={{ color: neonColors.neonBlue }}>Profile Info</h2>
 
             {["firstName", "middleName", "email", "phone"].map((field) => (
               <input
@@ -224,35 +205,9 @@ const saveNotifications = async () => {
             <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Profile</button>
           </div>
 
-          {/* Security Card */}
-          <div style={cardStyle(neonColors)}>
-            <h2 style={{ color: neonColors.neonOrange }}>Security</h2>
-            {["oldPassword", "newPassword", "confirmNewPassword"].map((field) => (
-              <input
-                key={field}
-                type={security.showPasswords ? "text" : "password"}
-                name={field}
-                placeholder={field}
-                value={security[field]}
-                onChange={handleSecurityChange}
-                style={inputStyle(neonColors)}
-              />
-            ))}
-
-            <label>
-              <input
-                type="checkbox"
-                checked={security.showPasswords}
-                onChange={() => setSecurity((prev) => ({ ...prev, showPasswords: !prev.showPasswords }))}
-              /> Show Passwords
-            </label>
-
-            <button onClick={saveSecurity} style={buttonStyle(neonColors)}>Save Security</button>
-          </div>
-
           {/* Notifications Card */}
           <div style={cardStyle(neonColors)}>
-            <h2 style={{ color: neonColors.neonBlue }}>Notifications</h2>
+            <h2 style={{ color: neonColors.neonOrange }}>Notifications</h2>
             {Object.entries(notifications).map(([key, val]) => (
               <div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span>{key}</span>
@@ -269,7 +224,7 @@ const saveNotifications = async () => {
   );
 }
 
-// STYLES
+// STYLES (kept from original)
 const headerStyle = (colors) => ({
   fontSize: 28,
   fontWeight: "bold",
