@@ -49,7 +49,7 @@ const [notifications, setNotifications] = useState({
     neonRed: "#FF0000",
   };
 
- useEffect(() => {
+  useEffect(() => {
   if (!isAuthenticated) return;
 
   setLoading(true);
@@ -59,13 +59,14 @@ const [notifications, setNotifications] = useState({
 
   APIControl.fetchSettingsData(token)
     .then((res) => {
-      if (!res || !res.success) {
-        setError(res?.error || "Failed to load profile data");
+      if (!res?.success) {
+        setError(res?.error || "Failed to load settings");
         return;
       }
 
       const data = res.data;
 
+      // Profile info
       setProfile({
         firstName: data.firstName || "",
         middleName: data.middleName || "",
@@ -73,17 +74,21 @@ const [notifications, setNotifications] = useState({
         phone: data.phone || "",
       });
 
-      setNotifications(data.notifications || notifications);
-
-      // ✅ PROFILE PHOTO IS SET HERE (SAFE + VALID)
+      // Profile photo (from same endpoint)
       setProfilePhoto(data.photo || null);
+
+      // Notifications
+      setNotifications(data.notifications || {
+        messages: true,
+        alerts: true,
+      });
     })
-    .catch((err) =>
-      setError("Failed to load profile: " + (err?.message || ""))
-    )
+    .catch((err) => {
+      setError("Failed to load settings");
+      console.error(err);
+    })
     .finally(() => setLoading(false));
 }, [isAuthenticated]);
-
 
   if (!isAuthenticated) {
     return (
