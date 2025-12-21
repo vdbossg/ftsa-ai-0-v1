@@ -54,13 +54,18 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     }
 
     const data = res.data;
-    setProfile({
-      firstName: data.firstName || "",
-      middleName: data.middleName || "",
-      email: data.email || "",
-      phone: data.phone || "",
-      profitPhoto: data.profitPhoto || "",
-    });
+setProfile({
+  firstName: data.firstName || "",
+  middleName: data.middleName || "",
+  email: data.email || "",
+  phone: data.phone || "",
+  profitPhoto: data.profitPhoto || "",
+});
+
+// ===== LOAD NOTIFICATIONS =====
+if (data.notifications) {
+  setNotifications(data.notifications);
+}
 
   })
   .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
@@ -78,8 +83,26 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   // Handlers
   const handleProfileChange = (e) =>
     setProfile({ ...profile, [e.target.name]: e.target.value });
-  const handleToggleNotifications = (key) =>
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  const handleToggleNotifications = (key) => {
+  setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+};
+
+// ===== SAVE NOTIFICATIONS =====
+const saveNotifications = async () => {
+  setLoading(true);
+  setError(null);
+  setSuccessMsg(null);
+
+  try {
+    const result = await APIControl.saveNotificationSettings(notifications); // <-- use this
+    if (!result.success) throw new Error(result.error || "Failed to save notifications");
+    setSuccessMsg("Notification settings saved!");
+  } catch (err) {
+    setError("Failed to save notifications: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Save profile (firstName, middleName, email, phone)
   const saveProfile = async () => {
