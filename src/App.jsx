@@ -26,6 +26,8 @@ import TradingViewPage from './pages/TradingViewPage'; // <-- ADD THIS
 import EADownloadPage from './pages/EA_DownloadPage';
 import TopNav from "./components/TopNav";
 import ProfilePage from './pages/ProfilePage';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 
 
@@ -81,7 +83,8 @@ function AppContent() {
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/logout" element={<LogoutPage />} />
-
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* Protected routes */}
           <Route
             path="/"
