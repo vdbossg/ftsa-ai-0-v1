@@ -62,8 +62,6 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       profitPhoto: data.profitPhoto || "",
     });
 
-    // If notifications exist on backend
-    setNotifications(data.notifications || { messages: true, alerts: true });
   })
   .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
   .finally(() => setLoading(false));
@@ -110,50 +108,37 @@ const result = await APIControl.saveProfileData(formData, token);
     }
   };
 
-  // Save photo
+   //Save photo
   const savePhoto = async () => {
-    if (!(profile.profitPhoto instanceof File)) return;
+  if (!profile.profitPhoto) return setError("No photo selected");
+  setLoading(true);
+  setError(null);
+  setSuccessMsg(null);
 
-    setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
+  try {
+    const formData = new FormData();
+    formData.append("profitPhoto", profile.profitPhoto);
 
-    try {
-      const token = localStorage.getItem("authToken");
-      const formData = new FormData();
-      formData.append("profitPhoto", profile.profitPhoto);
+    const res = await fetch(`${BACKEND_URL}/api/profile/photo`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const result = await APIControl.saveProfileData(formData, token);
-      if (!result.success) throw new Error(result.error || "Photo save failed");
+    const result = await res.json();
 
-      setSuccessMsg("Profile photo updated!");
-      if (updateUser) updateUser(result.data);
-    } catch (err) {
-      setError("Failed to save photo: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!result.success) throw new Error(result.error || "Photo upload failed");
+
+    setProfile((prev) => ({ ...prev, profitPhoto: result.data.profitPhoto }));
+    setSuccessMsg("Profile photo updated!");
+  } catch (err) {
+    setError("Failed to save photo: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Save notifications
-  const saveNotifications = async () => {
-    setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
-
-    try {
-      const token = localStorage.getItem("authToken");
-      const result = await APIControl.saveProfileNotifications(notifications, token);
-      if (!result.success) throw new Error(result.error || "Failed to save notifications");
-
-      setSuccessMsg("Notifications updated successfully!");
-    } catch (err) {
-      setError("Failed to save notifications: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+ 
   return (
     <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, minHeight: "100vh", padding: "2rem" }}>
       <header style={headerStyle(neonColors)}>FTSA AI - SETTINGS</header>
@@ -165,30 +150,31 @@ const result = await APIControl.saveProfileData(formData, token);
       {!loading && (
         <div style={gridStyle}>
           {/* Photo Edit Card */}
-          <div style={cardStyle(neonColors)}>
-            <h2 style={{ color: neonColors.neonGreen }}>Profile Photo</h2>
+<div style={cardStyle(neonColors)}>
+  <h2 style={{ color: neonColors.neonGreen }}>Profile Photo</h2>
 
-            <img
-              src={
-                profile.profitPhoto instanceof File
-                  ? URL.createObjectURL(profile.profitPhoto)
-                  : profile.profitPhoto
-                    ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}`
-                    : "/default-profile.png"
-              }
-              alt="Profile"
-              style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
-            />
+  <img
+    src={
+      profile.profitPhoto instanceof File
+        ? URL.createObjectURL(profile.profitPhoto)
+        : profile.profitPhoto
+          ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}`
+          : "/default-profile.png"
+    }
+    alt="Profile"
+    style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
+  />
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
-              style={{ marginBottom: 10 }}
-            />
-            <button onClick={savePhoto} style={buttonStyle(neonColors)}>Save Photo</button>
-          </div>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
+    style={{ marginBottom: 10 }}
+  />
+  <button onClick={savePhoto} style={buttonStyle(neonColors)}>Save Photo</button>
+</div>
 
+   
           {/* Profile Info Card */}
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonBlue }}>Profile Info</h2>
