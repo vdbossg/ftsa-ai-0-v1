@@ -106,30 +106,39 @@ const saveNotifications = async () => {
 
   // Save profile (firstName, middleName, email, phone)
   const saveProfile = async () => {
-    setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
+  setLoading(true);
+  setError(null);
+  setSuccessMsg(null);
 
-    try {
-      const token = localStorage.getItem("authToken");
-      const formData = new FormData();
-formData.append("firstName", profile.firstName);
-formData.append("middleName", profile.middleName);
-formData.append("email", profile.email);
-formData.append("phone", profile.phone);
+  try {
+    const token = localStorage.getItem("authToken");
 
-const result = await APIControl.saveProfileData(formData, token);
+    const res = await fetch(`${BACKEND_URL}/api/user/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // if your API requires it
+      },
+      body: JSON.stringify({
+        firstName: profile.firstName,
+        middleName: profile.middleName,
+        email: profile.email,
+        phone: profile.phone,
+      }),
+    });
 
-      if (!result.success) throw new Error(result.error || "Save failed");
+    const result = await res.json();
 
-      setSuccessMsg("Profile saved successfully!");
-      if (updateUser) updateUser(result.data);
-    } catch (err) {
-      setError("Failed to save profile: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!result.success) throw new Error(result.error || "Save failed");
+
+    setSuccessMsg("Profile saved successfully!");
+    if (updateUser) updateUser(result.data);
+  } catch (err) {
+    setError("Failed to save profile: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
    //Save photo
   const savePhoto = async () => {
