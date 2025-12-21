@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
 import "../styles/LoginPage.css";
+import { useNavigate } from "react-router-dom";
 
 const neonColors = {
   background: "#000000",
@@ -83,7 +84,7 @@ export default function LoginPage() {
     setError("");
     setSuccessMsg("");
   };
-
+  const navigate = useNavigate();
   const handleSignupChange = (e) => {
     const { name, value, type, checked } = e.target;
     setSignupData({
@@ -299,22 +300,23 @@ if (!authData.success) {
             Login
           </NeonButton>
 
-          <a
-            href="/forgot-password"
-            style={{
-              color: neonColors.neonBlue,
-              textDecoration: "underline",
-              cursor: "pointer",
-              marginTop: "0.5rem",
-              fontSize: "0.9rem",
-              alignSelf: "flex-start",
-              transition: "color 0.3s ease",
-            }}
-            onMouseEnter={(e) => (e.target.style.color = neonColors.neonGreen)}
-            onMouseLeave={(e) => (e.target.style.color = neonColors.neonBlue)}
-          >
-            Forgot password?
-          </a>
+          <span
+  onClick={() => navigate("/forgot-password")}
+  style={{
+    color: neonColors.neonBlue,
+    textDecoration: "underline",
+    cursor: "pointer",
+    marginTop: "0.5rem",
+    fontSize: "0.9rem",
+    alignSelf: "flex-start",
+    transition: "color 0.3s ease",
+  }}
+  onMouseEnter={(e) => (e.target.style.color = neonColors.neonGreen)}
+  onMouseLeave={(e) => (e.target.style.color = neonColors.neonBlue)}
+>
+  Forgot password?
+</span>
+
 
           {/* Social sign-ins */}
           <div
