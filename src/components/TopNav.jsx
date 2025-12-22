@@ -81,9 +81,14 @@ export default function TopNav() {
   return (
     <div style={styles.nav}>
 
-      <div style={styles.title}>FTSA AI</div>
+  {/* LEFT SPACER */}
+  <div style={styles.left} />
 
-      <div style={styles.right} ref={ref}>
+  {/* CENTER TITLE */}
+  <div style={styles.title}>FTSA AI</div>
+
+  {/* RIGHT ICONS */}
+  <div style={styles.right} ref={ref}>
 
         {/* ✉️ MESSAGES */}
         <Icon
@@ -250,7 +255,12 @@ const styles = {
     border: "1px solid #00FFFF",
     borderRadius: 8,
     zIndex: 2000
+
   },
+  left: {
+  width: "3rem", // adjust if needed to roughly match the width of your right icons
+},
+
   status: {
     position: "absolute",
     bottom: 0,
