@@ -1,258 +1,200 @@
-/// server.js (top of the file)
-require('dotenv').config({ path: '../.env' });  // ✅ points to project root .env
-require('dotenv').config();  // ✅ Load environment variables from server/.env
-const express = require('express');
-const cors = require('cors');
-const config = require('./config');
-const apiRoutes = require('./routes/api');
-const eaRoutes = require('./routes/eaRoutes');
-const mt4Routes = require("./routes/mt4accountRoutes");
-const mtaccountRoutes = require("./routes/mtAccountRoutes.js"); // match the file name
-const userRoutes = require('./routes/user');   // ✅ correct relative path
-const mpesaRoutes = require('./routes/mpesaRoutes'); // Add this near your other routes
-const cfaRoutes = require('./routes/cfaRoutes');
-const connectDB = require('./config/db');
-const adminAffiliateRoutes = require('./routes/adminAffiliateRoutes');  // ✅ add this
-const supportRoutes = require("./routes/supportRoutes");
-const tradesRouter = require("./routes/trades");
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const autoTradeRoutes = require('./routes/autoTradeRoutes');
-const strengthRoutes = require('./routes/strengthRoutes');
-const { startPairWatcher, setWebSocketServer: pairWatcherWS } = require("./services/pairWatcherService");
-const { setWebSocketServer: brainWS, updateBrainData } = require('./services/brainService');
-const faqsRoute = require("./routes/faqs");
-const supportChannelsRoute = require("./routes/supportChannels");
-const chochService = require('./services/chochService');
-const aboutRoutes = require("./routes/aboutRoutes");
-const binanceRoutes = require("./routes/binanceRoutes");
-const authRoutes = require("./routes/auth");
-const propSettingRoutes = require("./routes/propSettingRoutes");
-const propAccountRoutes = require("./routes/propAccountRoutes");
-const propTradesRoute = require("./routes/propTradesRoute");
-const mttabletradesRoutes = require("./routes/mttabletrades.routes");
-const propJournalRoutes = require("./routes/propAIJournalRoutes");
-const mtJournalRoutes = require("./routes/mtAIJournalRoutes");
-const PropTradeService = require('./services/propTradeService');
-const MTTradeService = require('./services/mtTradeService');
-const propTradeRoutes = require('./routes/propTradeRoutes');
-const mtTradeRoutes = require('./routes/mtTradeRoutes');
-const licenseRoutes = require('./routes/license');
-const settingsRoutes = require('./routes/settingsRoutes'); // CommonJS style
-const fcsRoutes = require("./routes/fcsRoutes");
-const tvspRoutes = require("./routes/tvsp.routes")
-const filterRoutes = require("./routes/filter.routes");
-const rmsRouter = require("./routes/rms");
-const validTradeRoutes = require("./routes/validTradeRoutes");
-const validTradeDataRoutes = require("./routes/validTradeDataRoutes");
-const ftsaRoutes = require('./routes/ftsacalculatorRoutes');
-const passwordRoutes = require("./routes/password");
-const profilePhotoRoutes = require('./routes/profilePhoto');
+// src/pages/SettingsPage.jsx
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import APIControl from "../brain/APIControl";
+import NeonButton from "../components/NeonButton";
+import LoadingSpinner from "../components/LoadingSpinner";
+import StatusBadge from "../components/StatusBadge";
+import "../styles/SettingsPage.css";
 
+export default function SettingsPage() {
+  const { isAuthenticated, user, updateUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const { startBridge } = require("./services/ftsafcsBridgeService");
-startBridge();
+  // Profile fields matching signup
+  const [profile, setProfile] = useState({
+    firstName: "",
+    middleName: "",
+    email: "",
+    phone: "",
+  });
 
+ 
 
+  const neonColors = {
+    background: "#111",
+    neonBlue: "#00FFFF",
+    neonGreen: "#00FF00",
+    neonOrange: "#FFA500",
+    neonRed: "#FF0000",
+  };
 
-console.log('MONGO_URI:', process.env.MONGO_URI);
-connectDB(); // Connect to MongoDB
+  // Fetch current user profile on mount
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setLoading(true);
+    setError(null);
 
+    const token = localStorage.getItem("authToken");
 
-
-const app = express();
-const PORT = process.env.PORT || 5000;  // ✅ Ensure backend runs on 5000 for your setup
-
-const allowedOrigins = [
-  'http://localhost:5173',               // Vite dev server
-  'http://localhost:3000',              // optional
-  'http://192.168.1.117:5173',
-  'https://ftsa-ai.com',                 // production domain
-  'https://ftsa-ai-0-v1.netlify.app'    // your Netlify frontend
-];
-
-
-chochService.connectMongo(process.env.MONGO_URI);
-
-// Start polling Prop and MT trades
-PropTradeService.startPolling(5000); // every 5 seconds
-MTTradeService.startPolling(5000);
-console.log('✅ Prop and MT trade polling started');
-
-// ✅ Enable CORS
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`❌ CORS blocked request from: ${origin}`);
-      callback(new Error('CORS blocked for origin: ' + origin));
+    APIControl.fetchUserInfo()
+  .then((res) => {
+    if (!res || !res.success) {
+      setError(res?.error || "Failed to load profile data");
+      return;
     }
-  },
-  credentials: true // Needed if sending cookies or auth headers
-}));
+
+    const data = res.data;
+setProfile({
+  firstName: data.firstName || "",
+  middleName: data.middleName || "",
+  email: data.email || "",
+  phone: data.phone || "",
+});
 
 
-// Parse JSON requests
-app.use(express.json());
+  })
+  .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
+  .finally(() => setLoading(false));
+  }, [isAuthenticated]);
 
-// 📝 Log every request
-app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.url}`);
-  if (req.method === 'POST') {
-    console.log('📦 Body:', req.body);
+  if (!isAuthenticated) {
+    return (
+      <div style={centeredStyle(neonColors)}>
+        Please login to access settings.
+      </div>
+    );
   }
-  next();
-});
 
-app.use('/api/user', userRoutes);
-console.log('✅ /api/user routes mounted');
-// API routes
-app.use('/api', apiRoutes);
-app.use('/api/ea', eaRoutes);                   // Existing
-app.use('/cfa', cfaRoutes);
-app.use("/api/mt4accounts", mt4Routes);
-app.use("/api/mtaccounts", mtaccountRoutes);
-app.use('/api/mpesa', mpesaRoutes);  // ← add this line
-console.log('✅ /api/mpesa routes mounted'); 
-app.use("/api/support", supportRoutes);
-app.use("/api/faqs", faqsRoute); // Frontend fetchFAQs() → /api/faqs
-app.use("/api/support/channels", supportChannelsRoute);
-app.use("/api/about", aboutRoutes);
-app.use("/api/admin/about", aboutRoutes);
-app.use("/api/proptabletrades", propTradesRoute);
-app.use("/api/mttabletrades", mttabletradesRoutes);
-app.use("/api/auth", authRoutes);
-app.use('/dashboard', dashboardRoutes);           // GET /dashboard
-app.use('/api/auto-trade', autoTradeRoutes);      // POST /api/auto-trade
-app.use('/api/brain/strength', strengthRoutes);
-app.use("/api/propsetting", propSettingRoutes);
-app.use("/api/propaijournal", propJournalRoutes);
-console.log("✅ /api/propaijournal routes mounted")
-app.use("/api/binance", binanceRoutes);
-console.log("✅ /api/binance routes mounted");
-app.use("/api/propaccounts", propAccountRoutes);
-console.log("✅ /api/propaccounts routes mounted");
-app.use("/api/mtaijournal", mtJournalRoutes);
-console.log("✅ /api/mtaijournal routes mounted")
-app.use('/api', propTradeRoutes);
-console.log('✅ /api/closed-prop-trades routes mounted');
-app.use('/api', mtTradeRoutes);
-console.log('✅ /api/closed-mt-trades routes mounted')
-app.use('/api/licenses', licenseRoutes);
-console.log('✅ /api/license routes mounted');
-app.use('/api/settings', settingsRoutes);
-console.log('✅ /api/settings routes mounted');
-app.use("/api/fcs", fcsRoutes);
-console.log('✅ /api/fcs routes mounted');
-app.use("/api", tvspRoutes)
-console.log('✅ /api/tvsp routes mounted');
-app.use("/api/filter", filterRoutes);
-console.log('✅ /api/filter routes mounted');
-app.use("/api/rms", rmsRouter);
-console.log('✅ /api/rms routes mounted');
-app.use("/api", validTradeRoutes);
-console.log('✅ /api/validTrade routes mounted');
-app.use("/api", validTradeDataRoutes);
-console.log('✅ /api/validTradeData routes mounted');
-app.use('/api', ftsaRoutes);
-console.log('✅ /api/ftsacalculator routes mounted');
-app.use("/api/auth", passwordRoutes);
-console.log('✅ /api/passwordRoutes routes mounted');
-app.use('/api/profile', profilePhotoRoutes);
-console.log('✅ /api/profile routes mounted');
+  // Handlers
+  const handleProfileChange = (e) =>
+    setProfile({ ...profile, [e.target.name]: e.target.value });
 
+  // Save profile (firstName, middleName, email, phone)
+  const saveProfile = async () => {
+  setLoading(true);
+  setError(null);
+  setSuccessMsg(null);
 
-
-// FTSA AI Brain Routes
-app.use('/api/news', require('./routes/newsRoutes'));
-app.use('/api/bias', require('./routes/biasRoutes'));
-app.use('/choch', require('./routes/chochRoutes'));
-app.use('/api/equity', require('./routes/equityRoutes'));
-// FTSA AI Brain Main Routes
-app.use('/api/brain', require('./routes/brainRoutes'));
-app.use("/api/trades", tradesRouter);
-app.use('/api/news', require('./routes/newsRoutes'));
-app.use('/api/admin/affiliates', adminAffiliateRoutes);
-console.log('✅ /api/admin/affiliates routes mounted');
-
-
-
-// Simple test route
-app.get('/', (req, res) => {
-  res.send('FTSA AI Backend Server running');
-});
-
-
-// ✅ Status route for frontend
-app.get('/status', (req, res) => {
-  res.json({ status: 'ok', message: 'Backend is running' });
-});
-const http = require('http');
-const WebSocket = require('ws');
-
-const gracefulShutdown = async () => {
-  console.log('⚡ Shutting down, closing active trades...');
-  await PropTradeService.closeAllActiveTrades();
-  await MTTradeService.closeAllActiveTrades();
-  process.exit(0);
-};
-
-process.on('SIGINT', gracefulShutdown);
-process.on('SIGTERM', gracefulShutdown);
-
-// Replace app.listen(...) with:
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server, path: '/brain' });
-// server.js (below your wss declaration)
-const broadcastBrainData = (type, payload) => {
-  // Send to all connected clients
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type, payload }));
-    }
-  });
-};
-
-wss.on('connection', (ws) => {
-  console.log('💡 Client connected to Brain WS');
-
-  // Listen for messages from frontend if needed
-  ws.on('message', async (message) => {
-    // Optional: handle incoming messages (like settings updates)
-    console.log('Received from client:', message.toString());
-  });
-
-  ws.on('close', () => {
-    console.log('💡 Client disconnected from Brain WS');
-  });
-});
-
-
-const { setWebSocketServer: strongestPairWS, startWatcher } = require('./services/strongestPairWatcher');
-
-
-strongestPairWS(wss); // connect WS server
-startWatcher(5000);    // check every 5 seconds
-
-// Connect WS to brainService and pairWatcherService
-brainWS(wss);
-pairWatcherWS(wss);
-// update brain data every 5 seconds
-setInterval(() => {
-  updateBrainData().catch(err => console.error("Brain update failed:", err));
-}, 5000);
-// Push live market strength every 5s
-setInterval(async () => {
   try {
-    await updateBrainData();  // uses brainService.broadcastBrainData internally
+    const token = localStorage.getItem("authToken");
+
+    const res = await fetch(`${BACKEND_URL}/api/user/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // if your API requires it
+      },
+      body: JSON.stringify({
+        firstName: profile.firstName,
+        middleName: profile.middleName,
+        email: profile.email,
+        phone: profile.phone,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!result.success) throw new Error(result.error || "Save failed");
+
+    setSuccessMsg("Profile saved successfully!");
+    if (updateUser) updateUser(result.data);
   } catch (err) {
-    console.error('Error pushing live strength:', err.message);
+    setError("Failed to save profile: " + err.message);
+  } finally {
+    setLoading(false);
   }
-}, 5000);
+};
 
 
-// Start server (both Express + WS)
-server.listen(PORT, () => {
-  console.log(`🚀 Server listening on port ${PORT} with WS support`);
+  return (
+    <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, minHeight: "100vh", padding: "2rem" }}>
+      <header style={headerStyle(neonColors)}>FTSA AI - SETTINGS</header>
+
+      {loading && <LoadingSpinner size={48} color={neonColors.neonBlue} />}
+      {error && <StatusBadge status="error">{error}</StatusBadge>}
+      {successMsg && <StatusBadge status="success">{successMsg}</StatusBadge>}
+
+      {!loading && (
+        <div style={gridStyle}>
+      
+          {/* Profile Info Card */}
+          <div style={cardStyle(neonColors)}>
+            <h2 style={{ color: neonColors.neonBlue }}>Profile Info</h2>
+
+            {["firstName", "middleName", "email", "phone"].map((field) => (
+              <input
+                key={field}
+                name={field}
+                placeholder={field}
+                value={profile[field]}
+                onChange={handleProfileChange}
+                style={inputStyle(neonColors)}
+              />
+            ))}
+
+            <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Profile</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// STYLES (kept from original)
+const headerStyle = (colors) => ({
+  fontSize: 28,
+  fontWeight: "bold",
+  textAlign: "center",
+  borderBottom: `2px solid ${colors.neonBlue}`,
+  paddingBottom: 10,
+  marginBottom: 20,
+});
+
+const gridStyle = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "2rem",
+  alignItems: "start",
+};
+
+const cardStyle = (colors) => ({
+  border: `2px solid ${colors.neonBlue}`,
+  borderRadius: 12,
+  padding: "1rem",
+  boxShadow: `0 0 15px ${colors.neonBlue}`,
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.5rem",
+});
+
+const inputStyle = (colors) => ({
+  padding: "0.5rem",
+  borderRadius: 6,
+  border: `2px solid ${colors.neonBlue}`,
+  backgroundColor: "#111",
+  color: colors.neonBlue,
+  outline: "none",
+});
+
+const buttonStyle = (colors) => ({
+  backgroundColor: colors.neonBlue,
+  border: "none",
+  color: "#000",
+  fontWeight: "bold",
+  padding: "0.5rem 1rem",
+  borderRadius: 6,
+  cursor: "pointer",
+  marginTop: 10,
+});
+
+const centeredStyle = (colors) => ({
+  fontFamily: "'Orbitron', sans-serif",
+  color: colors.neonRed,
+  padding: "4rem",
+  textAlign: "center",
 });
