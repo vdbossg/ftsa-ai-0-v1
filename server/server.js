@@ -65,7 +65,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;  // ✅ Ensure backend runs on 5000 for your setup
 const path = require("path");
 // Serve uploads folder so browser can access profile photos
-const path = require("path");
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ Serve uploaded profile photos
