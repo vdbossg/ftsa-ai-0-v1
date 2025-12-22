@@ -4,6 +4,7 @@ import { FaEnvelope, FaUserCircle, FaBell } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import APIControl from "../brain/APIControl";
+import TopnavLogo from "../assets/topnav_logo.png";
 
 export default function TopNav() {
   const { isAuthenticated, user } = useAuth();
@@ -82,7 +83,9 @@ export default function TopNav() {
     <div style={styles.nav}>
       <div style={{ flex: 1 }} />
 
-      <div style={styles.title}>FTSA AI</div>
+      <div style={styles.titleContainer}>
+  <img src={TopnavLogo} alt="FTSA AI Logo" style={styles.titleImage} />
+</div>
 
       <div style={styles.right} ref={ref}>
 
@@ -245,6 +248,18 @@ const styles = {
     borderRadius: 8,
     zIndex: 2000
   },
+  titleContainer: {
+  flex: 1,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+titleImage: {
+  height: "40px",  // adjust to match your current nav height
+  width: "auto",
+},
+
   status: {
     position: "absolute",
     bottom: 0,
