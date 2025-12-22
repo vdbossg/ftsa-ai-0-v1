@@ -63,6 +63,13 @@ connectDB(); // Connect to MongoDB
 
 const app = express();
 const PORT = process.env.PORT || 5000;  // ✅ Ensure backend runs on 5000 for your setup
+const path = require("path");
+
+// ✅ Serve uploaded profile photos
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads"))
+);
 
 const allowedOrigins = [
   'http://localhost:5173',               // Vite dev server
