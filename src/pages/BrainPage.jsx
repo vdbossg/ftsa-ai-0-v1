@@ -225,33 +225,6 @@ const allPairs = [
   "CHFJPY", "NZDJPY", "NZDCHF"
 ];
 
-
-useEffect(() => {
-  if (!autoTradeStatus || !topPair) return;
-
-  const today = new Date().toISOString().split("T")[0];
-  const alreadyTraded = tradeHistoryRef.current.some(t => t.date === today);
-  if (alreadyTraded) return;
-
-  APIControl.executeTrade({
-    pair: topPair,
-    risk: settings.risk,
-    dailyTP: settings.dailyTP,
-    dailySL: settings.dailySL,
-  }).then(() => {
-    const now = new Date();
-    const tradeData = {
-      time: now.toLocaleTimeString(),
-      date: today,
-      pair: topPair,
-      strength: marketStrengthRef.current.find(p => p.pair === topPair)?.strength || 0,
-      trend: marketStrengthRef.current.find(p => p.pair === topPair)?.trend || "-",
-      tradeActivated: true,
-    };
-    setTradeHistory(prev => [tradeData, ...prev]);
-  }).catch(err => console.error("Trade execution failed", err));
-}, [autoTradeStatus, topPair, settings]);
-
   return (
     <div
       style={{

@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\server\services\ftsacalculatorService.js
 const Trade = require('../models/ftsacalculator');
 
 // Constant pip value (for simplicity)

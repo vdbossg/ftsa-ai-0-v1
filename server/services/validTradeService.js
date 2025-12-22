@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\server\services\validTradeService.js
 const ValidTrade = require("../models/ValidTrade");
 
 function generateSignalId(signal) {
