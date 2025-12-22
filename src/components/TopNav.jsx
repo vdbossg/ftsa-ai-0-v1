@@ -256,7 +256,7 @@ const styles = {
 },
 
 titleImage: {
-  height: "40px",  // adjust to match your current nav height
+  height: "100px",  // adjust to match your current nav height
   width: "auto",
 },
 
