@@ -67,32 +67,33 @@ const lastTdStyle = {
 const tradeHistoryRef = useRef(tradeHistory);
 const marketStrengthRef = useRef(marketStrength);
 
-const loadBrainData = async () => {
-  setLoading(true);
+
+
+const loadBrainData = async (showLoader = false) => {
+  if (showLoader) setLoading(true); // only show loader on first load
   setError(null);
   try {
-    // Fetch market strength
     const strengthResp = await APIControl.fetchMarketStrength();
     if (!strengthResp.success) throw new Error("Failed to fetch market strength");
+
     const strengthJson = strengthResp.data;
 
     setMarketStrength(
-  strengthJson.map((p) => ({
-    pair: p.symbol,
-    strength: p.strength,
-    trend: p.bias ? p.bias : "Unknown",
-    color: p.signal || "neutral",
-  }))
-);
-
-
+      strengthJson.map((p) => ({
+        pair: p.symbol,
+        strength: p.strength,
+        trend: p.bias ? p.bias : "Unknown",
+        color: p.signal || "neutral",
+      }))
+    );
   } catch (err) {
     setError("Failed to load brain data");
     console.error(err);
   } finally {
-    setLoading(false);
+    if (showLoader) setLoading(false); // only hide loader if we showed it
   }
 };
+
 useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
 useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
 
@@ -135,11 +136,12 @@ useEffect(() => {
 // Auto-refresh brain data every 5 seconds
 useEffect(() => {
   const interval = setInterval(() => {
-    loadBrainData();
+    loadBrainData(false); // refresh in background silently
   }, 5000); // 5000ms = 5 seconds
 
   return () => clearInterval(interval); // cleanup on unmount
 }, []);
+
 // Auto-refresh filtered signals every 5 seconds
 useEffect(() => {
   const fetchFilteredSignals = async () => {
@@ -175,8 +177,9 @@ useEffect(() => {
         });
       }
 
-      // Load initial brain data once
-      await loadBrainData();
+     // Load initial brain data once, show loader only for first load
+await loadBrainData(true);
+
     } catch (err) {
       console.error("Failed to initialize RMS settings or brain data", err);
     }
