@@ -1141,6 +1141,44 @@ async saveProfileData(formData, token) {
   }
 },
 /**
+ * Execute trade from AI Brain
+ */
+async executeTrade({ pair, risk, dailyMaxLoss, tpTargets }) {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      return { success: false, error: "No auth token" };
+    }
+
+    const response = await fetch(`${BASE_URL}/api/brain/execute-trade`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        pair,
+        risk,
+        dailyMaxLoss,
+        tpTargets,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: err.message || "Trade execution failed" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+
+  } catch (err) {
+    console.error("executeTrade error:", err);
+    return { success: false, error: "Unexpected executeTrade error" };
+  }
+},
+
+/**
  * Save notification settings independently
  * @param {Object} notifications - { messages: true/false, alerts: true/false }
  */
