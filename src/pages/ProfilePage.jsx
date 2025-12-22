@@ -19,21 +19,34 @@ export default function ProfilePage() {
 
 
   // Fetch profile from Settings API
-  useEffect(() => {
+useEffect(() => {
   if (!isAuthenticated) return;
 
   setLoading(true);
   setError(null);
 
-  // Always get latest profile from backend
   const fetchProfile = async () => {
     try {
-      const data = await APIControl.fetchSettingsData(user.id);
-      if (!data?.profile) {
-        setError("No profile data found");
+      const token = localStorage.getItem("authToken");
+
+      // Fetch user info
+      const userRes = await APIControl.fetchUserInfo();
+      if (!userRes.success || !userRes.data) {
+        setError("Failed to load user info");
         return;
       }
-      setProfile(data.profile);
+
+      // Fetch user photo
+      const photoRes = await APIControl.fetchUserPhoto();
+      const photoUrl = photoRes.success && photoRes.data ? photoRes.data : null;
+
+      setProfile({
+        firstName: userRes.data.firstName || "",
+        middleName: userRes.data.middleName || "",
+        email: userRes.data.email || "",
+        phone: userRes.data.phone || "",
+        photo: photoUrl || "",
+      });
     } catch (err) {
       setError(err.message || "Failed to fetch profile");
     } finally {
@@ -42,10 +55,8 @@ export default function ProfilePage() {
   };
 
   fetchProfile();
+}, [isAuthenticated]);
 
-  // Optional: update in real-time if context has updates
-  if (user?.profile) setProfile(user.profile);
-}, [isAuthenticated, user]);
 
 
   if (!isAuthenticated) {
