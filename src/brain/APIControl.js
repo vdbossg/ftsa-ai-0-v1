@@ -296,6 +296,59 @@ async connectMT4Account({ broker, login, password, server, platform, accountType
   }
 },
 
+/**
+ * Fetch user profile photo
+ */
+async fetchUserPhoto() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/user/photo`, {
+      headers: {
+        ...(localStorage.getItem("authToken") && {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        })
+      }
+    });
+
+    if (!response.ok) {
+      return { success: false, data: null };
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data || null };
+  } catch (err) {
+    return { success: false, data: null };
+  }
+},
+
+/**
+ * Upload user profile photo
+ */
+async uploadUserPhoto(file) {
+  try {
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    const response = await fetch(`${BASE_URL}/api/user/photo`, {
+      method: "POST",
+      headers: {
+        ...(localStorage.getItem("authToken") && {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        })
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return { success: false, error: data.error || "Upload failed" };
+    }
+
+    return { success: true, data: data.data };
+  } catch (err) {
+    return { success: false, error: "Upload failed" };
+  }
+},
 
 /**
  * Delete MT account

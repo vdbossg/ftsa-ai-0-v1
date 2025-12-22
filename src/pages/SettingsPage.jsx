@@ -12,6 +12,9 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+const [photoFile, setPhotoFile] = useState(null);
+const [photoUrl, setPhotoUrl] = useState(null);
+const [photoSaving, setPhotoSaving] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -38,6 +41,13 @@ export default function SettingsPage() {
     setError(null);
 
     const token = localStorage.getItem("authToken");
+APIControl.fetchUserPhoto()
+  .then(res => {
+    if (res.success && res.data?.url) {
+      setPhotoUrl(res.data.url);
+    }
+  })
+  .catch(() => {});
 
     APIControl.fetchUserInfo()
       .then((res) => {
@@ -105,6 +115,32 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
+const handlePhotoSelect = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setPhotoFile(file);
+  setPhotoUrl(URL.createObjectURL(file)); // preview
+};
+
+const savePhoto = async () => {
+  if (!photoFile) return;
+
+  setPhotoSaving(true);
+  setError(null);
+  setSuccessMsg(null);
+
+  const res = await APIControl.uploadUserPhoto(photoFile);
+
+  if (!res.success) {
+    setError(res.error || "Failed to save photo");
+  } else {
+    setSuccessMsg("Profile photo saved successfully!");
+    setPhotoFile(null);
+  }
+
+  setPhotoSaving(false);
+};
 
   return (
     <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, minHeight: "100vh", padding: "2rem" }}>
@@ -116,6 +152,51 @@ export default function SettingsPage() {
 
       {!loading && (
         <div style={gridStyle}>
+          {/* Profile photo Card */}
+          <div style={cardStyle(neonColors)}>
+  <h2 style={{ color: neonColors.neonBlue, textAlign: "center" }}>
+    Profile Photo
+  </h2>
+
+  <div style={{ position: "relative", width: 160, height: 160, margin: "0 auto" }}>
+    <img
+      src={photoUrl || "/default-avatar.png"}
+      alt="Profile"
+      style={{
+        width: "100%",
+        height: "100%",
+        borderRadius: "50%",
+        objectFit: "cover",
+        border: `2px solid ${neonColors.neonBlue}`
+      }}
+    />
+
+    <label
+      style={{
+        position: "absolute",
+        bottom: 5,
+        right: 5,
+        cursor: "pointer",
+        color: neonColors.neonBlue,
+        fontWeight: "bold"
+      }}
+    >
+      ✎
+      <input type="file" hidden accept="image/*" onChange={handlePhotoSelect} />
+    </label>
+  </div>
+
+  {photoFile && (
+    <button
+      onClick={savePhoto}
+      disabled={photoSaving}
+      style={buttonStyle(neonColors)}
+    >
+      {photoSaving ? "Saving..." : "Save Photo"}
+    </button>
+  )}
+</div>
+
           {/* Profile Info Card */}
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonBlue }}>Profile Info</h2>
@@ -151,10 +232,11 @@ const headerStyle = (colors) => ({
 
 const gridStyle = {
   display: "grid",
-  gridTemplateColumns: "1fr",
+  gridTemplateColumns: "260px 1fr",
   gap: "2rem",
   alignItems: "start",
 };
+
 
 const cardStyle = (colors) => ({
   border: `2px solid ${colors.neonBlue}`,
