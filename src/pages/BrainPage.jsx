@@ -67,26 +67,32 @@ const lastTdStyle = {
 const tradeHistoryRef = useRef(tradeHistory);
 const marketStrengthRef = useRef(marketStrength);
 
-
 const loadBrainData = async () => {
+  setLoading(true);
+  setError(null);
   try {
+    // Fetch market strength
     const strengthResp = await APIControl.fetchMarketStrength();
     if (!strengthResp.success) throw new Error("Failed to fetch market strength");
     const strengthJson = strengthResp.data;
 
     setMarketStrength(
-      strengthJson.map((p) => ({
-        pair: p.symbol,
-        strength: p.strength,
-        trend: p.bias ? p.bias : "Unknown",
-        color: p.signal || "neutral",
-      }))
-    );
+  strengthJson.map((p) => ({
+    pair: p.symbol,
+    strength: p.strength,
+    trend: p.bias ? p.bias : "Unknown",
+    color: p.signal || "neutral",
+  }))
+);
+
+
   } catch (err) {
-    console.error("Failed to load brain data", err);
+    setError("Failed to load brain data");
+    console.error(err);
+  } finally {
+    setLoading(false);
   }
 };
-
 useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
 useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
 
