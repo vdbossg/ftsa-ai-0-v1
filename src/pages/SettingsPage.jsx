@@ -43,8 +43,8 @@ const [photoSaving, setPhotoSaving] = useState(false);
     const token = localStorage.getItem("authToken");
 APIControl.fetchUserPhoto()
   .then(res => {
-    if (res.success && res.data?.url) {
-      setPhotoUrl(res.data.url);
+    if (res.success && res.data) { // <-- just check res.data
+      setPhotoUrl(res.data);       // <-- res.data is already full URL
     }
   })
   .catch(() => {});
@@ -137,6 +137,8 @@ const savePhoto = async () => {
   } else {
     setSuccessMsg("Profile photo saved successfully!");
     setPhotoFile(null);
+    setPhotoUrl(res.data); // update preview to uploaded photo
+
   }
 
   setPhotoSaving(false);
