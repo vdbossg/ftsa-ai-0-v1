@@ -85,7 +85,7 @@ export default function TopNav() {
       <div style={{ flex: 1 }} />
 
       <div style={styles.title}>
-  <img src={topnavLogo} alt="FTSA AI Logo" style={styles.logo} />
+  <img src={logo} alt="FTSA AI Logo" style={styles.logo} />
 </div>
       <div style={styles.right} ref={ref}>
 
