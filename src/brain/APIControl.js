@@ -301,22 +301,26 @@ async connectMT4Account({ broker, login, password, server, platform, accountType
  */
 async fetchUserPhoto() {
   try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      return { success: true, data: null };
+    }
+
     const response = await fetch(`${BASE_URL}/api/user/photo`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      // DO NOT clear photo on refresh
       return { success: true, data: null };
     }
 
-    const data = await response.json();
+    const result = await response.json();
 
-    // Ensure absolute URL
-    const photoUrl = data?.data
-      ? `${BASE_URL}${data.data}`
+    // ✅ CORRECT DATA ACCESS
+    const photoUrl = result?.data?.url
+      ? `${BASE_URL}${result.data.url}`
       : null;
 
     return { success: true, data: photoUrl };
@@ -324,39 +328,44 @@ async fetchUserPhoto() {
     return { success: true, data: null };
   }
 },
-
 /**
  * Upload user profile photo
  */
 async uploadUserPhoto(file) {
   try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const formData = new FormData();
     formData.append("photo", file);
 
     const response = await fetch(`${BASE_URL}/api/user/photo`, {
       method: "POST",
       headers: {
-        ...(localStorage.getItem("authToken") && {
-          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
-        })
+        Authorization: `Bearer ${token}`,
       },
-      body: formData
+      body: formData,
     });
 
-    const data = await response.json();
+    const result = await response.json();
 
-    if (!response.ok || !data.success) {
-      return { success: false, error: data.error || "Upload failed" };
+    if (!response.ok || !result.success) {
+      return { success: false, error: result.error || "Upload failed" };
     }
 
-    return {
-  success: true,
-  data: `${BASE_URL}${data.data}`,
-};
+    // ✅ CORRECT DATA ACCESS
+    const photoUrl = result?.data?.url
+      ? `${BASE_URL}${result.data.url}`
+      : null;
+
+    return { success: true, data: photoUrl };
   } catch (err) {
     return { success: false, error: "Upload failed" };
   }
 },
+
 
 /**
  * Delete MT account
