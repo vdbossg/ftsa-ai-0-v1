@@ -5,7 +5,7 @@ const UserPhotoSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      unique: true,
+      unique: true, // only one photo per user
       index: true,
     },
     url: {

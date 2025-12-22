@@ -167,7 +167,7 @@ app.use('/api', ftsaRoutes);
 console.log('✅ /api/ftsacalculator routes mounted');
 app.use("/api/auth", passwordRoutes);
 console.log('✅ /api/passwordRoutes routes mounted');
-app.use("/api", userPhotoRoutes);
+app.use("/api/user", userPhotoRoutes);
 console.log('✅ /api/userPhotoRoutes routes mounted');
 
 // FTSA AI Brain Routes

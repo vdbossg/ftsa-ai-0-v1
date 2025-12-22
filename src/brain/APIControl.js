@@ -303,20 +303,25 @@ async fetchUserPhoto() {
   try {
     const response = await fetch(`${BASE_URL}/api/user/photo`, {
       headers: {
-        ...(localStorage.getItem("authToken") && {
-          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
-        })
-      }
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
     });
 
     if (!response.ok) {
-      return { success: false, data: null };
+      // DO NOT clear photo on refresh
+      return { success: true, data: null };
     }
 
     const data = await response.json();
-    return { success: true, data: data.data || null };
+
+    // Ensure absolute URL
+    const photoUrl = data?.data
+      ? `${BASE_URL}${data.data}`
+      : null;
+
+    return { success: true, data: photoUrl };
   } catch (err) {
-    return { success: false, data: null };
+    return { success: true, data: null };
   }
 },
 
@@ -344,7 +349,10 @@ async uploadUserPhoto(file) {
       return { success: false, error: data.error || "Upload failed" };
     }
 
-    return { success: true, data: data.data };
+    return {
+  success: true,
+  data: `${BASE_URL}${data.data}`,
+};
   } catch (err) {
     return { success: false, error: "Upload failed" };
   }
