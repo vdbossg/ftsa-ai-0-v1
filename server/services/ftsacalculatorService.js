@@ -2,6 +2,7 @@
 const Trade = require('../models/ftsacalculator');
 
 // Constant pip value (for simplicity)
+
 const PIP_VALUE = 10;
 
 // Calculate risk amount

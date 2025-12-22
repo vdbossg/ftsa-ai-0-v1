@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Profile fields matching signup
   const [profile, setProfile] = useState({
@@ -21,13 +21,6 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     middleName: "",
     email: "",
     phone: "",
-    profitPhoto: "",
-  });
-
-  // Notifications
-  const [notifications, setNotifications] = useState({
-    messages: true,
-    alerts: true,
   });
 
   const neonColors = {
@@ -47,29 +40,22 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const token = localStorage.getItem("authToken");
 
     APIControl.fetchUserInfo()
-  .then((res) => {
-    if (!res || !res.success) {
-      setError(res?.error || "Failed to load profile data");
-      return;
-    }
+      .then((res) => {
+        if (!res || !res.success) {
+          setError(res?.error || "Failed to load profile data");
+          return;
+        }
 
-    const data = res.data;
-setProfile({
-  firstName: data.firstName || "",
-  middleName: data.middleName || "",
-  email: data.email || "",
-  phone: data.phone || "",
-  profitPhoto: data.profitPhoto || "",
-});
-
-// ===== LOAD NOTIFICATIONS =====
-if (data.notifications) {
-  setNotifications(data.notifications);
-}
-
-  })
-  .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
-  .finally(() => setLoading(false));
+        const data = res.data;
+        setProfile({
+          firstName: data.firstName || "",
+          middleName: data.middleName || "",
+          email: data.email || "",
+          phone: data.phone || "",
+        });
+      })
+      .catch((err) => setError("Failed to load profile: " + (err?.message || "")))
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   if (!isAuthenticated) {
@@ -83,94 +69,43 @@ if (data.notifications) {
   // Handlers
   const handleProfileChange = (e) =>
     setProfile({ ...profile, [e.target.name]: e.target.value });
-  const handleToggleNotifications = (key) => {
-  setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-};
-
-// ===== SAVE NOTIFICATIONS =====
-const saveNotifications = async () => {
-  setLoading(true);
-  setError(null);
-  setSuccessMsg(null);
-
-  try {
-    const result = await APIControl.saveNotificationSettings(notifications); // <-- use this
-    if (!result.success) throw new Error(result.error || "Failed to save notifications");
-    setSuccessMsg("Notification settings saved!");
-  } catch (err) {
-    setError("Failed to save notifications: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
 
   // Save profile (firstName, middleName, email, phone)
   const saveProfile = async () => {
-  setLoading(true);
-  setError(null);
-  setSuccessMsg(null);
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
 
-  try {
-    const token = localStorage.getItem("authToken");
+    try {
+      const token = localStorage.getItem("authToken");
 
-    const res = await fetch(`${BACKEND_URL}/api/user/profile`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`, // if your API requires it
-      },
-      body: JSON.stringify({
-        firstName: profile.firstName,
-        middleName: profile.middleName,
-        email: profile.email,
-        phone: profile.phone,
-      }),
-    });
+      const res = await fetch(`${BACKEND_URL}/api/user/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: profile.firstName,
+          middleName: profile.middleName,
+          email: profile.email,
+          phone: profile.phone,
+        }),
+      });
 
-    const result = await res.json();
+      const result = await res.json();
 
-    if (!result.success) throw new Error(result.error || "Save failed");
+      if (!result.success) throw new Error(result.error || "Save failed");
 
-    setSuccessMsg("Profile saved successfully!");
-    if (updateUser) updateUser(result.data);
-  } catch (err) {
-    setError("Failed to save profile: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      setSuccessMsg("Profile saved successfully!");
+      if (updateUser) updateUser(result.data);
+    } catch (err) {
+      setError("Failed to save profile: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-   //Save photo
-  const savePhoto = async () => {
-  if (!profile.profitPhoto) return setError("No photo selected");
-  setLoading(true);
-  setError(null);
-  setSuccessMsg(null);
-
-  try {
-    const formData = new FormData();
-    formData.append("profitPhoto", profile.profitPhoto);
-
-    const res = await fetch(`${BACKEND_URL}/api/profile/photo`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await res.json();
-
-    if (!result.success) throw new Error(result.error || "Photo upload failed");
-
-    setProfile((prev) => ({ ...prev, profitPhoto: result.data.profitPhoto }));
-    setSuccessMsg("Profile photo updated!");
-  } catch (err) {
-    setError("Failed to save photo: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // Save notifications
- 
   return (
     <div style={{ backgroundColor: neonColors.background, color: neonColors.neonBlue, minHeight: "100vh", padding: "2rem" }}>
       <header style={headerStyle(neonColors)}>FTSA AI - SETTINGS</header>
@@ -181,32 +116,6 @@ const saveNotifications = async () => {
 
       {!loading && (
         <div style={gridStyle}>
-          {/* Photo Edit Card */}
-<div style={cardStyle(neonColors)}>
-  <h2 style={{ color: neonColors.neonGreen }}>Profile Photo</h2>
-
-  <img
-    src={
-      profile.profitPhoto instanceof File
-        ? URL.createObjectURL(profile.profitPhoto)
-        : profile.profitPhoto
-          ? `${BACKEND_URL}/${profile.profitPhoto.replace(/\\/g, "/")}`
-          : "/default-profile.png"
-    }
-    alt="Profile"
-    style={{ width: 100, height: 100, borderRadius: 12, objectFit: "cover", marginBottom: 10 }}
-  />
-
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => setProfile({ ...profile, profitPhoto: e.target.files[0] })}
-    style={{ marginBottom: 10 }}
-  />
-  <button onClick={savePhoto} style={buttonStyle(neonColors)}>Save Photo</button>
-</div>
-
-   
           {/* Profile Info Card */}
           <div style={cardStyle(neonColors)}>
             <h2 style={{ color: neonColors.neonBlue }}>Profile Info</h2>
@@ -223,20 +132,6 @@ const saveNotifications = async () => {
             ))}
 
             <button onClick={saveProfile} style={buttonStyle(neonColors)}>Save Profile</button>
-          </div>
-
-          {/* Notifications Card */}
-          <div style={cardStyle(neonColors)}>
-            <h2 style={{ color: neonColors.neonOrange }}>Notifications</h2>
-            {Object.entries(notifications).map(([key, val]) => (
-              <div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span>{key}</span>
-                <button onClick={() => handleToggleNotifications(key)} style={buttonStyle(neonColors)}>
-                  {val ? "ON" : "OFF"}
-                </button>
-              </div>
-            ))}
-            <button onClick={saveNotifications} style={buttonStyle(neonColors)}>Save Notifications</button>
           </div>
         </div>
       )}
