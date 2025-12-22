@@ -151,7 +151,7 @@ const headerStyle = (colors) => ({
 
 const gridStyle = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  gridTemplateColumns: "1fr",
   gap: "2rem",
   alignItems: "start",
 };
