@@ -12,11 +12,15 @@ const PLAN_CONFIG = {
   Unlimited: { price: 2400, days: 36500 }, // Lifetime
 };
 
-const SELAR_CHECKOUT_URLS = {
-  Basic: "https://selar.com/qh11u57775",
-  Plus: "https://selar.com/m4x0043015",
-  Unlimited: "https://selar.com/1i416146s6",
+const PAYSTACK_PLAN_IDS = {
+  Basic: "PLN_hjfkckiewt1z406",
+  Plus: "PLN_c3ddmb4zjnwxzic",
 };
+
+const PAYSTACK_PRODUCT_URLS = {
+  Unlimited: "https://paystack.com/buy/ftsa-unlimited-vfczvf",
+};
+
 
 const StatusPage = () => {
   const { isAuthenticated, user } = useAuth();
@@ -76,26 +80,41 @@ const startCountdown = (expiry) => {
 };
 
   // ---------------- SELAR REDIRECT ----------------
-  const redirectToSelar = () => {
+  const handlePayment = () => {
   if (!broker || !mtLogin) {
     alert("Broker and MT Login are required");
     return;
   }
-  
-  const planUrl = SELAR_CHECKOUT_URLS[selectedPlan];
-  if (!planUrl) {
-    alert("Invalid plan selected");
-    return;
+
+  // Recurring plans: Basic or Plus
+  if (selectedPlan === "Basic" || selectedPlan === "Plus") {
+    const handler = window.PaystackPop.setup({
+      key: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY, // Add your public key in .env
+      email: user.email,
+      plan: PAYSTACK_PLAN_IDS[selectedPlan],
+      metadata: { user_id: user.id, plan: selectedPlan, broker, mt_login: mtLogin },
+      callback: function(response) {
+        // Activate EA license on success
+        APIControl.activateLicense({
+          userId: user.id,
+          plan: selectedPlan,
+          broker,
+          mtLogin,
+          reference: response.reference,
+        });
+        alert("Payment successful! EA license activated.");
+      },
+      onClose: function() {
+        alert("Payment cancelled.");
+      },
+    });
+    handler.openIframe();
   }
 
-  const url =
-    `${planUrl}` +
-    `?metadata[user_id]=${user.id}` +
-    `&metadata[plan]=${selectedPlan}` +
-    `&metadata[broker]=${encodeURIComponent(broker)}` +
-    `&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
-
-  window.location.href = url;
+  // One-time product: Unlimited
+  if (selectedPlan === "Unlimited") {
+    window.location.href = PAYSTACK_PRODUCT_URLS[selectedPlan];
+  }
 };
 
 
@@ -142,13 +161,14 @@ const isPending =
 
             {!hasActive && (
               <NeonButton
-                onClick={() => {
-                  setSelectedPlan(plan);
-                  setModalOpen(true);
-                }}
-              >
-                Pay with Selar
-              </NeonButton>
+  onClick={() => {
+    setSelectedPlan(plan);
+    setModalOpen(true);
+  }}
+>
+  Pay with Paystack
+</NeonButton>
+
             )}
 
             {hasActive && statusData.subscription.plan === plan && (
@@ -176,11 +196,10 @@ const isPending =
             value={mtLogin}
             onChange={(e) => setMtLogin(e.target.value)}
           />
-          <p style={{ color: neonGreen }}>Payment Method: Selar Secure Checkout</p>
-
+          <p style={{ color: neonGreen }}>Payment Method: Paystack Secure Checkout</p>
           <button
   style={styles.modalButton}
-  onClick={redirectToSelar}
+  onClick={handlePayment}
   disabled={!broker || !mtLogin}
 >
   Pay ${PLAN_CONFIG[selectedPlan].price}

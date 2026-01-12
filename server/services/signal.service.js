@@ -1,3 +1,4 @@
+//C:\Users\LENOVO\Desktop\FTSA_AI_0.v1\server\services\signal.service.js
 const Signal = require("../models/Signal.model");
 
 exports.save = async (data) => {
