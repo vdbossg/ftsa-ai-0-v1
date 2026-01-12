@@ -9,17 +9,18 @@ import APIControl from "../brain/APIControl";
 const PLAN_CONFIG = {
   Basic: {
     price: 7725.1,
-    planCode: "PLN_hjfkckiewt1z406", // Paystack recurring monthly
+    paymentLink: "https://paystack.shop/pay/6h5y7ngolw", // Paystack page for Basic
   },
   Plus: {
     price: 81113.57,
-    planCode: "PLN_c3ddmb4zjnwxzic", // Paystack recurring annually
+    paymentLink: "https://paystack.shop/pay/pgbeplac6u", // Paystack page for Plus
   },
   Unlimited: {
     price: 2400,
-    paymentLink: "https://paystack.com/buy/ftsa-unlimited-vfczvf", // One-time payment
+    paymentLink: "https://paystack.com/buy/ftsa-unlimited-vfczvf", // One-time Payment Link
   },
 };
+
 
 
 const StatusPage = () => {
@@ -79,7 +80,7 @@ const startCountdown = (expiry) => {
   }, 1000);
 };
 
-  // ---------------- paystack REDIRECT ----------------
+  // ---------------- SELAR REDIRECT ----------------
   const redirectToPaystack = () => {
   if (!broker || !mtLogin) {
     alert("Broker and MT Login are required");
@@ -87,18 +88,14 @@ const startCountdown = (expiry) => {
   }
 
   const plan = PLAN_CONFIG[selectedPlan];
-
-  if (plan.planCode) {
-    // Recurring subscription (Basic / Plus)
-    const url = `https://checkout.paystack.com/${plan.planCode}?metadata[user_id]=${user.id}&metadata[plan]=${selectedPlan}&metadata[broker]=${encodeURIComponent(broker)}&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
-    window.location.href = url;
-  } else if (plan.paymentLink) {
-    // One-time payment (Unlimited)
-    const url = `${plan.paymentLink}?metadata[user_id]=${user.id}&metadata[plan]=${selectedPlan}&metadata[broker]=${encodeURIComponent(broker)}&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
-    window.location.href = url;
-  } else {
+  if (!plan.paymentLink) {
     alert("Invalid plan selected");
+    return;
   }
+
+  const url = `${plan.paymentLink}?metadata[user_id]=${user.id}&metadata[plan]=${selectedPlan}&metadata[broker]=${encodeURIComponent(broker)}&metadata[mt_login]=${encodeURIComponent(mtLogin)}`;
+
+  window.location.href = url;
 };
 
 
@@ -156,11 +153,13 @@ const isPending =
             )}
 
             {hasActive && statusData.subscription.plan === plan && (
-              <span style={{ color: neonGreen }}>
-  Active until {new Date(statusData.subscription.expiryDate).toLocaleDateString()}
-</span>
+  <span style={{ color: neonGreen }}>
+    {plan === "Unlimited"
+      ? "Lifetime Access"
+      : `Active until ${new Date(statusData.subscription.expiryDate).toLocaleDateString()}`}
+  </span>
+)}
 
-            )}
           </div>
         ))}
       </section>
