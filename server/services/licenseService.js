@@ -20,20 +20,20 @@ const calculateExpiry = (plan) => {
   const now = new Date();
   if (plan === "Basic") now.setDate(now.getDate() + 30);
   else if (plan === "Plus") now.setFullYear(now.getFullYear() + 1);
-  else if (plan === "Unlimited") now.setFullYear(now.getFullYear() + 100);
+  else if (plan === "Unlimited") return null;
   return now;
 };
 
 // ---------------------- Webhook: Verify & Create License from Paystack ----------------------
 async function handlePaystackWebhook(req) {
   const signature = req.headers["x-paystack-signature"];
-  const payload = JSON.stringify(req.body);
+  const payload = req.rawBody;
 
-  // 1️⃣ Verify webhook signature
-  const hash = crypto
-    .createHmac("sha512", PAYSTACK_SECRET_KEY)
-    .update(payload)
-    .digest("hex");
+const hash = crypto
+  .createHmac("sha512", PAYSTACK_SECRET_KEY)
+  .update(payload)
+  .digest("hex");
+
 
   if (hash !== signature) {
     throw new Error("Invalid Paystack webhook signature");
@@ -79,10 +79,16 @@ async function handlePaystackWebhook(req) {
 
     // Update subscription to active & attach license
     await Subscription.findOneAndUpdate(
-      { userId, mtLogin },
-      { status: "active", licenseKey, expiryDate: endDate },
-      { upsert: true }
-    );
+  { userId, mtLogin },
+  {
+    status: "active",
+    plan,
+    licenseKey,
+    expiryDate: endDate,
+  },
+  { upsert: true }
+);
+
 
     // Mark Transaction as completed
     await Transaction.updateMany(
@@ -118,11 +124,15 @@ async function handlePaystackWebhook(req) {
 async function getUserLicense(userId) {
   const license = await License.findOne({
     userId,
-    endDate: { $gte: new Date() },
+    $or: [
+      { endDate: { $gte: new Date() } },
+      { endDate: null },
+    ],
   }).sort({ createdAt: -1 });
 
   return license;
 }
+
 
 module.exports = {
   handlePaystackWebhook,

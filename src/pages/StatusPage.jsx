@@ -44,12 +44,7 @@ const StatusPage = () => {
       .then((res) => {
         if (res.success) {
           setStatusData(res.data);
-          if (
-  res.data.subscription?.status === "active" &&
-  res.data.subscription.expiryDate
-) {
-  startCountdown(res.data.subscription.expiryDate);
-}
+          // countdown handled by useEffect
         } else {
           setError(res.error || "Failed to load status");
         }
@@ -62,9 +57,12 @@ const StatusPage = () => {
   }, [isAuthenticated]);
 
   // ---------------- COUNTDOWN ----------------
-const startCountdown = (expiry) => {
+useEffect(() => {
+  if (!statusData?.subscription?.expiryDate) return;
+
   const interval = setInterval(() => {
-    const diff = new Date(expiry) - new Date();
+    const diff = new Date(statusData.subscription.expiryDate) - new Date();
+
     if (diff <= 0) {
       setTimeLeft(null);
       clearInterval(interval);
@@ -78,9 +76,12 @@ const startCountdown = (expiry) => {
       seconds: Math.floor((diff / 1000) % 60),
     });
   }, 1000);
-};
 
-  // ---------------- SELAR REDIRECT ----------------
+  return () => clearInterval(interval);
+}, [statusData]);
+
+
+  // ---------------- PAYSTACK REDIRECT ----------------
   const redirectToPaystack = () => {
   if (!broker || !mtLogin) {
     alert("Broker and MT Login are required");
@@ -105,7 +106,11 @@ const startCountdown = (expiry) => {
 
   const hasActive =
   statusData?.subscription?.status === "active" &&
-  new Date(statusData.subscription.expiryDate) > new Date();
+  (
+    statusData.subscription.plan === "Unlimited" ||
+    new Date(statusData.subscription.expiryDate) > new Date()
+  );
+
 
 const isPending =
   statusData?.subscription?.status === "pending";

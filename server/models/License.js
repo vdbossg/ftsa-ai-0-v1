@@ -8,8 +8,8 @@ const licenseSchema = new mongoose.Schema(
     broker: { type: String, required: true },
     licenseKey: { type: String, required: true, unique: true },
     startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    active: { type: Boolean, default: true },
+    endDate: { type: Date, default: null },
+    active: { type: Boolean, default: true, index: true },
     paystackReference: { type: String }, // replaces selarOrderId
   },
   { timestamps: true }

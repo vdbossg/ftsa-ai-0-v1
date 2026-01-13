@@ -33,9 +33,13 @@ router.get("/user/:userId", authenticateToken, async (req, res) => {
   const License = require("../models/License");
   try {
     const licenses = await License.find({
-      userId: req.params.userId,
-      endDate: { $gte: new Date() }, // only active licenses
-    }).sort({ createdAt: -1 });
+  userId: req.params.userId,
+  $or: [
+    { endDate: { $gte: new Date() } },
+    { endDate: null },
+  ],
+}).sort({ createdAt: -1 });
+
 
     res.json({ success: true, data: licenses });
   } catch (err) {
