@@ -8,11 +8,11 @@ import APIControl from "../brain/APIControl";
 
 const PLAN_CONFIG = {
   Basic: {
-    price: 7725.1,
+    price: 60,
     paymentLink: "https://paystack.shop/pay/6h5y7ngolw", // Paystack page for Basic
   },
   Plus: {
-    price: 81113.57,
+    price: 630,
     paymentLink: "https://paystack.shop/pay/pgbeplac6u", // Paystack page for Plus
   },
   Unlimited: {
