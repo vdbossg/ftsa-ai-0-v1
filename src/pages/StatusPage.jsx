@@ -179,7 +179,7 @@ const isPending =
             value={mtLogin}
             onChange={(e) => setMtLogin(e.target.value)}
           />
-          <p style={{ color: neonGreen }}>Payment Method: Selar Secure Checkout</p>
+          <p style={{ color: neonGreen }}>Payment Method: Paystack Secure Checkout</p>
 
           <button
   style={styles.modalButton}

@@ -10,7 +10,7 @@ const licenseSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     active: { type: Boolean, default: true },
-    selarOrderId: { type: String }, // to match webhook
+    paystackReference: { type: String }, // replaces selarOrderId
   },
   { timestamps: true }
 );

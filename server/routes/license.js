@@ -1,15 +1,34 @@
+// server/routes/license.js
 const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../middleware/auth");
 const licenseController = require("../controllers/licenseController");
+const { handlePaystackWebhook, getUserLicense } = require("../services/licenseService");
 
-// Selar webhook route (public)
-router.post("/webhook/selar", express.json(), licenseController.selarWebhook);
+// ---------------------- Paystack Webhook Route ----------------------
+// Public route, Paystack calls this when a payment event occurs
+router.post("/webhook/paystack", express.json(), async (req, res) => {
+  try {
+    await handlePaystackWebhook(req);
+    res.sendStatus(200); // acknowledge Paystack
+  } catch (err) {
+    console.error("Paystack webhook error:", err);
+    res.sendStatus(400);
+  }
+});
 
-// Authenticated route to fetch the currently active license for the logged-in user
-router.get("/my", authenticateToken, licenseController.getUserLicense);
+// ---------------------- Fetch Current User License ----------------------
+router.get("/my", authenticateToken, async (req, res) => {
+  try {
+    const license = await getUserLicense(req.user.id);
+    res.json({ success: true, data: license });
+  } catch (err) {
+    console.error("Failed to fetch user license:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch license" });
+  }
+});
 
-// NEW: Fetch **all active licenses** for a specific user (frontend expects this)
+// ---------------------- Fetch All Active Licenses for Specific User ----------------------
 router.get("/user/:userId", authenticateToken, async (req, res) => {
   const License = require("../models/License");
   try {
