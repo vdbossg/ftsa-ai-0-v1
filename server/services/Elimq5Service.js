@@ -18,21 +18,29 @@ class Elimq5Service {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const license = data.data;
+      // Ensure latest license is selected
+let license = data.data;
+if (Array.isArray(license)) {
+  license = license[0]; // pick the latest license (most recent)
+}
 
-      const replacements = {
-        "{BROKER}": license.broker,
-        "{LOGIN}": license.mtLogin.toString(),
-        "{EXPIRY}": license.endDate,
-        "{LICENSE_KEY}": license.licenseKey
-      };
+if (!license) throw new Error("No license found for user");
 
-      fs.writeFileSync(configPath, JSON.stringify({
-        broker: license.broker,
-        login: license.mtLogin,
-        expiry: license.endDate,
-        license_key: license.licenseKey
-      }, null, 4));
+const expiryFormatted = new Date(license.endDate).toISOString().replace("T", " ").split(".")[0]; // YYYY-MM-DD HH:MM:SS
+
+const replacements = {
+  "{BROKER}": license.broker || "",
+  "{LOGIN}": license.mtLogin.toString(),
+  "{EXPIRY}": expiryFormatted,
+  "{LICENSE_KEY}": license.licenseKey || ""
+};
+
+fs.writeFileSync(configPath, JSON.stringify({
+  broker: license.broker || "",
+  login: license.mtLogin,
+  expiry: expiryFormatted,
+  license_key: license.licenseKey || ""
+}, null, 4));
 
       let templateContent = fs.readFileSync(templatePath, "utf8");
 
@@ -40,7 +48,9 @@ class Elimq5Service {
         templateContent = templateContent.replace(new RegExp(key, "g"), replacements[key]);
       }
 
-      if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+      if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true }); // safe for nested folders
+}
 
       const outputFile = path.join(outputDir, "FTSA_AI_FCS_EA_FINAL_licensed.mq5");
       fs.writeFileSync(outputFile, templateContent, "utf8");
@@ -59,6 +69,10 @@ class Elimq5Service {
   constructor(token) {
     if (!token) throw new Error("User token is required for Elimq5Service.");
     this.token = token;
+    // Test token by fetching license immediately
+Elimq5Service.injectLatestLicense(this.token).catch(err => {
+  console.error("Initial EA generation failed:", err.message);
+});
     this.lastLicenseKey = ""; // Track last license
     this.startPolling();
   }
