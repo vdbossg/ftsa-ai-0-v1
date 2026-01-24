@@ -50,7 +50,8 @@ const userPhotoRoutes = require("./routes/userPhoto.routes");
 const tvAlertRoutes = require('./routes/tvAlertRoutes');
 const tvsConverterRoutes = require('./routes/tvsConverter.routes');
 const Elimq5Routes = require("./routes/Elimq5Routes");
-const proxyTokenRoutes = require("./server/routes/proxyTokenRoutes");
+const proxyTokenRoutes = require("./routes/proxyTokenRoutes");
+
 
 const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
