@@ -1,6 +1,7 @@
 // server/controllers/Elimq5Controller.js
 const Elimq5Service = require("../services/Elimq5Service");
 
+
 class Elimq5Controller {
   static async generateEA(req, res) {
     try {

@@ -57,6 +57,7 @@ fs.writeFileSync(configPath, JSON.stringify({
 
       console.log(`✅ Licensed EA generated: ${license.licenseKey}`);
 
+      
       return { message: "Licensed EA generated successfully", outputFile };
 
     } catch (error) {
