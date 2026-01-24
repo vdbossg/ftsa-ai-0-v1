@@ -2,9 +2,7 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const fs = require("fs");
-const path = require("path");
-
+const ProxyTokenService = require("../services/proxyTokenService");
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret"; // use your env secret
 
@@ -28,18 +26,9 @@ exports.login = async (req, res) => {
       role: user.role || "user",
     };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" }); // token valid 7 days
-// ---------------- Save latest token for this user ----------------
-const proxyDir = path.join(__dirname, "../proxy");
-if (!fs.existsSync(proxyDir)) fs.mkdirSync(proxyDir, { recursive: true });
+    
+    await ProxyTokenService.saveOrUpdateToken(user, token);
 
-const LltuPath = path.join(proxyDir, `Lltu_${user._id}.json`);
-fs.writeFileSync(LltuPath, JSON.stringify({
-  token,
-  userId: user._id,
-  email: user.email,
-  firstName: user.firstName
-}, null, 4), "utf8");
-console.log(`🔑 Saved latest token for user ${user.email} at ${LltuPath}`);
 
     // 4️⃣ Send token and user info to frontend
     res.json({
