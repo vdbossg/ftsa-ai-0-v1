@@ -24,8 +24,9 @@ router.get("/my", authenticateToken, async (req, res) => {
     const { getUserLicense } = require("../services/licenseService");
 
     // req.user is now guaranteed by authenticateToken
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
+    const userId = req.user?._id; // use _id set by authMiddleware
+if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
+
 
     const license = await getUserLicense(userId); // handles string conversion internally
     res.json({ success: true, data: license || null });
