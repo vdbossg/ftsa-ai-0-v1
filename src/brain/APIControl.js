@@ -489,30 +489,32 @@ async fetchPropFirmAccountsData() {
 /**
  * Fetch the active EA license for the logged-in user
  */
-/**
- * Fetch the active EA license for the logged-in user
- */
 async getActiveLicense() {
   try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      return { success: false, data: null, error: "No auth token found" };
+    }
+
     const response = await fetch(`${BASE_URL}/api/licenses/my`, {
       headers: {
-        ...(localStorage.getItem("authToken") && { 
-          "Authorization": `Bearer ${localStorage.getItem("authToken")}` 
-        }),
+        "Authorization": `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      return { success: false, data: null };
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, data: null, error: errData.error || "Failed to fetch license" };
     }
 
     const data = await response.json();
-    return { success: true, data: data.data || null }; // ensure null if no license
+    return { success: true, data: data.data || null };
   } catch (err) {
     console.error("Error fetching active license:", err);
-    return { success: false, data: null };
+    return { success: false, data: null, error: err.message || "Unexpected error" };
   }
 },
+
 /**
  * Generate EA automatically for the logged-in user and get download URL
  */

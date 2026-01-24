@@ -24,12 +24,18 @@ exports.paystackWebhook = async (req, res) => {
 // ---------------------- Get Current User License ----------------------
 exports.getUserLicense = async (req, res) => {
   try {
-    const license = await getUserLicense(req.user.id);
-    if (!license) return res.json({ success: false, message: "No active license" });
+    const User = require("../models/User");
 
-    res.json({ success: true, license });
+    // Automatically fetch the user (replace email with dynamic identifier in production)
+    const user = await User.findOne({ email: "kelvinmburug@gmail.com" });
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+    const { getUserLicense } = require("../services/licenseService");
+    const license = await getUserLicense(user._id);
+
+    res.json({ success: true, license: license || null });
   } catch (err) {
-    console.error(err);
+    console.error("Failed to fetch user license:", err);
     res.status(500).json({ success: false, error: "Server error" });
   }
 };

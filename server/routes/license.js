@@ -17,11 +17,18 @@ router.post("/webhook/paystack", express.json(), async (req, res) => {
   }
 });
 
-// ---------------------- Fetch Current User License ----------------------
+// ---------------------- Fetch Current User License Automatically ----------------------
+// ---------------------- Fetch Current User License Automatically ----------------------
 router.get("/my", authenticateToken, async (req, res) => {
   try {
-    const license = await getUserLicense(req.user.id);
-    res.json({ success: true, data: license });
+    const { getUserLicense } = require("../services/licenseService");
+
+    // req.user is now guaranteed by authenticateToken
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
+
+    const license = await getUserLicense(userId); // handles string conversion internally
+    res.json({ success: true, data: license || null });
   } catch (err) {
     console.error("Failed to fetch user license:", err);
     res.status(500).json({ success: false, error: "Failed to fetch license" });

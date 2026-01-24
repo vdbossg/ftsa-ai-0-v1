@@ -14,6 +14,7 @@ module.exports = function authMiddleware(req, res, next) {
 req.user = { ...decoded, _id: decoded.id ?? decoded._id };
 
 
+
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Invalid token' });

@@ -120,19 +120,14 @@ const hash = crypto
   return null;
 }
 
-// ---------------------- Get Active License ----------------------
+/// ---------------------- Get All Licenses for User ----------------------
 async function getUserLicense(userId) {
-  const license = await License.findOne({
-    userId,
-    $or: [
-      { endDate: { $gte: new Date() } },
-      { endDate: null },
-    ],
+  const licenses = await License.find({
+    userId: userId.toString(), // keep string conversion
   }).sort({ createdAt: -1 });
 
-  return license;
+  return licenses; // always returns an array
 }
-
 
 module.exports = {
   handlePaystackWebhook,

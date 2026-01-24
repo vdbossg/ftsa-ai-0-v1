@@ -47,6 +47,7 @@ router.post("/signup", async (req, res) => {
 });
 
 // ===================== LOGIN =====================
+// ===================== LOGIN =====================
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -59,8 +60,12 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ success: false, error: "Invalid credentials" });
 
-    // create token
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    // create token including role
+    const token = jwt.sign(
+      { id: user._id, role: user.role || "user" }, // include role for middleware
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({
       success: true,
@@ -70,6 +75,7 @@ router.post("/login", async (req, res) => {
         firstName: user.firstName,
         email: user.email,
         phone: user.phone,
+        role: user.role || "user", // return role for frontend if needed
       },
     });
   } catch (err) {
