@@ -36,7 +36,7 @@ async function runPythonMT5Summary(login, password, server) {
 /**
  * Connect and store MT5 account in MongoDB.
  */
-async function connectMTAccount({ broker, login, password, server, platform = "MT5", accountType = "demo" }) {
+async function connectMTAccount({ userId, broker, login, password, server, platform = "MT5", accountType = "demo" }) {
   const loginStr = String(login).trim();
 
   try {
@@ -45,7 +45,7 @@ async function connectMTAccount({ broker, login, password, server, platform = "M
     // Fetch summary via Python
     const result = await runPythonMT5Summary(loginStr, password, server);
 
-    let account = await MTAccountModel.findOne({ login: loginStr, platform: "MT5" });
+    let account = await MTAccountModel.findOne({ login: loginStr, platform: "MT5", userId });
     if (account) {
       Object.assign(account, {
         broker,
@@ -60,15 +60,16 @@ async function connectMTAccount({ broker, login, password, server, platform = "M
       console.log("🔁 Updated existing MT5 account in DB");
     } else {
       account = await MTAccountModel.create({
-        broker,
-        login: loginStr,
-        password,
-        server,
-        platform,
-        accountType,
-        currency: result.currency || "USD",
-        isConnected: result.success || false,
-      });
+  userId,  // ✅ associate account with user
+  broker,
+  login: loginStr,
+  password,
+  server,
+  platform,
+  accountType,
+  currency: result.currency || "USD",
+  isConnected: result.success || false,
+});
       console.log("💾 Created new MT5 account in DB");
     }
 
@@ -89,9 +90,10 @@ async function connectMTAccount({ broker, login, password, server, platform = "M
 /**
  * Get all stored MT5 accounts.
  */
-async function getMTAccount() {
+async function getMTAccount(userId) {
+
   try {
-    const accounts = await MTAccountModel.find({ platform: "MT5" });
+    const accounts = await MTAccountModel.find({ platform: "MT5", userId });
     return accounts || [];
   } catch (err) {
     console.error("💥 Error fetching MT5 accounts:", err);
@@ -102,9 +104,9 @@ async function getMTAccount() {
 /**
  * Delete a specific MT5 account by login.
  */
-async function deleteMTAccount(login) {
+async function deleteMTAccount(userId, login) {
   try {
-    const result = await MTAccountModel.deleteOne({ login, platform: "MT5" });
+    const result = await MTAccountModel.deleteOne({ login, platform: "MT5", userId });
     if (result.deletedCount > 0) {
       console.log(`🗑️ Deleted MT5 account ${login}`);
       return { success: true, message: `MT5 account ${login} deleted successfully` };
