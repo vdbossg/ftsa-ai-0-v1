@@ -96,26 +96,33 @@ return { success: true, message: data.message || "Signup successful" };
   },
   
   /**
-   * Fetch real user info from backend
-   */
-  async fetchUserInfo(token) {
-  if (!token) return { success: false, error: "No auth token" };
-
+ * Fetch real user info from backend
+ */
+async fetchUserInfo(token = null) {
   try {
+    // Use passed token, or fallback to localStorage
+    const authToken = token || localStorage.getItem("authToken");
+    if (!authToken) return { success: false, error: "No auth token" };
+
     const response = await fetch(`${BASE_URL}/api/user/profile`, {
-      headers: { "Authorization": `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
     });
 
     if (!response.ok) {
-      return { success: false, error: "Failed to fetch user info" };
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, error: errData.error || "Failed to fetch user info" };
     }
 
     const data = await response.json();
     return { success: true, data: data.data }; // Only the user object
   } catch (err) {
+    console.error("fetchUserInfo error:", err);
     return { success: false, error: "Failed to fetch user info" };
   }
 },
+
 
 
 
