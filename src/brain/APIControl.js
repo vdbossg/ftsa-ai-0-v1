@@ -61,10 +61,12 @@ async signup(signupData) {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      return { success: false, error: data.error || "Signup failed" };
-    }
+  return { success: false, error: data.error || "Signup failed" };
+}
 
-    return { success: true, data: data.data };
+// ✅ Fix: use message instead of data.data
+return { success: true, message: data.message || "Signup successful" };
+
   } catch (err) {
     return { success: false, error: "Signup failed" };
   }
@@ -96,12 +98,12 @@ async signup(signupData) {
   /**
    * Fetch real user info from backend
    */
-  async fetchUserInfo() {
+  async fetchUserInfo(token) {
+  if (!token) return { success: false, error: "No auth token" };
+
   try {
     const response = await fetch(`${BASE_URL}/api/user/profile`, {
-      headers: {
-        ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
-      }
+      headers: { "Authorization": `Bearer ${token}` }
     });
 
     if (!response.ok) {
@@ -109,12 +111,12 @@ async signup(signupData) {
     }
 
     const data = await response.json();
-return { success: true, data: data.data }; // Only the user object
-
-  } catch (error) {
+    return { success: true, data: data.data }; // Only the user object
+  } catch (err) {
     return { success: false, error: "Failed to fetch user info" };
   }
 },
+
 
 
   /**
