@@ -126,16 +126,12 @@ async function getUserLicense(userId) {
 async function getUserLatestLicense(userId) {
   if (!userId) throw new Error("userId is required");
 
-  // Fetch the latest license for this user
+  // Get the latest license, ignoring endDate
   const license = await License.findOne({
-    userId: userId.toString(),
-    $or: [
-      { endDate: { $gte: new Date() } }, // active licenses
-      { endDate: null },                 // licenses with no expiry
-    ],
+    userId: userId.toString()
   }).sort({ createdAt: -1 }); // newest first
 
-  return license || null; // return single license object
+  return license || null;
 }
 
 module.exports = {

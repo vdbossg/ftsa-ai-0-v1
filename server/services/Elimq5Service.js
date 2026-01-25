@@ -1,53 +1,70 @@
 // server/services/Elimq5Service.js
-const fs = require("fs");
+const fs = require("fs").promises; // Use async fs functions
 const path = require("path");
 
 
-const templatePath = path.join(__dirname, "../templates/EA_Template.mq5");
-const configPath   = path.join(__dirname, "../templates/license_Config.json");
-const outputDir    = path.join(__dirname, "../Licensed_mq5");
+const templatePath = path.join(
+  __dirname,
+  "../../mql5/templates/EA_Template.mq5"
+);
+
+const outputDir = path.join(
+  __dirname,
+  "../../mql5/Licensed_mq5"
+);
 
 // Poll interval in milliseconds (3 seconds)
 const POLL_INTERVAL = 3 * 1000;
 
 class Elimq5Service {
-  // Manual EA generation
-  static async injectLatestLicense(userId) {
+  // EA generation
+ static async injectLatestLicense(userId) {
   const { getUserLatestLicense } = require("../services/licenseService");
 
   const license = await getUserLatestLicense(userId);
-  if (!license || !license.licenseKey) throw new Error("No license found for user");
-
-  const expiryFormatted = license.endDate ? new Date(license.endDate).toISOString().replace("T", " ").split(".")[0] : "";
-
-  const replacements = {
-    "{BROKER}": license.broker || "",
-    "{LOGIN}": license.mtLogin.toString(),
-    "{EXPIRY}": expiryFormatted,
-    "{LICENSE_KEY}": license.licenseKey || ""
-  };
-
-  fs.writeFileSync(configPath, JSON.stringify({
-    broker: license.broker || "",
-    login: license.mtLogin,
-    expiry: expiryFormatted,
-    license_key: license.licenseKey || ""
-  }, null, 4));
-
-  let templateContent = fs.readFileSync(templatePath, "utf8");
-
-  for (const key in replacements) {
-    templateContent = templateContent.replace(new RegExp(key, "g"), replacements[key]);
+  if (!license || !license.licenseKey) {
+    throw new Error("No license found for user");
   }
 
-  fs.mkdirSync(outputDir, { recursive: true });
+  const expiryFormatted = license.endDate
+    ? new Date(license.endDate).toISOString().slice(0, 10).replace(/-/g, ".")
+    : "";
 
-  const outputFile = path.join(outputDir, "FTSA_AI_FCS_EA_FINAL_licensed.mq5");
-  fs.writeFileSync(outputFile, templateContent, "utf8");
+  const replacements = {
+    "{BROKER}": license.broker,
+    "{LOGIN}": license.mtLogin.toString(),
+    "{EXPIRY}": expiryFormatted,
+    "{LICENSE_KEY}": license.licenseKey
+  };
 
-  console.log(`✅ Licensed EA generated: ${license.licenseKey}`);
-  return { message: "Licensed EA generated successfully", outputFile };
+  try {
+    let templateContent = await fs.readFile(templatePath, "utf8");
+
+    for (const key in replacements) {
+      templateContent = templateContent.replace(
+        new RegExp(key, "g"),
+        replacements[key]
+      );
+    }
+
+    await fs.mkdir(outputDir, { recursive: true });
+
+    const outputFile = path.join(
+      outputDir,
+      `FTSA_AI_${license.mtLogin}.mq5`
+    );
+
+    await fs.writeFile(outputFile, templateContent, "utf8");
+
+    console.log("✅ EA generated:", outputFile);
+    return { outputFile };
+
+  } catch (err) {
+    console.error("❌ EA generation failed:", err);
+    throw err;
+  }
 }
+
 
   // ------------------ AUTO-POLLING ------------------
  constructor(userId) {
@@ -96,12 +113,20 @@ const isNewLicense = !this.lastLicense ||
 
   startPolling() {
     // Poll for new license every POLL_INTERVAL milliseconds
-    setInterval(async () => {
+    this.pollingInterval = setInterval(async () => {
         await this.pollForNewLicense();
     }, POLL_INTERVAL);
 
     console.log(`⏱ Elimq5Service polling started every ${POLL_INTERVAL / 1000}s`);
 }
+stopPolling() {
+    if (this.pollingInterval) {
+        clearInterval(this.pollingInterval);
+        console.log('⏹ Elimq5Service polling stopped');
+        this.pollingInterval = null;
+    }
+}
+
 
 }
 

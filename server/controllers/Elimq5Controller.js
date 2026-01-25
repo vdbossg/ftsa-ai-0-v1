@@ -5,9 +5,10 @@ const Elimq5Service = require("../services/Elimq5Service");
 class Elimq5Controller {
   static async generateEA(req, res) {
     try {
-      // Get logged-in user's ID from req.user (authenticateToken ensures this exists)
-const userId = req.user?._id;
-if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
+      // Get userId from request body (sent automatically from frontend after payment)
+const userId = req.body.userId || req.query.userId;
+if (!userId) return res.status(400).json({ success: false, error: "userId is required" });
+
 
 // Pass userId instead of token
 const result = await Elimq5Service.injectLatestLicense(userId);

@@ -37,8 +37,24 @@ try {
   console.error("❌ Failed to save token:", err);
   return res.status(500).json({ success: false, error: "Failed to save token" });
 }
+// 5️⃣ Create userSession.json for device proxy
+try {
+  const fs = require("fs");
+  const path = require("path");
+  const sessionFile = path.join(__dirname, "../userSession.json");
 
-// 5️⃣ Send token and user info to frontend
+  const sessionData = {
+    userId: user._id.toString(),
+    email: user.email
+  };
+
+  fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
+  console.log("✅ userSession.json created automatically for proxy");
+} catch (err) {
+  console.error("❌ Failed to create userSession.json:", err);
+}
+
+// 6️⃣ Send token and user info to frontend
 res.json({
   success: true,
   token,

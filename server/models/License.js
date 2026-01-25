@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const licenseSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: String, required: true, index: true },
     plan: { type: String, enum: ["Basic", "Plus", "Unlimited"], required: true },
     mtLogin: { type: String, required: true },
     broker: { type: String, required: true },
@@ -10,7 +10,7 @@ const licenseSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: null },
     active: { type: Boolean, default: true, index: true },
-    paystackReference: { type: String }, // replaces selarOrderId
+    paystackReference: { type: String },
   },
   { timestamps: true }
 );
