@@ -1,9 +1,4 @@
-// server/controllers/licenseController.js
-const License = require("../models/License");
-const Subscription = require("../models/Subscription");
 const User = require("../models/User");
-const CFAAccount = require("../services/cfaAccount"); // Optional EA service
-const Transaction = require("../models/Transaction"); // if not already imported
 const { handlePaystackWebhook, getUserLicense } = require("../services/licenseService");
 
 // ---------------------- Paystack Webhook Handler ----------------------
@@ -21,19 +16,21 @@ exports.paystackWebhook = async (req, res) => {
   }
 };
 
-// ---------------------- Get Current User License ----------------------
+// ---------------------- Get Current User Latest License ----------------------
 exports.getUserLicense = async (req, res) => {
   try {
-    const User = require("../models/User");
+    const userId = req.user?._id; // guaranteed by authenticateToken
+    if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
 
-    // Automatically fetch the user (replace email with dynamic identifier in production)
-    const user = await User.findOne({ email: "kelvinmburug@gmail.com" });
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, error: "User not found" });
 
-    const { getUserLicense } = require("../services/licenseService");
-    const license = await getUserLicense(user._id);
+    const { getUserLatestLicense } = require("../services/licenseService");
 
-    res.json({ success: true, license: license || null });
+    // Fetch **only the latest active license** for this user
+    const license = await getUserLatestLicense(user._id);
+
+    res.json({ success: true, data: license || null });
   } catch (err) {
     console.error("Failed to fetch user license:", err);
     res.status(500).json({ success: false, error: "Server error" });

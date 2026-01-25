@@ -2,6 +2,9 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function authMiddleware(req, res, next) {
+  console.log("Incoming headers:", req.headers);
+  console.log("Authorization header:", req.headers['authorization']);
+
   const authHeader = req.headers['authorization'];
   if (!authHeader) return res.status(401).json({ message: 'Unauthorized' });
 

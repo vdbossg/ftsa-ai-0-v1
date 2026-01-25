@@ -1,12 +1,9 @@
-// server/routes/license.js
 const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../middleware/auth");
-const licenseController = require("../controllers/licenseController");
-const { handlePaystackWebhook, getUserLicense } = require("../services/licenseService");
+const { handlePaystackWebhook, getUserLatestLicense } = require("../services/licenseService");
 
 // ---------------------- Paystack Webhook Route ----------------------
-// Public route, Paystack calls this when a payment event occurs
 router.post("/webhook/paystack", express.json(), async (req, res) => {
   try {
     await handlePaystackWebhook(req);
@@ -18,41 +15,17 @@ router.post("/webhook/paystack", express.json(), async (req, res) => {
 });
 
 // ---------------------- Fetch Current User License Automatically ----------------------
-// ---------------------- Fetch Current User License Automatically ----------------------
 router.get("/my", authenticateToken, async (req, res) => {
   try {
-    const { getUserLicense } = require("../services/licenseService");
+    const userId = req.user._id; // guaranteed by authenticateToken
+    if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
 
-    // req.user is now guaranteed by authenticateToken
-    const userId = req.user?._id; // use _id set by authMiddleware
-if (!userId) return res.status(401).json({ success: false, error: "Not logged in" });
+    const license = await getUserLatestLicense(userId);
 
-
-    const license = await getUserLicense(userId); // handles string conversion internally
     res.json({ success: true, data: license || null });
   } catch (err) {
     console.error("Failed to fetch user license:", err);
     res.status(500).json({ success: false, error: "Failed to fetch license" });
-  }
-});
-
-// ---------------------- Fetch All Active Licenses for Specific User ----------------------
-router.get("/user/:userId", authenticateToken, async (req, res) => {
-  const License = require("../models/License");
-  try {
-    const licenses = await License.find({
-  userId: req.params.userId,
-  $or: [
-    { endDate: { $gte: new Date() } },
-    { endDate: null },
-  ],
-}).sort({ createdAt: -1 });
-
-
-    res.json({ success: true, data: licenses });
-  } catch (err) {
-    console.error("Failed to fetch user licenses:", err);
-    res.status(500).json({ success: false, error: "Failed to fetch licenses" });
   }
 });
 

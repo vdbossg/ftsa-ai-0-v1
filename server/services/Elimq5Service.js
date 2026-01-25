@@ -1,7 +1,7 @@
 // server/services/Elimq5Service.js
 const fs = require("fs");
 const path = require("path");
-const axios = require("axios");
+
 
 const templatePath = path.join(__dirname, "../templates/EA_Template.mq5");
 const configPath   = path.join(__dirname, "../templates/license_Config.json");
@@ -12,62 +12,47 @@ const POLL_INTERVAL = 3 * 1000;
 
 class Elimq5Service {
   // Manual EA generation
-  static async injectLatestLicense(token) {
-    try {
-      const { data } = await axios.get("http://localhost:5000/api/licenses/my", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  static async injectLatestLicense(userId) {
+  const { getUserLatestLicense } = require("../services/licenseService");
 
-      let license = data.data;
+  const license = await getUserLatestLicense(userId);
+  if (!license || !license.licenseKey) throw new Error("No license found for user");
 
-      // If array, pick most recent
-      if (Array.isArray(license) && license.length > 0) {
-        license.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        license = license[0];
-      }
+  const expiryFormatted = license.endDate ? new Date(license.endDate).toISOString().replace("T", " ").split(".")[0] : "";
 
-      if (!license || !license.licenseKey) throw new Error("No license found for user");
+  const replacements = {
+    "{BROKER}": license.broker || "",
+    "{LOGIN}": license.mtLogin.toString(),
+    "{EXPIRY}": expiryFormatted,
+    "{LICENSE_KEY}": license.licenseKey || ""
+  };
 
-      const expiryFormatted = license.endDate ? new Date(license.endDate).toISOString().replace("T", " ").split(".")[0] : "";
+  fs.writeFileSync(configPath, JSON.stringify({
+    broker: license.broker || "",
+    login: license.mtLogin,
+    expiry: expiryFormatted,
+    license_key: license.licenseKey || ""
+  }, null, 4));
 
-      const replacements = {
-        "{BROKER}": license.broker || "",
-        "{LOGIN}": license.mtLogin.toString(),
-        "{EXPIRY}": expiryFormatted,
-        "{LICENSE_KEY}": license.licenseKey || ""
-      };
+  let templateContent = fs.readFileSync(templatePath, "utf8");
 
-      fs.writeFileSync(configPath, JSON.stringify({
-        broker: license.broker || "",
-        login: license.mtLogin,
-        expiry: expiryFormatted,
-        license_key: license.licenseKey || ""
-      }, null, 4));
-
-      let templateContent = fs.readFileSync(templatePath, "utf8");
-
-      for (const key in replacements) {
-        templateContent = templateContent.replace(new RegExp(key, "g"), replacements[key]);
-      }
-
-      fs.mkdirSync(outputDir, { recursive: true });
-
-      const outputFile = path.join(outputDir, "FTSA_AI_FCS_EA_FINAL_licensed.mq5");
-      fs.writeFileSync(outputFile, templateContent, "utf8");
-
-      console.log(`✅ Licensed EA generated: ${license.licenseKey}`);
-      return { message: "Licensed EA generated successfully", outputFile };
-
-    } catch (error) {
-      console.error("Elimq5 Injection Error:", error.message);
-      throw new Error(error.message);
-    }
+  for (const key in replacements) {
+    templateContent = templateContent.replace(new RegExp(key, "g"), replacements[key]);
   }
 
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const outputFile = path.join(outputDir, "FTSA_AI_FCS_EA_FINAL_licensed.mq5");
+  fs.writeFileSync(outputFile, templateContent, "utf8");
+
+  console.log(`✅ Licensed EA generated: ${license.licenseKey}`);
+  return { message: "Licensed EA generated successfully", outputFile };
+}
+
   // ------------------ AUTO-POLLING ------------------
-  constructor(token) {
-    if (!token) throw new Error("User token is required for Elimq5Service.");
-    this.token = token;
+ constructor(userId) {
+    if (!userId) throw new Error("UserId is required for Elimq5Service.");
+    this.userId = userId;
 
     // Track last license as full object
     this.lastLicense = null;
@@ -77,27 +62,20 @@ class Elimq5Service {
 }
 
 
+
   async pollForNewLicense() {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/licenses/my", {
-        headers: { Authorization: `Bearer ${this.token}` }
-      });
+      const { getUserLatestLicense } = require("../services/licenseService");
 
-      let license = data.data;
+const license = await getUserLatestLicense(this.userId);
+if (!license || !license.licenseKey) return;
 
-      if (Array.isArray(license) && license.length > 0) {
-        license.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        license = license[0];
-      }
-
-      if (!license || !license.licenseKey) return;
-
-      // Compare all fields to detect a new license
-      const isNewLicense = !this.lastLicense ||
-                           this.lastLicense.broker !== license.broker ||
-                           this.lastLicense.mtLogin !== license.mtLogin ||
-                           this.lastLicense.endDate !== license.endDate ||
-                           this.lastLicense.licenseKey !== license.licenseKey;
+// Compare all fields to detect a new license
+const isNewLicense = !this.lastLicense ||
+                     this.lastLicense.broker !== license.broker ||
+                     this.lastLicense.mtLogin !== license.mtLogin ||
+                     this.lastLicense.endDate !== license.endDate ||
+                     this.lastLicense.licenseKey !== license.licenseKey;
 
       if (isNewLicense) {
         this.lastLicense = {
@@ -108,7 +86,7 @@ class Elimq5Service {
         };
 
         console.log(`🆕 New license detected: ${license.licenseKey}, generating EA...`);
-        await Elimq5Service.injectLatestLicense(this.token);
+        await Elimq5Service.injectLatestLicense(this.userId);
       }
 
     } catch (error) {

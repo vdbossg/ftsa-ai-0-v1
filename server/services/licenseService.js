@@ -2,8 +2,6 @@
 const License = require("../models/License");
 const Subscription = require("../models/Subscription");
 const Transaction = require("../models/Transaction");
-const CFAAccount = require("../services/cfaAccount"); // EA generator
-const User = require("../models/User");
 const crypto = require("crypto");
 
 // Replace with your Paystack Secret Key
@@ -95,11 +93,7 @@ const hash = crypto
       { "metadata.reference": reference },
       { $set: { status: "completed" } }
     );
-
-    // Generate EA (one-time)
-    await CFAAccount.generateEA(userId, licenseKey);
-
-    console.log(`✅ License created & EA generated for user ${userId}, plan ${plan}`);
+console.log(`✅ License created for user ${userId}, plan ${plan}`);
     return license;
   }
 
@@ -128,10 +122,27 @@ async function getUserLicense(userId) {
 
   return licenses; // always returns an array
 }
+/// ---------------------- Get Latest License for User ----------------------
+async function getUserLatestLicense(userId) {
+  if (!userId) throw new Error("userId is required");
+
+  // Fetch the latest license for this user
+  const license = await License.findOne({
+    userId: userId.toString(),
+    $or: [
+      { endDate: { $gte: new Date() } }, // active licenses
+      { endDate: null },                 // licenses with no expiry
+    ],
+  }).sort({ createdAt: -1 }); // newest first
+
+  return license || null; // return single license object
+}
 
 module.exports = {
   handlePaystackWebhook,
   getUserLicense,
+  getUserLatestLicense,
   generateLicenseKey,
   calculateExpiry,
 };
+
