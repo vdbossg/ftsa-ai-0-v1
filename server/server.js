@@ -51,7 +51,6 @@ const tvAlertRoutes = require('./routes/tvAlertRoutes');
 const tvsConverterRoutes = require('./routes/tvsConverter.routes');
 const Elimq5Routes = require("./routes/Elimq5Routes");
 const proxyTokenRoutes = require("./routes/proxyTokenRoutes");
-const proxyRoutes = require("./routes/proxyRoutes");
 
 const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
@@ -182,8 +181,7 @@ app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 app.use("/api/proxy", proxyTokenRoutes);
 console.log("✅ /api/proxyToken routes mounted");
-app.use("/api/proxy", proxyRoutes);
-console.log("✅ /api/proxymyaccountid routes mounted");
+
 
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));
