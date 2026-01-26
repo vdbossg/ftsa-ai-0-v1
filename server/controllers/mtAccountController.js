@@ -53,9 +53,7 @@ async function runPython(scriptName, args = []) {
  */
 async function getMTAccount(req, res) {
   try {
-    const userId = req.user._id; // ✅ get user ID from JWT
-const accounts = await fetchMTAccount(userId); // fetch only this user's accounts
-
+    const accounts = await fetchMTAccount(); // fetch all accounts
     if (!accounts || accounts.length === 0) {
       return res.status(404).json({ success: false, message: "MT accounts not found" });
     }
@@ -118,17 +116,14 @@ async function connectMT(req, res) {
     console.log(`🌐 Connecting MT5 account ${login} on ${server}...`);
 
     // ✅ Step 1: Connect and save to DB
-    const userId = req.user._id; // ✅ attach user ID
-const result = await connectMTAccount({
-  userId, // ✅ save under this user
-  broker,
-  login,
-  password,
-  server,
-  platform,
-  accountType,
-});
-
+    const result = await connectMTAccount({
+      broker,
+      login,
+      password,
+      server,
+      platform,
+      accountType,
+    });
 
     if (!result.success) return res.json(result);
 
@@ -167,9 +162,7 @@ async function deleteMT(req, res) {
       return res.status(400).json({ success: false, message: "Missing login for deletion" });
     }
 
-    const userId = req.user._id; // ✅ restrict deletion to this user
-const result = await deleteMTAccount(userId, login);
-
+    const result = await deleteMTAccount(login);
     res.json(result);
   } catch (err) {
     console.error("❌ Error in deleteMT controller:", err);

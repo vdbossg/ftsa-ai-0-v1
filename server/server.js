@@ -59,6 +59,9 @@ startBridge();
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
+// 🚀 Start EA EX5 Auto-Compiler Service (runs every 2 seconds)
+require("./services/Ea.ex5services");
+console.log("✅ EA Compiler Service started");
 
 
 
