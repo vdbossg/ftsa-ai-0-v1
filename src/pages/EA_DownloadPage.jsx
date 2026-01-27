@@ -44,38 +44,33 @@ const inactiveRes = await APIControl.fetchInactiveEx5Licenses();
   fetchEx5Licenses();
 }, [isAuthenticated, user]);
 
-
-  // Download EA by licenseId
 // Download EX5 by license _id
 const downloadEA = async (licenseId) => {
   setLoading(true);
   setError(null);
 
-  
-    try {
-  const blob = await APIControl.downloadEx5ByLicense(licenseId);
+  try {
+    const blob = await APIControl.downloadEx5ByLicense(licenseId);
 
-  const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
     link.href = url;
 
-    // Find filename from licenses array
-    const lic = licenses.find(l => l._id === licenseId);
-    link.download = lic?.EA || 'FTSA_AI.ex5';
+    // Use correct filename pattern
+    const lic = licenses.find((l) => l._id === licenseId);
+    link.download = `FTSA_AI_${lic?.mtLogin || "unknown"}.ex5`;
 
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-
   } catch (err) {
+    console.error(err);
     setError("EX5 download error");
   } finally {
     setLoading(false);
   }
 };
-
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in to continue</div>;
   if (loading) return <LoadingSpinner />;

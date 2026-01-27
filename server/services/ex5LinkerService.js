@@ -4,12 +4,18 @@ const path = require("path");
 const License = require("../models/License");
 const LicenseEx5 = require("../models/ex5Linkermodel");
 
-// Folder to watch
+// Folder where EX5 files appear
 const EX5_DIR = path.join(__dirname, "../../mt5/MQL5/Experts");
 
-// Helper: find the license around timestamp
+// Folder to store linked files
+const LINKED_DIR = path.join(EX5_DIR, "MyLicensed_ex5");
+
+// Ensure linked folder exists
+if (!fs.existsSync(LINKED_DIR)) fs.mkdirSync(LINKED_DIR, { recursive: true });
+
+// Helper: find license near timestamp
 async function findLicenseForEx5(mtLogin, detectedAt) {
-  const licenses = await License.find({ mtLogin, active: true }).sort({ createdAt: -1 });
+  const licenses = await License.find({ mtLogin }).sort({ createdAt: -1 });
   const thresholdMs = 5 * 60 * 1000; // 5 minutes
 
   for (let lic of licenses) {
@@ -17,10 +23,22 @@ async function findLicenseForEx5(mtLogin, detectedAt) {
     if (diff <= thresholdMs) return lic;
   }
 
-  return licenses[0] || null; // fallback to latest
+  return licenses[0] || null;
 }
 
-// Watch folder for new EX5 files
+// Move file to linked folder safely
+function moveToLinkedFolder(fileName) {
+  const src = path.join(EX5_DIR, fileName);
+  const dest = path.join(LINKED_DIR, fileName);
+
+  // If already exists, skip move
+  if (fs.existsSync(dest)) return dest;
+
+  fs.renameSync(src, dest);
+  return dest;
+}
+
+// Watch EX5 folder
 function startEx5Watcher() {
   fs.watch(EX5_DIR, async (eventType, filename) => {
     if (!filename || !filename.endsWith(".ex5")) return;
@@ -29,27 +47,31 @@ function startEx5Watcher() {
       const detectedAt = new Date();
       const mtLoginMatch = filename.match(/\d+/);
       if (!mtLoginMatch) return console.log("Cannot parse MT5 login from filename:", filename);
-      const mtLogin = Number(mtLoginMatch[0]);
 
+      const mtLogin = Number(mtLoginMatch[0]);
       const license = await findLicenseForEx5(mtLogin, detectedAt);
       if (!license) return console.log("No license found for MT5 login:", mtLogin);
 
+      // Prevent duplicate linking
       const exists = await LicenseEx5.findOne({ filename, licenseId: license._id });
-      if (exists) return; // already linked
+      if (exists) return;
+
+      // Move to MyLicensed_ex5 folder
+      const linkedFilePath = moveToLinkedFolder(filename);
 
       await LicenseEx5.create({
         licenseId: license._id,
         userId: license.userId,
         mtLogin,
         filename,
-        filePath: path.join(EX5_DIR, filename),
+        filePath: linkedFilePath,
         linkedAt: detectedAt,
-        status: license.active ? "active" : "inactive"
+        status: license.active ? "active" : "inactive",
       });
 
       console.log(`✅ Linked ${filename} to license ${license.licenseKey}`);
     } catch (err) {
-      console.error("Error linking EX5:", err.message);
+      console.error("EX5 linker error:", err.message);
     }
   });
 
