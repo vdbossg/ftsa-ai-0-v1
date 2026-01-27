@@ -131,9 +131,9 @@ async fetchActiveEx5Licenses() {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: [], error: "No auth token" };
 
-    const response = await fetch(`${BASE_URL}/ex5/licensedactiveex5/my`, {
-      headers: { "Authorization": `Bearer ${token}` },
-    });
+const response = await fetch(`${BASE_URL}/api/licensedactiveex5/my`, {
+  headers: { "Authorization": `Bearer ${token}` },
+});
 
     if (!response.ok) return { success: false, data: [], error: "Failed to fetch active EX5 licenses" };
 
@@ -153,7 +153,7 @@ async fetchInactiveEx5Licenses() {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: [], error: "No auth token" };
 
-    const response = await fetch(`${BASE_URL}/ex5/licensedinactiveex5/my`, {
+    const response = await fetch(`${BASE_URL}/api/licensedinactiveex5/my`, {
       headers: { "Authorization": `Bearer ${token}` },
     });
 
