@@ -26,17 +26,25 @@ async function findLicenseForEx5(mtLogin, detectedAt) {
   return licenses[0] || null;
 }
 
-// Move file to linked folder safely
+// Move file to linked folder safely (incremental numbering to avoid overwrite)
 function moveToLinkedFolder(fileName) {
   const src = path.join(EX5_DIR, fileName);
-  const dest = path.join(LINKED_DIR, fileName);
+  let destFileName = fileName;
+  let dest = path.join(LINKED_DIR, destFileName);
 
-  // If already exists, skip move
-  if (fs.existsSync(dest)) return dest;
+  let counter = 1;
+  // Keep incrementing until we find a filename that doesn't exist
+  while (fs.existsSync(dest)) {
+    destFileName = fileName.replace(/\.ex5$/, `_${counter}.ex5`);
+    dest = path.join(LINKED_DIR, destFileName);
+    counter++;
+  }
 
   fs.renameSync(src, dest);
-  return dest;
+  return destFileName; // <-- return the **new filename**, not full path
 }
+
+
 
 // Watch EX5 folder
 function startEx5Watcher() {
@@ -57,17 +65,18 @@ function startEx5Watcher() {
       if (exists) return;
 
       // Move to MyLicensed_ex5 folder
-      const linkedFilePath = moveToLinkedFolder(filename);
+const newFileName = moveToLinkedFolder(filename);
+const linkedFilePath = path.join(LINKED_DIR, newFileName);
 
-      await LicenseEx5.create({
-        licenseId: license._id,
-        userId: license.userId,
-        mtLogin,
-        filename,
-        filePath: linkedFilePath,
-        linkedAt: detectedAt,
-        status: license.active ? "active" : "inactive",
-      });
+await LicenseEx5.create({
+  licenseId: license._id,
+  userId: license.userId,
+  mtLogin,
+  filename: newFileName, // <-- use the unique filename here
+  filePath: linkedFilePath,
+  linkedAt: detectedAt,
+  status: license.active ? "active" : "inactive",
+});
 
       console.log(`✅ Linked ${filename} to license ${license.licenseKey}`);
     } catch (err) {

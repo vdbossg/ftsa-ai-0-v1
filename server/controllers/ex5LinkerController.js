@@ -25,21 +25,32 @@ async function getInactiveEx5(req, res) {
   }
 }
 
-// Download EX5 by licenseId
+// Download EX5 by licenseId (all versions)
 async function downloadEx5ByLicense(req, res) {
   const userId = req.user._id;
   const licenseId = req.params.licenseId;
 
   try {
-    const ex5 = await LicenseEx5.findOne({ licenseId, userId });
-    if (!ex5) return res.status(404).json({ success: false, error: "EX5 not found" });
+    // Fetch all EX5 records for this license, newest first
+    const ex5Files = await LicenseEx5.find({ licenseId, userId }).sort({ linkedAt: -1 });
 
-    if (!fs.existsSync(ex5.filePath)) return res.status(404).json({ success: false, error: "EX5 file missing" });
+    if (!ex5Files.length)
+      return res.status(404).json({ success: false, error: "EX5 not found" });
 
-    res.download(ex5.filePath, ex5.filename);
+    // Instead of picking one file, send a list to the client
+    // Client can then pick which version to download
+    const filesList = ex5Files.map(f => ({
+      filename: f.filename,
+      filePath: f.filePath,
+      linkedAt: f.linkedAt,
+      status: f.status
+    }));
+
+    res.json({ success: true, data: filesList });
+
   } catch (err) {
     console.error("downloadEx5ByLicense error:", err.message);
-    res.status(500).json({ success: false, error: "Failed to download EX5" });
+    res.status(500).json({ success: false, error: "Failed to fetch EX5 files" });
   }
 }
 
