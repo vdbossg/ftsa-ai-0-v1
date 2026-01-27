@@ -34,28 +34,33 @@ const EADownloadPage = () => {
     fetchLicenses();
   }, [isAuthenticated, user]);
 
-  // Generate EA
-  const generateEA = async (licenseKey) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await APIControl.generateAndDownloadEA(licenseKey);
-      if (!res.success) {
-        setError(res.error || "EA generation failed");
-      } else {
-        const link = document.createElement("a");
-        link.href = res.downloadUrl;
-        link.download = res.filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      }
-    } catch {
-      setError("EA generation error");
-    } finally {
-      setLoading(false);
+  // Download EA by licenseId
+const downloadEA = async (licenseId) => {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const res = await APIControl.downloadEAByLicense(licenseId);
+
+    if (!res.success) {
+      setError(res.error || "Download failed");
+      return;
     }
-  };
+
+    const link = document.createElement("a");
+    link.href = res.downloadUrl;   // backend returns file stream URL
+    link.download = res.filename;  // e.g., FTSA_AI_123456.ex5
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+  } catch {
+    setError("EA download error");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (!isAuthenticated) return <div style={styles.notAuth}>Please log in to continue</div>;
   if (loading) return <LoadingSpinner />;
@@ -88,15 +93,16 @@ const EADownloadPage = () => {
           {activeLicenses.map(lic => (
             <div key={lic._id} style={styles.licenseCard}>
               <StatusBadge status="online" label="Active License" />
-              <p><strong>Plan:</strong> {lic.plan}</p>
-              <p><strong>Broker:</strong> {lic.broker}</p>
-              <p><strong>MT Login:</strong> {lic.mtLogin || lic.login}</p>
-              <p><strong>Start Date:</strong> {new Date(lic.startDate).toLocaleDateString()}</p>
-              <p><strong>Expiry Date:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
-              <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
-              <NeonButton onClick={() => generateEA(lic.licenseKey || lic.license_key)}>
-                Generate & Download EA
-              </NeonButton>
+              <p><strong>EA:</strong> FTSA_AI_{lic.mtLogin}.ex5</p>
+<p><strong>Broker:</strong> {lic.broker}</p>
+<p><strong>MT5 Login:</strong> {lic.mtLogin}</p>
+<p><strong>Expiry:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
+<p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
+<p><strong>Status:</strong> {lic.status}</p>
+<NeonButton onClick={() => downloadEA(lic._id)}>
+  Download EA
+</NeonButton>
+
             </div>
           ))}
         </div>
@@ -110,15 +116,17 @@ const EADownloadPage = () => {
           {inactiveLicenses.map(lic => (
             <div key={lic._id} style={styles.licenseCard}>
               <StatusBadge status="offline" label="Inactive License" />
-              <p><strong>Plan:</strong> {lic.plan}</p>
-              <p><strong>Broker:</strong> {lic.broker}</p>
-              <p><strong>MT Login:</strong> {lic.mtLogin || lic.login}</p>
-              <p><strong>Start Date:</strong> {new Date(lic.startDate).toLocaleDateString()}</p>
-              <p><strong>Expiry Date:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
-              <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
-              <NeonButton onClick={() => generateEA(lic.licenseKey || lic.license_key)}>
-                Re-download EA
-              </NeonButton>
+              <p><strong>EA:</strong> FTSA_AI_{lic.mtLogin}.ex5</p>
+<p><strong>Broker:</strong> {lic.broker}</p>
+<p><strong>MT5 Login:</strong> {lic.mtLogin}</p>
+<p><strong>Expiry:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
+<p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
+<p><strong>Status:</strong> {lic.status}</p>
+<NeonButton onClick={() => downloadEA(lic._id)}>
+  Re-download EA
+</NeonButton>
+
+
             </div>
           ))}
         </div>
