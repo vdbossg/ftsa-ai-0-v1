@@ -12,50 +12,65 @@ const EADownloadPage = () => {
   const [error, setError] = useState(null);
   const [licenses, setLicenses] = useState([]);
 
-  // Fetch licenses
-  useEffect(() => {
-    if (!isAuthenticated) return;
+ // Fetch active and inactive EX5 licenses
+useEffect(() => {
+  if (!isAuthenticated) return;
 
-    const fetchLicenses = async () => {
-      try {
-        const res = await APIControl.getUserLicenses(user.id);
-        if (!res.success || !res.licenses?.length) {
-          setError("No licenses found. Please subscribe first.");
-        } else {
-          setLicenses(res.licenses);
-        }
-      } catch {
-        setError("Failed to fetch licenses.");
-      } finally {
-        setLoading(false);
+  const fetchEx5Licenses = async () => {
+    try {
+      // Active EX5 licenses
+      const activeRes = await APIControl.fetchActiveEx5Licenses();
+const inactiveRes = await APIControl.fetchInactiveEx5Licenses();
+
+
+      if (!activeRes.success && !inactiveRes.success) {
+        setError("No licenses found. Please subscribe first.");
+        setLicenses([]);
+      } else {
+        // Combine both active and inactive to state
+        setLicenses([
+          ...(activeRes.data || []).map(l => ({ ...l, status: 'active' })),
+          ...(inactiveRes.data || []).map(l => ({ ...l, status: 'inactive' })),
+        ]);
       }
-    };
+    } catch (err) {
+      setError("Failed to fetch EX5 licenses.");
+      setLicenses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchLicenses();
-  }, [isAuthenticated, user]);
+  fetchEx5Licenses();
+}, [isAuthenticated, user]);
+
 
   // Download EA by licenseId
+// Download EX5 by license _id
 const downloadEA = async (licenseId) => {
   setLoading(true);
   setError(null);
 
-  try {
-    const res = await APIControl.downloadEAByLicense(licenseId);
+  
+    try {
+  const blob = await APIControl.downloadEx5ByLicense(licenseId);
 
-    if (!res.success) {
-      setError(res.error || "Download failed");
-      return;
-    }
+  const url = window.URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = res.downloadUrl;   // backend returns file stream URL
-    link.download = res.filename;  // e.g., FTSA_AI_123456.ex5
+    const link = document.createElement('a');
+    link.href = url;
+
+    // Find filename from licenses array
+    const lic = licenses.find(l => l._id === licenseId);
+    link.download = lic?.EA || 'FTSA_AI.ex5';
+
     document.body.appendChild(link);
     link.click();
     link.remove();
+    window.URL.revokeObjectURL(url);
 
-  } catch {
-    setError("EA download error");
+  } catch (err) {
+    setError("EX5 download error");
   } finally {
     setLoading(false);
   }
@@ -67,7 +82,6 @@ const downloadEA = async (licenseId) => {
 
   // Categorize licenses
   const activeLicenses = licenses.filter(l => l.status === "active");
-  const pendingLicenses = licenses.filter(l => l.status === "pending");
   const inactiveLicenses = licenses.filter(l => l.status === "inactive");
 
   return (
@@ -80,10 +94,9 @@ const downloadEA = async (licenseId) => {
 
       {/* Top status cards */}
       <div style={styles.statusCards}>
-        <div style={styles.statusCard}><strong>Pending:</strong> {pendingLicenses.length}</div>
-        <div style={styles.statusCard}><strong>Active:</strong> {activeLicenses.length}</div>
-        <div style={styles.statusCard}><strong>Inactive:</strong> {inactiveLicenses.length}</div>
-      </div>
+  <div style={styles.statusCard}><strong>Active:</strong> {activeLicenses.length}</div>
+  <div style={styles.statusCard}><strong>Inactive:</strong> {inactiveLicenses.length}</div>
+</div>
 
       {/* Active EA Licenses */}
       <section style={styles.section}>

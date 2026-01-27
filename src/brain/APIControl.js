@@ -123,6 +123,49 @@ async fetchUserInfo(token = null) {
   }
 },
 
+/**
+ * Fetch active EX5 licenses for logged-in user
+ */
+async fetchActiveEx5Licenses() {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, data: [], error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/ex5/licensedactive/my`, {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+
+    if (!response.ok) return { success: false, data: [], error: "Failed to fetch active EX5 licenses" };
+
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("fetchActiveEx5Licenses error:", err);
+    return { success: false, data: [], error: err.message || "Unexpected error" };
+  }
+},
+
+/**
+ * Fetch inactive EX5 licenses for logged-in user
+ */
+async fetchInactiveEx5Licenses() {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, data: [], error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/ex5/licensedinactive/my`, {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+
+    if (!response.ok) return { success: false, data: [], error: "Failed to fetch inactive EX5 licenses" };
+
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+  } catch (err) {
+    console.error("fetchInactiveEx5Licenses error:", err);
+    return { success: false, data: [], error: err.message || "Unexpected error" };
+  }
+},
 
 
 
@@ -553,6 +596,27 @@ async generateAndDownloadEA() {
   } catch (err) {
     console.error("Error in generateAndDownloadEA:", err);
     return { success: false, error: "Unexpected error generating EA" };
+  }
+},
+/**
+ * Download EX5 file by licenseId
+ */
+async downloadEx5ByLicense(licenseId) {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) throw new Error("No auth token");
+
+    const response = await fetch(`${BASE_URL}/ex5/download/${licenseId}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw new Error("EX5 download failed");
+
+    const blob = await response.blob();
+    return blob;
+  } catch (err) {
+    console.error("downloadEx5ByLicense error:", err);
+    throw err;
   }
 },
 

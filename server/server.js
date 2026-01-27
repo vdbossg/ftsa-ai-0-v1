@@ -51,6 +51,7 @@ const tvAlertRoutes = require('./routes/tvAlertRoutes');
 const tvsConverterRoutes = require('./routes/tvsConverter.routes');
 const Elimq5Routes = require("./routes/Elimq5Routes");
 const proxyTokenRoutes = require("./routes/proxyTokenRoutes");
+const ex5LinkerRoutes = require("./routes/ex5LinkerRoutes");
 
 const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
@@ -63,7 +64,10 @@ connectDB(); // Connect to MongoDB
 require("./services/Ea.ex5services");
 console.log("✅ EA Compiler Service started");
 
-
+// 🚀 Start EX5 Linker Service (watch folder & tie files to licenses)
+const { startEx5Watcher } = require("./services/ex5LinkerService");
+startEx5Watcher();
+console.log("✅ EX5 Linker Service started");
 
 const app = express();
 const PORT = process.env.PORT || 5000;  // ✅ Ensure backend runs on 5000 for your setup
@@ -184,6 +188,9 @@ app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 app.use("/api/proxy", proxyTokenRoutes);
 console.log("✅ /api/proxyToken routes mounted");
+// API routes for EX5 licenses
+app.use("/api", ex5LinkerRoutes);
+console.log("✅ /api/ex5Linker routes mounted");
 
 
 // FTSA AI Brain Routes
