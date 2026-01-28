@@ -102,7 +102,10 @@ const downloadEA = async (licenseKey) => {
           {activeLicenses.map(lic => (
   <div key={lic.licenseKey} style={styles.licenseCard}>
 
-              <StatusBadge status="online" label="Active License" />
+              <StatusBadge 
+  status={lic.status === "active" ? "online" : "offline"} 
+  label={lic.status === "active" ? "Active License" : "Inactive License"} 
+/>
               <p><strong>EA:</strong> FTSA_AI_{lic.mtLogin}.ex5</p>
 <p><strong>Broker:</strong> {lic.broker}</p>
 <p><strong>MT5 Login:</strong> {lic.mtLogin}</p>
@@ -126,7 +129,10 @@ const downloadEA = async (licenseKey) => {
           {inactiveLicenses.map(lic => (
   <div key={lic.licenseKey} style={styles.licenseCard}>
 
-              <StatusBadge status="offline" label="Inactive License" />
+              <StatusBadge 
+  status={lic.status === "active" ? "online" : "offline"} 
+  label={lic.status === "active" ? "Active License" : "Inactive License"} 
+/>
               <p><strong>EA:</strong> FTSA_AI_{lic.mtLogin}.ex5</p>
 <p><strong>Broker:</strong> {lic.broker}</p>
 <p><strong>MT5 Login:</strong> {lic.mtLogin}</p>
