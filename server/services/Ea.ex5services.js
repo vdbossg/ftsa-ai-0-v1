@@ -6,7 +6,6 @@ const SOURCE_DIR = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mql5\\Licensed_mq5
 const OUTPUT_DIR = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mql5\\Licensed_ex5";
 const MT5_EDITOR = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mt5\\MetaEditor64.exe";
 const MT5_EXPERTS = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mt5\\MQL5\\Experts";
-const LOG_FILE = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mt5\\logs\\metaeditor.log";
 
 let isCompiling = false; // prevents multiple compiles at once
 
@@ -26,30 +25,33 @@ async function compileEA(file) {
         // Copy MQ5 to MT5 Experts folder
         await fs.copy(srcPath, tempPath, { overwrite: true });
 
+        // Compile using MetaEditor
         const command = `"${MT5_EDITOR}" /compile:"${tempPath}" /log`;
 
-        exec(command, async (err) => {
+        const child = exec(command, (err, stdout, stderr) => {
             if (err) {
-                console.log("❌ Compile process failed to start");
+                console.error("❌ Compile process failed to start:", err.message);
                 isCompiling = false;
                 return;
             }
 
-            // wait 1 second to ensure EX5 written
-            setTimeout(async () => {
-                if (await fs.pathExists(compiledPath)) {
-                    await fs.move(compiledPath, finalPath, { overwrite: true });
-                    console.log("✅ EX5 Ready:", ex5Name);
+            console.log("📄 MetaEditor output:", stdout);
+            if (stderr) console.error("📄 MetaEditor errors:", stderr);
+        });
 
-                    // Delete sources
-                    await fs.remove(srcPath);
-                    await fs.remove(tempPath);
-                } else {
-                    console.log("❌ Compilation failed. Check log.");
-                }
+        // Wait for MetaEditor to finish
+        child.on("exit", async (code) => {
+            if (await fs.pathExists(compiledPath)) {
+                await fs.move(compiledPath, finalPath, { overwrite: true });
+                console.log("✅ EX5 Ready:", ex5Name);
 
-                isCompiling = false;
-            }, 1000);
+                // Delete sources
+                await fs.remove(srcPath);
+                await fs.remove(tempPath);
+            } else {
+                console.log("❌ Compilation failed. Check MetaEditor log.");
+            }
+            isCompiling = false;
         });
 
     } catch (error) {

@@ -1,0 +1,9 @@
+License Key: LIC_TEST_STEP_1907
+User ID: 6948f28e020e8794071b5c5d
+MT5 Login: 1234592
+Plan: Basic
+Broker: ICM
+Start Date: 2026-01-28T09:10:41.398Z
+End Date: 2026-02-27T09:10:41.398Z
+Status: active
+Linked At: 2026-01-28T09:10:53.514Z

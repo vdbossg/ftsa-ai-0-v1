@@ -27,11 +27,22 @@ const inactiveRes = await APIControl.fetchInactiveEx5Licenses();
         setError("No licenses found. Please subscribe first.");
         setLicenses([]);
       } else {
-        // Combine both active and inactive to state
-        setLicenses([
-          ...(activeRes.data || []).map(l => ({ ...l, status: 'active' })),
-          ...(inactiveRes.data || []).map(l => ({ ...l, status: 'inactive' })),
-        ]);
+        // Keep only minimal fields for frontend
+const simplify = (l, status) => ({
+  _id: l._id,
+  mtLogin: l.mtLogin,
+  broker: l.broker,
+  licenseKey: l.licenseKey || l.license_key,
+  endDate: l.endDate,
+  status,
+  filename: `FTSA_AI_${l.mtLogin}.ex5`,
+});
+
+setLicenses([
+  ...(activeRes.data || []).map(l => simplify(l, 'active')),
+  ...(inactiveRes.data || []).map(l => simplify(l, 'inactive')),
+]);
+
       }
     } catch (err) {
       setError("Failed to fetch EX5 licenses.");
@@ -45,30 +56,19 @@ const inactiveRes = await APIControl.fetchInactiveEx5Licenses();
 }, [isAuthenticated, user]);
 
 // Download EX5 by license _id
-const downloadEA = async (licenseId) => {
-  setLoading(true);
-  setError(null);
-
+const downloadEA = (filename) => {
   try {
-    const blob = await APIControl.downloadEx5ByLicense(licenseId);
-
-    const url = window.URL.createObjectURL(blob);
+    // Construct download URL (adjust to your server)
+    const url = `http://localhost:3000/downloads/${filename}`;
     const link = document.createElement("a");
     link.href = url;
-
-    // Use correct filename pattern
-    const lic = licenses.find((l) => l._id === licenseId);
-    link.download = `FTSA_AI_${lic?.mtLogin || "unknown"}.ex5`;
-
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error(err);
     setError("EX5 download error");
-  } finally {
-    setLoading(false);
   }
 };
 
