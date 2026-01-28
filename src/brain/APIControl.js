@@ -131,7 +131,7 @@ async fetchActiveEx5Licenses() {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: [], error: "No auth token" };
 
-    const response = await fetch(`${BASE_URL}/ea-licenses`, {
+    const response = await fetch(`${BASE_URL}/api/ea-licenses`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -157,7 +157,7 @@ async fetchInactiveEx5Licenses() {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: [], error: "No auth token" };
 
-    const response = await fetch(`${BASE_URL}/ea-licenses`, {
+    const response = await fetch(`${BASE_URL}/api/ea-licenses`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -609,7 +609,7 @@ async downloadEx5ByLicense(licenseKey) {
     const token = localStorage.getItem("authToken");
     if (!token) throw new Error("No auth token");
 
-    const response = await fetch(`${BASE_URL}/ea-download/${licenseKey}`, {
+    const response = await fetch(`${BASE_URL}/api/ea-download/${licenseKey}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
