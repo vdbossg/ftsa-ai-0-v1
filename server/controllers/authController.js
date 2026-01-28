@@ -3,6 +3,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const ProxyTokenService = require("../services/proxyTokenService");
+const { setWatcherUserId } = require("../services/watcherSessionService");
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret"; // use your env secret
 
@@ -18,6 +19,9 @@ exports.login = async (req, res) => {
     // 2️⃣ Compare password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(401).json({ success: false, error: "Invalid credentials" });
+    
+// ✅ Bind this machine's EX5 watcher to the logged-in user
+setWatcherUserId(user._id);
 
     
     // 3️⃣ Generate JWT token

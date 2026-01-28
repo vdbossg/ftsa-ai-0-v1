@@ -72,9 +72,9 @@ bool ExecuteTrade(
 }
 
 string LICENSE_BROKER   = "ICM";
-string LICENSE_LOGIN    = "123456";
+string LICENSE_LOGIN    = "123457";
 string LICENSE_EXPIRY   = "2026.02.26";
-string LICENSE_KEY      = "LIC_TEST_STEP_08";
+string LICENSE_KEY      = "LIC_TEST_STEP_14";
 
 //----------------- LICENSE CHECK ----------------
 bool CheckLicense()
