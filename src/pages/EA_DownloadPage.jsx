@@ -27,22 +27,11 @@ const inactiveRes = await APIControl.fetchInactiveEx5Licenses();
         setError("No licenses found. Please subscribe first.");
         setLicenses([]);
       } else {
-        // Keep only minimal fields for frontend
-const simplify = (l, status) => ({
-  _id: l._id,
-  mtLogin: l.mtLogin,
-  broker: l.broker,
-  licenseKey: l.licenseKey || l.license_key,
-  endDate: l.endDate,
-  status,
-  filename: `FTSA_AI_${l.mtLogin}.ex5`,
-});
-
-setLicenses([
-  ...(activeRes.data || []).map(l => simplify(l, 'active')),
-  ...(inactiveRes.data || []).map(l => simplify(l, 'inactive')),
-]);
-
+        // Combine both active and inactive to state
+        setLicenses([
+          ...(activeRes.data || []).map(l => ({ ...l, status: 'active' })),
+          ...(inactiveRes.data || []).map(l => ({ ...l, status: 'inactive' })),
+        ]);
       }
     } catch (err) {
       setError("Failed to fetch EX5 licenses.");
@@ -55,20 +44,32 @@ setLicenses([
   fetchEx5Licenses();
 }, [isAuthenticated, user]);
 
-// Download EX5 by license _id
-const downloadEA = (filename) => {
+// Download EX5 by licenseKey
+const downloadEA = async (licenseKey) => {
+
+  setLoading(true);
+  setError(null);
+
   try {
-    // Construct download URL (adjust to your server)
-    const url = `http://localhost:3000/downloads/${filename}`;
+    const blob = await APIControl.downloadEx5ByLicense(licenseKey);
+
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = filename;
+
+    // Use correct filename pattern
+    const lic = licenses.find((l) => l.licenseKey === licenseKey);
+    link.download = `FTSA_AI_${lic?.mtLogin || "unknown"}.ex5`;
+
     document.body.appendChild(link);
     link.click();
     link.remove();
+    window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error(err);
     setError("EX5 download error");
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -99,7 +100,8 @@ const downloadEA = (filename) => {
         {activeLicenses.length === 0 && <p>No active licenses available.</p>}
         <div style={styles.scrollableCards}>
           {activeLicenses.map(lic => (
-            <div key={lic._id} style={styles.licenseCard}>
+  <div key={lic.licenseKey} style={styles.licenseCard}>
+
               <StatusBadge status="online" label="Active License" />
               <p><strong>EA:</strong> FTSA_AI_{lic.mtLogin}.ex5</p>
 <p><strong>Broker:</strong> {lic.broker}</p>
@@ -107,7 +109,7 @@ const downloadEA = (filename) => {
 <p><strong>Expiry:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
 <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
 <p><strong>Status:</strong> {lic.status}</p>
-<NeonButton onClick={() => downloadEA(lic._id)}>
+<NeonButton onClick={() => downloadEA(lic.licenseKey)}>
   Download EA
 </NeonButton>
 
@@ -122,7 +124,8 @@ const downloadEA = (filename) => {
         {inactiveLicenses.length === 0 && <p>No historical licenses.</p>}
         <div style={styles.scrollableCards}>
           {inactiveLicenses.map(lic => (
-            <div key={lic._id} style={styles.licenseCard}>
+  <div key={lic.licenseKey} style={styles.licenseCard}>
+
               <StatusBadge status="offline" label="Inactive License" />
               <p><strong>EA:</strong> FTSA_AI_{lic.mtLogin}.ex5</p>
 <p><strong>Broker:</strong> {lic.broker}</p>
@@ -130,7 +133,7 @@ const downloadEA = (filename) => {
 <p><strong>Expiry:</strong> {new Date(lic.endDate).toLocaleDateString()}</p>
 <p><strong>License Key:</strong> {lic.licenseKey || lic.license_key}</p>
 <p><strong>Status:</strong> {lic.status}</p>
-<NeonButton onClick={() => downloadEA(lic._id)}>
+<NeonButton onClick={() => downloadEA(lic.licenseKey)}>
   Re-download EA
 </NeonButton>
 

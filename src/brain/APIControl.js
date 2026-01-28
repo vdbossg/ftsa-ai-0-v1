@@ -131,43 +131,46 @@ async fetchActiveEx5Licenses() {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: [], error: "No auth token" };
 
-const response = await fetch(`${BASE_URL}/api/licensedactiveex5/my`, {
-  headers: { "Authorization": `Bearer ${token}` },
-});
+    const response = await fetch(`${BASE_URL}/ea-licenses`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-    if (!response.ok) return { success: false, data: [], error: "Failed to fetch active EX5 licenses" };
+    if (!response.ok) return { success: false, data: [], error: "Failed to fetch licenses" };
 
-    const data = await response.json();
-    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+    const result = await response.json();
+    const active = Array.isArray(result.data) ? result.data.filter(l => l.status === "active") : [];
+    return { success: true, data: active };
   } catch (err) {
     console.error("fetchActiveEx5Licenses error:", err);
     return { success: false, data: [], error: err.message || "Unexpected error" };
   }
 },
 
+
 /**
  * Fetch inactive EX5 licenses for logged-in user
  */
+
+
 async fetchInactiveEx5Licenses() {
   try {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: [], error: "No auth token" };
 
-    const response = await fetch(`${BASE_URL}/api/licensedinactiveex5/my`, {
-      headers: { "Authorization": `Bearer ${token}` },
+    const response = await fetch(`${BASE_URL}/ea-licenses`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!response.ok) return { success: false, data: [], error: "Failed to fetch inactive EX5 licenses" };
+    if (!response.ok) return { success: false, data: [], error: "Failed to fetch licenses" };
 
-    const data = await response.json();
-    return { success: true, data: Array.isArray(data.data) ? data.data : [] };
+    const result = await response.json();
+    const inactive = Array.isArray(result.data) ? result.data.filter(l => l.status === "inactive") : [];
+    return { success: true, data: inactive };
   } catch (err) {
     console.error("fetchInactiveEx5Licenses error:", err);
     return { success: false, data: [], error: err.message || "Unexpected error" };
   }
 },
-
-
 
   /**
    * Fetch real trades data from backend
@@ -601,16 +604,19 @@ async generateAndDownloadEA() {
 /**
  * Download EX5 file by licenseId
  */
-async downloadEx5ByLicense(licenseId) {
+async downloadEx5ByLicense(licenseKey) {
   try {
     const token = localStorage.getItem("authToken");
     if (!token) throw new Error("No auth token");
 
-    const response = await fetch(`${BASE_URL}/ex5/download/${licenseId}`, {
-      headers: { "Authorization": `Bearer ${token}` },
+    const response = await fetch(`${BASE_URL}/ea-download/${licenseKey}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!response.ok) throw new Error("EX5 download failed");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`EX5 download failed: ${errorText}`);
+    }
 
     const blob = await response.blob();
     return blob;
