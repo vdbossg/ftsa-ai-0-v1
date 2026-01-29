@@ -53,6 +53,7 @@ const Elimq5Routes = require("./routes/Elimq5Routes");
 const proxyTokenRoutes = require("./routes/proxyTokenRoutes");
 const ex5LinkerRoutes = require("./routes/ex5LinkerRoutes");
 const RoutesEaDownload = require("./routes/RoutesEaDownload");
+const gatemanRoutes = require("./routes/gatemanRoutes");
 
 
 const { startBridge } = require("./services/ftsafcsBridgeService");
@@ -195,6 +196,8 @@ app.use("/api", ex5LinkerRoutes);
 console.log("✅ /api/ex5Linker routes mounted");
 app.use("/api", RoutesEaDownload);
 console.log("✅ /api/RoutesEaDownload routes mounted");
+app.use("/api/gateman", gatemanRoutes);
+console.log("✅ /api/gateman routes mounted");
 
 // FTSA AI Brain Routes
 app.use('/api/news', require('./routes/newsRoutes'));

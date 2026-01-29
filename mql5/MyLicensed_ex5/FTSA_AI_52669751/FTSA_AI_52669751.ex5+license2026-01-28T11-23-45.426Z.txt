@@ -1,0 +1,9 @@
+License Key: LIC_TEST_STEP_1909
+User ID: 6948f28e020e8794071b5c5d
+MT5 Login: 52669751
+Plan: Basic
+Broker: Alpari
+Start Date: 2026-01-28T11:22:48.216Z
+End Date: 2026-02-27T11:22:48.216Z
+Status: active
+Linked At: 2026-01-28T11:23:45.426Z

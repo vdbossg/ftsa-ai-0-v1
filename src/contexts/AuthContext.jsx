@@ -1,5 +1,6 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import APIControl from '../brain/APIControl';
 
 const AuthContext = createContext(null);
 export { AuthContext };
@@ -22,11 +23,26 @@ export const AuthProvider = ({ children }) => {
   localStorage.setItem('authToken', token); // now uses passed token
 };
 
-const logout = () => {
+
+const logout = async () => {
+  const token = localStorage.getItem('authToken');
+
+  // Delete Gateman JSON first
+  try {
+    if (token) {
+      await APIControl.gatemanDelete(token); // ensure deletion is awaited
+      console.log("Gateman JSON deleted successfully.");
+    }
+  } catch (err) {
+    console.warn("Failed to delete Gateman JSON:", err.message);
+  }
+
+  // Clear local state and localStorage
   setUser(null);
   localStorage.removeItem('authUser');
   localStorage.removeItem('authToken'); // also clear token
 };
+
 
 
   const isAuthenticated = !!user;

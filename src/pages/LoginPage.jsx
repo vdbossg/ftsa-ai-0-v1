@@ -108,9 +108,23 @@ console.log("API response:", authData);
 if (!authData.success) {
   setError(authData.error || "Login failed. Check credentials.");
 } else {
-  login(authData.data, authData.token); // update context
-  setSuccessMsg("Login successful! Redirecting...");
+  // Update context
+  login(authData.data, authData.token);
+
+   // --- START Gateman Step 2: generate user JSON ---
+try {
+  const gatemanResp = await APIControl.gatemanLogin(loginData.email); // ✅ correct function name
+  console.log("Gateman JSON generated:", gatemanResp);
+} catch (gatemanErr) {
+  console.warn("Gateman failed:", gatemanErr.message);
+  // Login still works even if Gateman fails
 }
+// --- END Gateman Step 2 ---
+
+  setSuccessMsg("Login successful! Redirecting...");
+  setTimeout(() => (window.location.href = "/dashboard"), 1000);
+}
+
 
   } catch (err) {
     console.error(err); // ← added

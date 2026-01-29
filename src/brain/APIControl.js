@@ -1477,6 +1477,59 @@ async deleteAccount(platform) {
     ? this.deleteMT4Account()
     : this.deleteMTAccount();
 },
+/**
+ * Gateman: Generate JSON for logged-in user
+ * @param {string} email - user's email
+ */
+async gatemanLogin(email) {
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await fetch(`${BASE_URL}/api/gateman/my`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: err.message || "Failed to generate Gateman JSON" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("gatemanLogin error:", err);
+    return { success: false, error: err.message || "Unexpected Gateman error" };
+  }
+},
+
+/**
+ * Gateman: Delete JSON on logout
+ */
+async gatemanDelete() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/gateman/my`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: err.message || "Failed to delete Gateman JSON" };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error("gatemanDelete error:", err);
+    return { success: false, error: err.message || "Unexpected Gateman delete error" };
+  }
+},
 
 };
 
