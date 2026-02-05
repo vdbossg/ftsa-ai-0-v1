@@ -11,11 +11,8 @@ router.post("/generate", Elimq5Controller.generateEA);
 
 router.get("/generate", async (req, res) => {
   try {
-    const userId = req.query.userId;
-    if (!userId) return res.status(400).json({ success: false, error: "userId is required" });
-
-    // Call the service directly, not the controller
-    const result = await Elimq5Service.injectLatestLicense(userId);
+    // Call the service directly; userId is read automatically from currentWatcherUser.json
+    const result = await Elimq5Service.injectLatestLicense();
 
     res.json({ success: true, ...result });
   } catch (err) {
@@ -23,6 +20,7 @@ router.get("/generate", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 
 module.exports = router;

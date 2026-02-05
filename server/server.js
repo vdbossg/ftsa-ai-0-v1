@@ -189,6 +189,12 @@ app.use('/api/tvsConverter', tvsConverterRoutes);
 console.log('✅ /api/tvsConverter routes mounted');
 app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
+const Elimq5Service = require('./services/Elimq5Service');
+
+// Start automatic polling for EA generation
+new Elimq5Service();
+console.log('✅ Elimq5Service polling started');
+
 app.use("/api/proxy", proxyTokenRoutes);
 console.log("✅ /api/proxyToken routes mounted");
 // API routes for EX5 licenses

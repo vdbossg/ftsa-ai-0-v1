@@ -49,15 +49,30 @@ class Elimq5Service {
 
     await fs.mkdir(outputDir, { recursive: true });
 
-    const outputFile = path.join(
-      outputDir,
-      `FTSA_AI_${license.mtLogin}.mq5`
-    );
+    // Base output file path
+let baseFileName = `FTSA_AI_${license.mtLogin}.mq5`;
+let outputFile = path.join(outputDir, baseFileName);
 
-    await fs.writeFile(outputFile, templateContent, "utf8");
+// Check if file exists, add incremental suffix if needed
+let counter = 1;
+while (true) {
+  try {
+    await fs.access(outputFile); // file exists
+    const extIndex = baseFileName.lastIndexOf('.mq5');
+    const nameOnly = baseFileName.slice(0, extIndex);
+    const ext = baseFileName.slice(extIndex);
+    outputFile = path.join(outputDir, `${nameOnly}_${counter}${ext}`);
+    counter++;
+  } catch {
+    // file does not exist, ready to write
+    break;
+  }
+}
 
-    console.log("✅ EA generated:", outputFile);
-    return { outputFile };
+await fs.writeFile(outputFile, templateContent, "utf8");
+
+console.log("✅ EA generated:", outputFile);
+return { outputFile };
 
   } catch (err) {
     console.error("❌ EA generation failed:", err);
@@ -67,10 +82,9 @@ class Elimq5Service {
 
 
   // ------------------ AUTO-POLLING ------------------
- constructor(userId) {
-    if (!userId) throw new Error("UserId is required for Elimq5Service.");
-    this.userId = userId;
+ 
 
+constructor() {
     // Track last license as full object
     this.lastLicense = null;
 
@@ -78,33 +92,32 @@ class Elimq5Service {
     this.startPolling();
 }
 
-
-
   async pollForNewLicense() {
     try {
       const { getUserLatestLicense } = require("../services/licenseService");
 
-const license = await getUserLatestLicense(this.userId);
+const currentUserDataRaw = await fs.readFile(
+    path.join(__dirname, "currentWatcherUser.json"),
+    "utf8"
+);
+const currentUserData = currentUserDataRaw ? JSON.parse(currentUserDataRaw) : {};
+const userId = currentUserData.userId;
+if (!userId) return; // no logged-in user, skip
+
+const license = await getUserLatestLicense(userId);
 if (!license || !license.licenseKey) return;
 
+
 // Compare all fields to detect a new license
-const isNewLicense = !this.lastLicense ||
-                     this.lastLicense.broker !== license.broker ||
-                     this.lastLicense.mtLogin !== license.mtLogin ||
-                     this.lastLicense.endDate !== license.endDate ||
-                     this.lastLicense.licenseKey !== license.licenseKey;
+// Only generate if license key changed
+const isNewLicense = !this.lastLicense || this.lastLicense !== license.licenseKey;
 
-      if (isNewLicense) {
-        this.lastLicense = {
-          broker: license.broker,
-          mtLogin: license.mtLogin,
-          endDate: license.endDate,
-          licenseKey: license.licenseKey
-        };
+if (isNewLicense) {
+  this.lastLicense = license.licenseKey; // store last license key
 
-        console.log(`🆕 New license detected: ${license.licenseKey}, generating EA...`);
-        await Elimq5Service.injectLatestLicense(this.userId);
-      }
+  console.log(`🆕 New license detected: ${license.licenseKey}, generating EA...`);
+  await Elimq5Service.injectLatestLicense(userId);
+}
 
     } catch (error) {
       console.error("Elimq5 polling error:", error.message);

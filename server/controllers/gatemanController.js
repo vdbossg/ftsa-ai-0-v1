@@ -1,5 +1,5 @@
 // server/controllers/gatemanController.js
-const { generateUserJson } = require("../services/gatemanService"); // ✅ fixed path
+const { generateUserJson, deleteUserJson } = require("../services/gatemanService"); // need deleteUserJson for logout
 
 // Gateman login endpoint
 async function loginGateman(req, res) {
@@ -18,4 +18,14 @@ async function loginGateman(req, res) {
   }
 }
 
-module.exports = { loginGateman };
+// Gateman logout endpoint
+function logoutGateman(req, res) {
+  try {
+    deleteUserJson();
+    res.json({ message: "Gateman JSON deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { loginGateman, logoutGateman };

@@ -4,7 +4,7 @@ const path = require("path");
 const { findUserIdByEmail } = require("../models/gatemanModels"); // ✅ go up one level
 
 // Path to local JSON file (inside server/services)
-const servicesFolder = path.join(__dirname, "services");
+const servicesFolder = __dirname; // just the current folder (server/services)
 const jsonFilePath = path.join(servicesFolder, "currentWatcherUser.json");
 
 // Generate JSON for a user
