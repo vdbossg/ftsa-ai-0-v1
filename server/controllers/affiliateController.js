@@ -1,6 +1,50 @@
+//FTSA_AI_0.v1\server\controllers\affiliateController.js
 const Affiliate = require("../models/Affiliate");
 const User = require("../models/User");
-const AffiliateWithdrawal = require("../models/AffiliateWithdrawal");
+// server/models/WithdrawalRequest.js
+const mongoose = require("mongoose");
+
+const WithdrawalRequestSchema = new mongoose.Schema(
+  {
+    affiliate: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Affiliate",
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    method: {
+      type: String,
+      enum: ["mpesa", "paypal", "bank", "card"],
+      required: true,
+    },
+    accountDetails: {
+      type: Object,
+      default: {},
+    },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    declineReason: {
+      type: String,
+      default: "",
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    processedAt: {
+      type: Date,
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("WithdrawalRequest", WithdrawalRequestSchema);
 const { sendEmail } = require("../utils/emailService");
 
 /**
@@ -30,7 +74,14 @@ const getAffiliateData = async (req, res) => {
  */
 const registerAffiliate = async (req, res) => {
   try {
-    const userId = req.user.id;
+    // 👈 For testing: log the incoming request
+    console.log("Req.body:", req.body);
+    console.log("Req.files:", req.files);
+
+    const userId = req.user?.id; // ensure you have auth middleware
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const {
       firstName,
@@ -41,7 +92,7 @@ const registerAffiliate = async (req, res) => {
       country,
       idType,
       idNumber,
-      username
+      username,
     } = req.body;
 
     // 🔒 one affiliate per user
@@ -50,7 +101,7 @@ const registerAffiliate = async (req, res) => {
       return res.status(400).json({ message: "Affiliate already exists" });
     }
 
-    // ensure files exist
+    // Ensure files exist
     if (!req.files?.docFront || !req.files?.docBack) {
       return res.status(400).json({ message: "Document images are required" });
     }
@@ -88,8 +139,10 @@ const registerAffiliate = async (req, res) => {
       paidCommission: 0,
       totalCommission: 0,
       newSubscribersCount: 0,
-      referredUsers: []
+      referredUsers: [],
     });
+
+    console.log("Affiliate created:", affiliate._id);
 
     res.status(201).json(affiliate);
   } catch (err) {
@@ -97,6 +150,7 @@ const registerAffiliate = async (req, res) => {
     res.status(500).json({ message: "Registration failed" });
   }
 };
+
 
 /**
  * POST /cfa/request-withdrawal

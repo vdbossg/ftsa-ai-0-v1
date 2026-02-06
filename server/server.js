@@ -54,7 +54,7 @@ const proxyTokenRoutes = require("./routes/proxyTokenRoutes");
 const ex5LinkerRoutes = require("./routes/ex5LinkerRoutes");
 const RoutesEaDownload = require("./routes/RoutesEaDownload");
 const gatemanRoutes = require("./routes/gatemanRoutes");
-
+const affiliateRoutes = require('./routes/affiliate'); 
 
 const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
@@ -187,6 +187,8 @@ app.use('/api/tvAlert', tvAlertRoutes);
 console.log('✅ /api/tvAlert routes mounted');
 app.use('/api/tvsConverter', tvsConverterRoutes);
 console.log('✅ /api/tvsConverter routes mounted');
+app.use('/api/affiliate', affiliateRoutes);
+console.log('✅ /api/affiliate routes mounted');
 app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 const Elimq5Service = require('./services/Elimq5Service');
