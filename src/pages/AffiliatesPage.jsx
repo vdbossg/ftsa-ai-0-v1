@@ -5,8 +5,8 @@ import Modal from "../components/Modal";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
+import APIControl from "../brain/APIControl";
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || "/api";
 
 const neon = {
   blue: "#00FFFF",
@@ -94,31 +94,27 @@ export default function AffiliatesPage() {
       if (!isAuthenticated || !user?.id) return;
 
       // affiliate profile
-      const aRes = await fetch(`${API_BASE}/affiliate/${user.id}`, {
-        headers: { "Content-Type": "application/json", ...authHeaders },
-      });
-      if (!aRes.ok) throw new Error("Failed to load affiliate profile");
-      const aData = await aRes.json();
-      setAffiliate(aData);
+      // affiliate profile
+const aData = await APIControl.getAffiliate(user.id);
+setAffiliate(aData);
 
-      // stats for cards (downloaders, subs, new dls, new subs, balances)
-      // backend recommended endpoint; if not present, fall back to fields on affiliate
-      let sData = null;
-      try {
-        const sRes = await fetch(`${API_BASE}/affiliate/${user.id}/stats`, {
-          headers: { "Content-Type": "application/json", ...authHeaders },
-        });
-        if (sRes.ok) sData = await sRes.json();
-      } catch {}
-      setStats(
-        sData || {
-          downloaders: aData?.downloaders || 0,
-          totalSubscriptions: aData?.totalSubscriptions || 0,
-          newDownloaders: aData?.newDownloaders || 0,
-          newSubscribers: aData?.newSubscribersCount || 0,
-          balance: aData?.withdrawableBalance || 0,
-        }
-      );
+
+      // stats for cards
+let sData = null;
+try {
+  sData = await APIControl.getAffiliateStats(user.id);
+} catch {}
+setStats(
+  sData || {
+    downloaders: aData?.downloaders || 0,
+    totalSubscriptions: aData?.totalSubscriptions || 0,
+    newDownloaders: aData?.newDownloaders || 0,
+    newSubscribers: aData?.newSubscribersCount || 0,
+    balance: aData?.withdrawableBalance || 0,
+  }
+);
+
+    
     } catch (e) {
       console.error(e);
       alert("Failed to load affiliate data.");
@@ -162,14 +158,9 @@ export default function AffiliatesPage() {
 
     try {
       setSaving(true);
-      const res = await fetch(`${API_BASE}/affiliate/register`, {
-        method: "POST",
-        headers: { ...authHeaders },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || "Registration failed");
-      setAffiliate(data);
+      const data = await APIControl.registerAffiliate(fd);
+setAffiliate(data);
+
       alert("Thanks for submitting. You’ll receive an approval email shortly.");
       setShowRegister(false);
     } catch (e) {
@@ -219,22 +210,13 @@ export default function AffiliatesPage() {
 
     try {
       setWithdrawing(true);
-      const res = await fetch(`${API_BASE}/cfa/request-withdrawal`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders,
-        },
-        body: JSON.stringify({
-          affiliateId: affiliate._id,
-          method,
-          accountDetails,
-          // no amount here – backend computes based on new subscribers × commission
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || "Withdrawal request failed.");
-      alert(data?.message || "Withdrawal request submitted.");
+      const data = await APIControl.requestWithdrawal({
+  affiliateId: affiliate._id,
+  method,
+  accountDetails,
+});
+alert(data?.message || "Withdrawal request submitted.");
+
 
       // refresh
       await fetchEverything();
