@@ -89,39 +89,42 @@ export default function AffiliatesPage() {
 
   // fetch affiliate & stats
   const fetchEverything = async () => {
+  try {
+    setLoading(true);
+    if (!isAuthenticated || !user?.id) return;
+
+    // affiliate profile
+    let aData = null;
     try {
-      setLoading(true);
-      if (!isAuthenticated || !user?.id) return;
-
-      // affiliate profile
-      // affiliate profile
-const aData = await APIControl.fetchAffiliate(user.id);
-setAffiliate(aData);
-
-
-      // stats for cards
-let sData = null;
-try {
-  sData = await APIControl.getAffiliateStats(user.id);
-} catch {}
-setStats(
-  sData || {
-    downloaders: aData?.downloaders || 0,
-    totalSubscriptions: aData?.totalSubscriptions || 0,
-    newDownloaders: aData?.newDownloaders || 0,
-    newSubscribers: aData?.newSubscribersCount || 0,
-    balance: aData?.withdrawableBalance || 0,
-  }
-);
-
-    
-    } catch (e) {
-      console.error(e);
-      alert("Failed to load affiliate data.");
-    } finally {
-      setLoading(false);
+      const res = await APIControl.fetchAffiliate(user.id);
+      aData = res.success ? res.data : null;
+    } catch (err) {
+      aData = null; // user is not yet an affiliate
     }
-  };
+    setAffiliate(aData);
+
+    // stats for cards
+    let sData = null;
+    try {
+      sData = await APIControl.getAffiliateStats(user.id);
+    } catch {}
+    setStats(
+      sData || {
+        downloaders: aData?.downloaders || 0,
+        totalSubscriptions: aData?.totalSubscriptions || 0,
+        newDownloaders: aData?.newDownloaders || 0,
+        newSubscribers: aData?.newSubscribersCount || 0,
+        balance: aData?.withdrawableBalance || 0,
+      }
+    );
+  } catch (e) {
+    console.error(e);
+    alert("Failed to load affiliate data.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (isAuthenticated) fetchEverything();

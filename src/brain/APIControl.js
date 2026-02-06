@@ -953,12 +953,9 @@ async propFirmLogin(accountID, password, serverName) {
   }
 },
 
-/**
- * Fetch affiliate data by userId
- */
 async fetchAffiliate(userId) {
   try {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("token"); // <-- make sure key matches frontend
     if (!token) return { success: false, error: "No auth token" };
 
     const response = await fetch(`${BASE_URL}/api/affiliate/${userId}`, {
@@ -968,6 +965,7 @@ async fetchAffiliate(userId) {
     });
 
     if (!response.ok) {
+      if (response.status === 404) return { success: false, data: null }; // <-- handle 404
       const errData = await response.json().catch(() => ({}));
       return { success: false, error: errData.error || "Failed to fetch affiliate data" };
     }
@@ -980,7 +978,32 @@ async fetchAffiliate(userId) {
   }
 },
 
-  /**
+async registerAffiliate(formData) {
+  try {
+    const token = localStorage.getItem("token"); // <-- match frontend
+    if (!token) return { success: false, error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/api/affiliate/register`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // <-- remove Content-Type for FormData
+      },
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      return { success: false, error: result.error || "Failed to register affiliate" };
+    }
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    console.error("registerAffiliate error:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
+
+/**
    * Fetch trades data by tab from backend
    */
   async fetchTradesData(tab) {
@@ -1002,32 +1025,6 @@ async fetchAffiliate(userId) {
       return { success: false, error: "Failed to fetch trades data" };
     }
   },
-async registerAffiliate(data) {
-  try {
-    const token = localStorage.getItem("authToken");
-    if (!token) return { success: false, error: "No auth token" };
-
-    const response = await fetch(`${BASE_URL}/api/affiliate/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-    if (!response.ok || !result.success) {
-      return { success: false, error: result.error || "Failed to register affiliate" };
-    }
-
-    return { success: true, data: result.data };
-  } catch (err) {
-    console.error("registerAffiliate error:", err);
-    return { success: false, error: err.message || "Unexpected error" };
-  }
-},
-
   /**
    * Fetch journal data from backend
    */
