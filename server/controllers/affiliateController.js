@@ -36,10 +36,11 @@ const registerAffiliate = async (req, res) => {
     console.log("Req.body:", req.body);
     console.log("Req.files:", req.files);
 
-    const userId = req.user?.id; // ensure you have auth middleware
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    const { userId } = req.body; // use userId sent from frontend instead of auth token
+if (!userId) {
+  return res.status(400).json({ message: "User ID is required" });
+}
+
 
     const {
       firstName,
@@ -102,7 +103,7 @@ const registerAffiliate = async (req, res) => {
 
     console.log("Affiliate created:", affiliate._id);
 
-    res.status(201).json(affiliate);
+    res.status(201).json({ success: true, data: affiliate });
   } catch (err) {
     console.error("Error registering affiliate:", err);
     res.status(500).json({ message: "Registration failed" });

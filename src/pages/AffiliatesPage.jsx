@@ -6,7 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
-
+import currentUserData from "../data/currentWatcherUser.json"; // add this import at the top
 
 const neon = {
   blue: "#00FFFF",
@@ -59,10 +59,9 @@ export default function AffiliatesPage() {
   });
 
   // helpers
-  const authHeaders = useMemo(() => {
-    const token = localStorage.getItem("token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }, []);
+
+const watcherUserId = currentUserData?.id; // get user id from JSON
+
 
   const ticketWithExtension = useMemo(() => {
   if (!affiliate?.ticketNumber) return "";
@@ -91,22 +90,23 @@ export default function AffiliatesPage() {
   const fetchEverything = async () => {
   try {
     setLoading(true);
-    if (!isAuthenticated || !user?.id) return;
+    if (!watcherUserId) return;
 
-    // affiliate profile
-    let aData = null;
-    try {
-      const res = await APIControl.fetchAffiliate(user.id);
-      aData = res.success ? res.data : null;
-    } catch (err) {
-      aData = null; // user is not yet an affiliate
-    }
+// affiliate profile
+let aData = null;
+try {
+  const res = await APIControl.fetchAffiliate(watcherUserId);
+  aData = res.success ? res.data : null;
+} catch (err) {
+  aData = null; // user is not yet an affiliate
+}
+
     setAffiliate(aData);
 
     // stats for cards
     let sData = null;
     try {
-      sData = await APIControl.getAffiliateStats(user.id);
+      sData = await APIControl.getAffiliateStats(watcherUserId);
     } catch {}
     setStats(
       sData || {
@@ -147,6 +147,7 @@ export default function AffiliatesPage() {
     }
 
     const fd = new FormData();
+    fd.append("userId", watcherUserId);
     fd.append("firstName", regForm.firstName);
     fd.append("middleName", regForm.middleName);
     fd.append("lastName", regForm.lastName);

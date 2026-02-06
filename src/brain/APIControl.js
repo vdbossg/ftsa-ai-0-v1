@@ -955,17 +955,12 @@ async propFirmLogin(accountID, password, serverName) {
 
 async fetchAffiliate(userId) {
   try {
-    const token = localStorage.getItem("token"); // <-- make sure key matches frontend
-    if (!token) return { success: false, error: "No auth token" };
+    if (!userId) return { success: false, error: "No user ID" };
 
-    const response = await fetch(`${BASE_URL}/api/affiliate/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await fetch(`${BASE_URL}/api/affiliate/${userId}`);
 
     if (!response.ok) {
-      if (response.status === 404) return { success: false, data: null }; // <-- handle 404
+      if (response.status === 404) return { success: false, data: null };
       const errData = await response.json().catch(() => ({}));
       return { success: false, error: errData.error || "Failed to fetch affiliate data" };
     }
@@ -980,15 +975,9 @@ async fetchAffiliate(userId) {
 
 async registerAffiliate(formData) {
   try {
-    const token = localStorage.getItem("token"); // <-- match frontend
-    if (!token) return { success: false, error: "No auth token" };
-
     const response = await fetch(`${BASE_URL}/api/affiliate/register`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, // <-- remove Content-Type for FormData
-      },
-      body: formData,
+      body: formData, // FormData works without Content-Type header
     });
 
     const result = await response.json();
@@ -1002,6 +991,7 @@ async registerAffiliate(formData) {
     return { success: false, error: err.message || "Unexpected error" };
   }
 },
+
 
 /**
    * Fetch trades data by tab from backend
