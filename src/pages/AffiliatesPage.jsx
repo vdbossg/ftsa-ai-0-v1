@@ -95,7 +95,7 @@ export default function AffiliatesPage() {
 
       // affiliate profile
       // affiliate profile
-const aData = await APIControl.getAffiliate(user.id);
+const aData = await APIControl.fetchAffiliate(user.id);
 setAffiliate(aData);
 
 
