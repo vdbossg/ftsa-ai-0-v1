@@ -132,48 +132,49 @@ try {
 
   // registration submit
   const submitRegistration = async (e) => {
-    e?.preventDefault?.();
-    if (!regForm.agree) {
-      alert("You must agree to the terms to proceed.");
-      return;
-    }
-    if (!regForm.firstName || !regForm.lastName || !regForm.phone || !regForm.email || !regForm.country || !regForm.idNumber || !regForm.username) {
-      alert("Please fill all required fields.");
-      return;
-    }
-    if (!regForm.docFront || !regForm.docBack) {
-      alert("Please upload front and back document images.");
-      return;
-    }
+  e?.preventDefault?.();
 
-    const fd = new FormData();
-    fd.append("userId", watcherUserId);
-    fd.append("firstName", regForm.firstName);
-    fd.append("middleName", regForm.middleName);
-    fd.append("lastName", regForm.lastName);
-    fd.append("phone", regForm.phone);
-    fd.append("email", regForm.email);
-    fd.append("country", regForm.country);
-    fd.append("idType", regForm.idType);
-    fd.append("idNumber", regForm.idNumber);
-    fd.append("username", regForm.username);
-    fd.append("docFront", regForm.docFront);
-    fd.append("docBack", regForm.docBack);
+  // ✅ check agreement
+  if (!regForm.agree) return alert("You must agree to the Affiliate Terms & Conditions.");
 
-    try {
-      setSaving(true);
-      const data = await APIControl.registerAffiliate(fd);
-setAffiliate(data);
+  // ✅ validate required fields
+  const required = ["firstName", "lastName", "phone", "email", "country", "idNumber", "username", "docFront", "docBack"];
+  for (let field of required) {
+    if (!regForm[field]) return alert(`Field ${field} is required.`);
+  }
 
-      alert("Thanks for submitting. You’ll receive an approval email shortly.");
-      setShowRegister(false);
-    } catch (e) {
-      console.error(e);
-      alert(e.message || "Registration failed.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  // ✅ create FormData
+  const fd = new FormData();
+  fd.append("userId", watcherUserId); // critical for backend
+  fd.append("firstName", regForm.firstName);
+  fd.append("middleName", regForm.middleName || "");
+  fd.append("lastName", regForm.lastName);
+  fd.append("phone", regForm.phone);
+  fd.append("email", regForm.email);
+  fd.append("country", regForm.country);
+  fd.append("idType", regForm.idType);
+  fd.append("idNumber", regForm.idNumber);
+  fd.append("username", regForm.username);
+  fd.append("docFront", regForm.docFront); // File object
+  fd.append("docBack", regForm.docBack);   // File object
+
+  try {
+    setSaving(true);
+    const data = await APIControl.registerAffiliate(fd);
+
+    // ✅ setAffiliate correctly
+    setAffiliate(data?.data || null);
+
+    alert("Registration submitted. You’ll receive an approval email shortly.");
+    setShowRegister(false);
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Registration failed.");
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   // withdraw submit (no amount field; backend computes from new subscribers)
   const submitWithdraw = async (e) => {
