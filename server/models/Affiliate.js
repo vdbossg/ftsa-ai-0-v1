@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\server\models\Affiliate.js
 const mongoose = require("mongoose");
 
 const AffiliateSchema = new mongoose.Schema(
@@ -6,7 +7,7 @@ const AffiliateSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
     // Referral code (unique to each affiliate)
-    code: { type: String, unique: true, required: true },
+    code: { type: String, unique: true },
 
     // Ticket system (acts as a unique payout identifier)
     ticketNumber: { type: String, unique: true }, // e.g. "#001/username/+254/email@gmail.com"
@@ -16,13 +17,15 @@ const AffiliateSchema = new mongoose.Schema(
     firstName: String,
     middleName: String,
     lastName: String,
+    username: { type: String, required: true, unique: true },
     phone: String,
     email: String,
     country: String,
-    idType: { type: String, enum: ["ID", "Passport", "DL"] },
+    idType: { type: String, enum: ["id", "passport", "dl"], required: true },
     idNumber: String,
-    idFront: String, // image path or URL
-    idBack: String,
+    docFront: { type: String, required: true }, // image path or URL
+    docBack: { type: String, required: true },
+
 
     
     // Earnings & balances
@@ -40,9 +43,11 @@ const AffiliateSchema = new mongoose.Schema(
     lastWithdrawalAt: { type: Date },
 
     // Status of affiliate account
-    status: { type: String, enum: ["pending", "active", "declined"], default: "pending" }
+    status: { type: String, enum: ["pending", "active", "rejected"], default: "pending" }
   },
   { timestamps: true }
 );
+AffiliateSchema.index({ user: 1 }, { unique: true });
+AffiliateSchema.index({ ticketNumber: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model("Affiliate", AffiliateSchema);

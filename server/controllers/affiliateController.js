@@ -1,16 +1,22 @@
-import Affiliate from "../models/Affiliate.js";
-import User from "../models/User.js";
-import AffiliateWithdrawal from "../models/AffiliateWithdrawal.js";  // ✅ add this
-import { sendEmail } from "../utils/emailService.js";               // ✅ add this
+const Affiliate = require("../models/Affiliate");
+const User = require("../models/User");
+const AffiliateWithdrawal = require("../models/AffiliateWithdrawal");
+const { sendEmail } = require("../utils/emailService");
 
-// ✅ Get affiliate data
-export const getAffiliateData = async (req, res) => {
+/**
+ * GET /affiliate/:userId
+ * Get affiliate data for logged-in user
+ */
+const getAffiliateData = async (req, res) => {
   try {
     const { userId } = req.params;
+
     const affiliate = await Affiliate.findOne({ user: userId }).populate("referredUsers");
+
     if (!affiliate) {
       return res.status(404).json({ message: "Affiliate not found" });
     }
+
     res.json(affiliate);
   } catch (err) {
     console.error("Error fetching affiliate data:", err);
@@ -18,58 +24,88 @@ export const getAffiliateData = async (req, res) => {
   }
 };
 
-// ✅ Register new affiliate
-export const registerAffiliate = async (req, res) => {
+/**
+ * POST /affiliate/register
+ * Register new affiliate (multipart/form-data)
+ */
+const registerAffiliate = async (req, res) => {
   try {
-    const { userId, firstName, middleName, lastName, email, phone, country } = req.body;
+    const userId = req.user.id;
 
-    // check if already exists
-    const existing = await Affiliate.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Affiliate already exists" });
-    }
-
-    // fetch linked user
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // generate ticket number (unique identifier)
-    const count = await Affiliate.countDocuments();
-    const ticketNumber = `#${String(count + 1).padStart(3, "0")}/${user.username}/${phone}/${email}`;
-
-    const newAffiliate = await Affiliate.create({
-      user: user._id,
-      code: user.username.toUpperCase() + (count + 1), // e.g. KELVIN1
-      ticketNumber,
+    const {
       firstName,
       middleName,
       lastName,
       phone,
       email,
       country,
+      idType,
+      idNumber,
+      username
+    } = req.body;
+
+    // 🔒 one affiliate per user
+    const existing = await Affiliate.findOne({ user: userId });
+    if (existing) {
+      return res.status(400).json({ message: "Affiliate already exists" });
+    }
+
+    // ensure files exist
+    if (!req.files?.docFront || !req.files?.docBack) {
+      return res.status(400).json({ message: "Document images are required" });
+    }
+
+    const docFront = req.files.docFront[0].path;
+    const docBack = req.files.docBack[0].path;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // generate ticket
+    const count = await Affiliate.countDocuments();
+    const ticketNumber = `#${String(count + 1).padStart(3, "0")}/${username}/${phone}/${email}`;
+
+    const affiliate = await Affiliate.create({
+      user: user._id,
+      code: `${username.toUpperCase()}${count + 1}`,
+      ticketNumber,
+      firstName,
+      middleName,
+      lastName,
+      username,
+      phone,
+      email,
+      country,
+      idType,
+      idNumber,
+      docFront,
+      docBack,
       status: "pending",
       withdrawableBalance: 0,
       pendingCommission: 0,
       paidCommission: 0,
       totalCommission: 0,
+      newSubscribersCount: 0,
       referredUsers: []
     });
 
-    res.status(201).json(newAffiliate);
+    res.status(201).json(affiliate);
   } catch (err) {
     console.error("Error registering affiliate:", err);
     res.status(500).json({ message: "Registration failed" });
   }
 };
 
-// ✅ Request withdrawal
-export const requestWithdrawal = async (req, res) => {
+/**
+ * POST /cfa/request-withdrawal
+ */
+const requestWithdrawal = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const affiliate = await Affiliate.findOne({ user: userId });
+    const { affiliateId, method, accountDetails } = req.body;
 
+    const affiliate = await Affiliate.findById(affiliateId);
     if (!affiliate) {
       return res.status(404).json({ message: "Affiliate not found" });
     }
@@ -78,37 +114,43 @@ export const requestWithdrawal = async (req, res) => {
       return res.status(400).json({ message: "No funds available for withdrawal" });
     }
 
-    // Move funds to pendingCommission (waiting for admin approval)
-    affiliate.pendingCommission += affiliate.withdrawableBalance;
+    const amount = affiliate.withdrawableBalance;
+
+    // move funds
+    affiliate.pendingCommission += amount;
     affiliate.withdrawableBalance = 0;
     affiliate.lastWithdrawalAt = new Date();
     await affiliate.save();
 
-// ✅ Create a withdrawal request record
-const withdrawal = await AffiliateWithdrawal.create({
-  affiliate: affiliate._id,
-  amount: affiliate.pendingCommission, 
-  status: "pending"
-});
+    const withdrawal = await AffiliateWithdrawal.create({
+      affiliate: affiliate._id,
+      amount,
+      method,
+      accountDetails,
+      status: "pending"
+    });
 
+    await sendEmail(
+      affiliate.email,
+      "Withdrawal Request Submitted",
+      "",
+      `<p>Dear ${affiliate.firstName || affiliate.email},</p>
+       <p>Your withdrawal request of <strong>$${amount.toFixed(2)}</strong> has been submitted.</p>`
+    );
 
-// ✅ Send email notification
-await sendEmail(
-  affiliate.email,
-  "Withdrawal Request Submitted",
-  "",
-  `<p>Dear ${affiliate.firstName || affiliate.email},</p>
-   <p>Your withdrawal request of <strong>${withdrawal.amount}</strong> has been submitted. Our team will review it shortly.</p>`
-);
-
-res.json({
-  message: "Withdrawal request submitted. Awaiting admin approval.",
-  affiliate,
-  withdrawal
-});
-
+    res.json({
+      message: "Withdrawal request submitted. Awaiting admin approval.",
+      affiliate,
+      withdrawal
+    });
   } catch (err) {
     console.error("Error requesting withdrawal:", err);
     res.status(500).json({ message: "Withdrawal request failed" });
   }
+};
+
+module.exports = {
+  getAffiliateData,
+  registerAffiliate,
+  requestWithdrawal
 };

@@ -1,19 +1,19 @@
-import express from "express";
-import {
+const express = require("express");
+const {
   getAffiliateData,
   registerAffiliate,
   requestWithdrawal
-} from "../controllers/affiliateController.js";
+} = require("../controllers/affiliateController");
 
 const router = express.Router();
 
-// ✅ Get affiliate profile & stats
+// ✅ Get affiliate profile
 router.get("/:userId", getAffiliateData);
 
 // ✅ Register a new affiliate
 router.post("/register", registerAffiliate);
 
-// ✅ Request withdrawal (moves balance to pending, waiting admin approval)
-router.post("/withdraw", requestWithdrawal);
+// ✅ Request withdrawal (matches frontend exactly)
+router.post("/request-withdrawal", requestWithdrawal);
 
-export default router;
+module.exports = router;

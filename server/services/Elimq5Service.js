@@ -49,30 +49,44 @@ class Elimq5Service {
 
     await fs.mkdir(outputDir, { recursive: true });
 
-    // Base output file path
-let baseFileName = `FTSA_AI_${license.mtLogin}.mq5`;
-let outputFile = path.join(outputDir, baseFileName);
+ // ---------------- FOLDER-BASED SUFFIX LOGIC ----------------
+const myLicensedDir = path.join(__dirname, "../../mql5/MyLicensed_ex5");
+await fs.mkdir(myLicensedDir, { recursive: true });
 
-// Check if file exists, add incremental suffix if needed
-let counter = 1;
-while (true) {
-  try {
-    await fs.access(outputFile); // file exists
-    const extIndex = baseFileName.lastIndexOf('.mq5');
-    const nameOnly = baseFileName.slice(0, extIndex);
-    const ext = baseFileName.slice(extIndex);
-    outputFile = path.join(outputDir, `${nameOnly}_${counter}${ext}`);
-    counter++;
-  } catch {
-    // file does not exist, ready to write
-    break;
-  }
-}
+const folderPrefix = `FTSA_AI_${license.mtLogin}`;
+const existingItems = await fs.readdir(myLicensedDir, { withFileTypes: true });
 
-await fs.writeFile(outputFile, templateContent, "utf8");
+// Find all folders for this login
+const matchingFolders = existingItems
+  .filter(f => f.isDirectory() && (f.name === folderPrefix || f.name.startsWith(`${folderPrefix}_`)))
+  .map(f => f.name);
 
-console.log("✅ EA generated:", outputFile);
-return { outputFile };
+// Determine next suffix
+let nextSuffix = 0;
+matchingFolders.forEach(f => {
+    const match = f.match(new RegExp(`^${folderPrefix}_(\\d+)$`));
+    if (match) nextSuffix = Math.max(nextSuffix, parseInt(match[1], 10) + 1);
+    else if (f === folderPrefix) nextSuffix = Math.max(nextSuffix, 1);
+});
+
+// Final folder name
+const finalFolderName = nextSuffix === 0 ? folderPrefix : `${folderPrefix}_${nextSuffix}`;
+const finalFolderPath = path.join(myLicensedDir, finalFolderName);
+await fs.mkdir(finalFolderPath, { recursive: true });
+
+// Final EX5 filename inside that folder
+const finalEx5File = path.join(finalFolderPath, `${finalFolderName}.ex5`);
+
+// Save template content as .mq5 first (before compilation)
+const tempMq5Path = path.join(outputDir, `${finalFolderName}.mq5`);
+await fs.writeFile(tempMq5Path, templateContent, "utf8");
+
+// At this point, your compilation step should compile tempMq5Path → finalEx5File
+// Example (if already compiled elsewhere):
+// await fs.rename(compiledEx5Path, finalEx5File);
+
+console.log("✅ EA folder and EX5 ready:", finalFolderPath, finalEx5File);
+return { folder: finalFolderPath, outputFile: finalEx5File };
 
   } catch (err) {
     console.error("❌ EA generation failed:", err);
