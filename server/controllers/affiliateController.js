@@ -3,51 +3,7 @@ const Affiliate = require("../models/Affiliate");
 const User = require("../models/User");
 const WithdrawalRequest = require("../models/WithdrawalRequest");
 
-// server/models/WithdrawalRequest.js
-const mongoose = require("mongoose");
 
-const WithdrawalRequestSchema = new mongoose.Schema(
-  {
-    affiliate: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Affiliate",
-      required: true,
-    },
-    amount: {
-      type: Number,
-      required: true,
-    },
-    method: {
-      type: String,
-      enum: ["mpesa", "paypal", "bank", "card"],
-      required: true,
-    },
-    accountDetails: {
-      type: Object,
-      default: {},
-    },
-    status: {
-      type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
-    },
-    declineReason: {
-      type: String,
-      default: "",
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    processedAt: {
-      type: Date,
-    },
-  },
-  { timestamps: true }
-);
-
-module.exports = mongoose.model("WithdrawalRequest", WithdrawalRequestSchema);
-const { sendEmail } = require("../utils/emailService");
 
 /**
  * GET /affiliate/:userId
@@ -205,7 +161,7 @@ const requestWithdrawal = async (req, res) => {
     res.status(500).json({ message: "Withdrawal request failed" });
   }
 };
-s
+
 module.exports = {
   getAffiliateData,
   registerAffiliate,

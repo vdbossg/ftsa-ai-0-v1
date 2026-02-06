@@ -1002,6 +1002,31 @@ async fetchAffiliate(userId) {
       return { success: false, error: "Failed to fetch trades data" };
     }
   },
+async registerAffiliate(data) {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return { success: false, error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/api/affiliate/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      return { success: false, error: result.error || "Failed to register affiliate" };
+    }
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    console.error("registerAffiliate error:", err);
+    return { success: false, error: err.message || "Unexpected error" };
+  }
+},
 
   /**
    * Fetch journal data from backend
