@@ -973,7 +973,7 @@ async fetchAffiliate(userId) {
     }
 
     const data = await response.json();
-    return { success: true, data: data.data || null };
+    return { success: true, data: data || null };
   } catch (err) {
     console.error("fetchAffiliate error:", err);
     return { success: false, error: err.message || "Unexpected error" };

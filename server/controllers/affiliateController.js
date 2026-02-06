@@ -1,6 +1,8 @@
 //FTSA_AI_0.v1\server\controllers\affiliateController.js
 const Affiliate = require("../models/Affiliate");
 const User = require("../models/User");
+const WithdrawalRequest = require("../models/WithdrawalRequest");
+
 // server/models/WithdrawalRequest.js
 const mongoose = require("mongoose");
 
@@ -176,13 +178,14 @@ const requestWithdrawal = async (req, res) => {
     affiliate.lastWithdrawalAt = new Date();
     await affiliate.save();
 
-    const withdrawal = await AffiliateWithdrawal.create({
-      affiliate: affiliate._id,
-      amount,
-      method,
-      accountDetails,
-      status: "pending"
-    });
+    const withdrawal = await WithdrawalRequest.create({
+  affiliate: affiliate._id,
+  amount,
+  method,
+  accountDetails,
+  status: "pending"
+});
+
 
     await sendEmail(
       affiliate.email,
@@ -202,7 +205,7 @@ const requestWithdrawal = async (req, res) => {
     res.status(500).json({ message: "Withdrawal request failed" });
   }
 };
-
+s
 module.exports = {
   getAffiliateData,
   registerAffiliate,
