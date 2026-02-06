@@ -5,7 +5,7 @@ const {
   registerAffiliate,
   requestWithdrawal,
 } = require("../controllers/affiliateController");
-
+const { authenticateToken } = require("../middleware/auth"); // <-- auth middleware
 
 const router = express.Router();
 
@@ -17,9 +17,15 @@ const registrationUpload = upload.fields([
 ]);
 
 // ---------------- Routes ----------------
-router.post("/register", registrationUpload, registerAffiliate);
-router.post("/request-withdrawal", requestWithdrawal);
-router.get("/:userId", getAffiliateData);
 
+// ✅ Register a new affiliate (requires auth)
+router.post("/register", authenticateToken, registrationUpload, registerAffiliate);
+
+// ✅ Request withdrawal (requires auth)
+router.post("/request-withdrawal", authenticateToken, requestWithdrawal);
+
+// ✅ Get affiliate profile by userId (requires auth)
+// Must be LAST to avoid matching "/register" as a userId
+router.get("/:userId", authenticateToken, getAffiliateData);
 
 module.exports = router;

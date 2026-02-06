@@ -957,7 +957,14 @@ async fetchAffiliate(userId) {
   try {
     if (!userId) return { success: false, error: "No user ID" };
 
-    const response = await fetch(`${BASE_URL}/api/affiliate/${userId}`);
+    const token = localStorage.getItem("token"); // get the auth token
+    if (!token) return { success: false, error: "No auth token" };
+
+    const response = await fetch(`${BASE_URL}/api/affiliate/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ✅ include token
+      },
+    });
 
     if (!response.ok) {
       if (response.status === 404) return { success: false, data: null };
@@ -975,9 +982,16 @@ async fetchAffiliate(userId) {
 
 async registerAffiliate(formData) {
   try {
+    const token = localStorage.getItem("token"); // get the auth token
+    if (!token) return { success: false, error: "No auth token" };
+
     const response = await fetch(`${BASE_URL}/api/affiliate/register`, {
       method: "POST",
-      body: formData, // FormData works without Content-Type header
+      headers: {
+        Authorization: `Bearer ${token}`, // ✅ include token
+        // DO NOT set Content-Type — browser handles it with FormData
+      },
+      body: formData,
     });
 
     const result = await response.json();
@@ -991,7 +1005,6 @@ async registerAffiliate(formData) {
     return { success: false, error: err.message || "Unexpected error" };
   }
 },
-
 
 /**
    * Fetch trades data by tab from backend

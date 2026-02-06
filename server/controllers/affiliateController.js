@@ -3,6 +3,9 @@ const Affiliate = require("../models/Affiliate");
 const User = require("../models/User");
 const WithdrawalRequest = require("../models/WithdrawalRequest");
 
+const sendEmail = async (to, subject, text, html) => {
+  console.log(`Email sent to ${to}: ${subject}`);
+};
 
 
 /**
@@ -32,15 +35,13 @@ const getAffiliateData = async (req, res) => {
  */
 const registerAffiliate = async (req, res) => {
   try {
-    // 👈 For testing: log the incoming request
     console.log("Req.body:", req.body);
     console.log("Req.files:", req.files);
 
-    const { userId } = req.body; // use userId sent from frontend instead of auth token
-if (!userId) {
-  return res.status(400).json({ message: "User ID is required" });
-}
-
+    const userId = req.body.userId || req.user?.id;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
 
     const {
       firstName,
@@ -54,20 +55,20 @@ if (!userId) {
       username,
     } = req.body;
 
-    // 🔒 one affiliate per user
+    // check if affiliate already exists
     const existing = await Affiliate.findOne({ user: userId });
     if (existing) {
       return res.status(400).json({ message: "Affiliate already exists" });
     }
 
-    // Ensure files exist
-    if (!req.files?.docFront || !req.files?.docBack) {
+    // check uploaded files
+    const docFront = req.files?.docFront?.[0]?.path;
+    const docBack = req.files?.docBack?.[0]?.path;
+    if (!docFront || !docBack) {
       return res.status(400).json({ message: "Document images are required" });
     }
 
-    const docFront = req.files.docFront[0].path;
-    const docBack = req.files.docBack[0].path;
-
+    // fetch user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
