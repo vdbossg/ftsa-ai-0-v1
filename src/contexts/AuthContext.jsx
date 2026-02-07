@@ -1,13 +1,10 @@
-// src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import APIControl from '../brain/APIControl';
 
 const AuthContext = createContext(null);
 export { AuthContext };
 
-
 export const AuthProvider = ({ children }) => {
-  const token = localStorage.getItem('authToken'); // get token from localStorage
   const [user, setUser] = useState(() => {
     try {
       const storedUser = localStorage.getItem('authUser');
@@ -17,33 +14,30 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  const [token, setToken] = useState(() => localStorage.getItem('authToken'));
+
   const login = (userInfo, token) => {
-  setUser(userInfo);
-  localStorage.setItem('authUser', JSON.stringify(userInfo));
-  localStorage.setItem('authToken', token); // now uses passed token
-};
+    setUser(userInfo);
+    setToken(token); // ✅ now reactive
+    localStorage.setItem('authUser', JSON.stringify(userInfo));
+    localStorage.setItem('authToken', token);
+  };
 
-
-const logout = async () => {
-  const token = localStorage.getItem('authToken');
-
-  // Delete Gateman JSON first
-  try {
-    if (token) {
-      await APIControl.gatemanDelete(token); // ensure deletion is awaited
-      console.log("Gateman JSON deleted successfully.");
+  const logout = async () => {
+    try {
+      if (token) {
+        await APIControl.gatemanDelete(token); // ✅ inside async
+        console.log("Gateman JSON deleted successfully.");
+      }
+    } catch (err) {
+      console.warn("Failed to delete Gateman JSON:", err.message);
     }
-  } catch (err) {
-    console.warn("Failed to delete Gateman JSON:", err.message);
-  }
 
-  // Clear local state and localStorage
-  setUser(null);
-  localStorage.removeItem('authUser');
-  localStorage.removeItem('authToken'); // also clear token
-};
-
-
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('authUser');
+    localStorage.removeItem('authToken');
+  };
 
   const isAuthenticated = !!user;
 
@@ -51,7 +45,9 @@ const logout = async () => {
   useEffect(() => {
     const handleStorageChange = () => {
       const storedUser = localStorage.getItem('authUser');
+      const storedToken = localStorage.getItem('authToken');
       setUser(storedUser ? JSON.parse(storedUser) : null);
+      setToken(storedToken || null);
     };
     window.addEventListener('storage', handleStorageChange);
     return () => {
