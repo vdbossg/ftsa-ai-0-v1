@@ -6,7 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import StatusBadge from "../components/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
 import APIControl from "../brain/APIControl";
-import currentUserData from "../data/currentWatcherUser.json"; // add this import at the top
+
 
 const neon = {
   blue: "#00FFFF",
@@ -60,8 +60,7 @@ export default function AffiliatesPage() {
 
   // helpers
 
-const watcherUserId = currentUserData?.id; // get user id from JSON
-
+const watcherUserId = user?.id; // use actual logged-in user
 
   const ticketWithExtension = useMemo(() => {
   if (!affiliate?.ticketNumber) return "";
