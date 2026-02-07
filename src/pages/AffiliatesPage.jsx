@@ -83,7 +83,7 @@ const watcherUserId = currentUserData?.id; // get user id from JSON
     const today = new Date();
     const afterWindow = !nextWithdrawalDate || today >= nextWithdrawalDate;
     const hasBalance = Number(affiliate.withdrawableBalance || 0) > 0;
-    return afterWindow && hasBalance && affiliate.status === "active";
+    return afterWindow && hasBalance && (affiliate.status === "active" || affiliate.status === "approved");
   }, [affiliate, nextWithdrawalDate]);
 
   // fetch affiliate & stats
@@ -255,11 +255,12 @@ alert(data?.message || "Withdrawal request submitted.");
   if (loading) return <LoadingSpinner />;
 
   const status =
-    affiliate?.status === "active"
-      ? "online"
-      : affiliate?.status === "pending"
-      ? "warning"
-      : "offline";
+  affiliate?.status === "active" || affiliate?.status === "approved"
+    ? "online"
+    : affiliate?.status === "pending"
+    ? "warning"
+    : "offline";
+
 
   return (
     <div
@@ -394,17 +395,18 @@ alert(data?.message || "Withdrawal request submitted.");
           <NeonButton onClick={() => setShowRegister(true)}>Register as Affiliate</NeonButton>
         )}
         {affiliate?.status === "pending" && (
-          <div style={{ color: neon.amber }}>Your registration is awaiting approval.</div>
-        )}
-        {affiliate?.status === "active" && (
-          <NeonButton
-            onClick={() => setShowWithdraw(true)}
-            disabled={!canWithdraw}
-            title={!canWithdraw ? "Either window not open or balance is 0" : ""}
-          >
-            Request Withdrawal
-          </NeonButton>
-        )}
+  <div style={{ color: neon.amber }}>Your registration is awaiting approval.</div>
+)}
+{affiliate?.status === "active" || affiliate?.status === "approved" ? (
+  <NeonButton
+    onClick={() => setShowWithdraw(true)}
+    disabled={!canWithdraw}
+    title={!canWithdraw ? "Either window not open or balance is 0" : ""}
+  >
+    Request Withdrawal
+  </NeonButton>
+) : null}
+
       </section>
 
       {/* Registration Modal */}
