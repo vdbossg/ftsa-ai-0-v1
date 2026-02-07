@@ -10,7 +10,21 @@ const { authenticateToken } = require("../middleware/auth"); // <-- auth middlew
 const router = express.Router();
 
 // ---------------- Multer setup ----------------
-const upload = multer({ dest: "uploads/" });
+const path = require("path");
+
+// Multer storage config
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // save in uploads folder
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname); // get .png, .jpg, etc.
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({ storage });
 const registrationUpload = upload.fields([
   { name: "docFront", maxCount: 1 },
   { name: "docBack", maxCount: 1 },

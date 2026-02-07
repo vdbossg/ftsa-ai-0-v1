@@ -1,3 +1,5 @@
+//FTSA_AI_0.v1\server\server.js
+//APP A.
 /// server.js (top of the file)
 require('dotenv').config({ path: '../.env' });  // ✅ points to project root .env
 require('dotenv').config();  // ✅ Load environment variables from server/.env

@@ -62,8 +62,9 @@ const registerAffiliate = async (req, res) => {
     }
 
     // check uploaded files
-    const docFront = req.files?.docFront?.[0]?.path;
-    const docBack = req.files?.docBack?.[0]?.path;
+    const docFront = req.files?.docFront?.[0]?.filename;
+const docBack = req.files?.docBack?.[0]?.filename;
+
     if (!docFront || !docBack) {
       return res.status(400).json({ message: "Document images are required" });
     }

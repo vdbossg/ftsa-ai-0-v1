@@ -60,6 +60,11 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ success: false, error: "Invalid credentials" });
 
+    // Update lastActive timestamp
+user.lastActive = new Date();
+await user.save();
+
+    
     // create token including role
     const token = jwt.sign(
       { id: user._id, role: user.role || "user" }, // include role for middleware
