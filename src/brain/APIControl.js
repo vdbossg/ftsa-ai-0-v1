@@ -1582,7 +1582,22 @@ async gatemanDelete() {
   }
 },
 
-};
 
+
+async createSupportTicket(ticket) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/supportticket/Ftsa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(ticket),
+    });
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("createSupportTicket error:", err);
+    return { success: false, message: "Failed to create ticket" };
+  }
+},
+};
 
 export default APIControl;

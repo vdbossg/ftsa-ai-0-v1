@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../contexts/AuthContext";
 import "../styles/HelpPage.css";
-
+import APIControl from "../brain/APIControl";
 // ---- FAQ Item ----
 const FAQItem = ({ question, answer }) => (
   <div className="faq-item">
@@ -85,12 +85,14 @@ const HelpModal = ({ user, onClose }) => {
       setInputValue("");
       setTyping(true);
       try {
-        const res = await axios.post("/api/supportticket/Ftsa", {
-          name,
-          email,
-          category,
-          message,
-        });
+      
+const res = await APIControl.createSupportTicket({
+  name,
+  email,
+  category,
+  message,
+});
+
         setMessages((prev) => [
           ...prev,
           { type: "bot", text: `Your ticket was generated: ${res.data.ticketId}\nWe will respond within 2-3 business days. Thank you for your patience.` },
