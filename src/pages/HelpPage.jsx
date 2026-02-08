@@ -86,17 +86,34 @@ const HelpModal = ({ user, onClose }) => {
       setTyping(true);
       try {
       
-const res = await APIControl.createSupportTicket({
-  name,
-  email,
-  category,
-  message,
-});
+try {
+  const res = await APIControl.createSupportTicket({
+    name,
+    email,
+    category,
+    message,
+  });
 
-        setMessages((prev) => [
-          ...prev,
-          { type: "bot", text: `Your ticket was generated: ${res.data.ticketId}\nWe will respond within 2-3 business days. Thank you for your patience.` },
-        ]);
+  console.log("API response:", res); // <-- DEBUG: see structure
+
+  const ticketId = res.data?.ticketId || res.ticketId; // handles both cases
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      type: "bot",
+      text: ticketId
+        ? `Your ticket was generated: ${ticketId}\nWe will respond within 2-3 business days. Thank you for your patience.`
+        : "Your ticket was created, but we did not receive a ticket ID. Please check your email or try again later.",
+    },
+  ]);
+} catch (err) {
+  setMessages((prev) => [
+    ...prev,
+    { type: "bot", text: "Failed to create ticket. Please try again later." },
+  ]);
+}
+
       } catch (err) {
         setMessages((prev) => [
           ...prev,
