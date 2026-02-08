@@ -40,12 +40,19 @@ const HelpModal = ({ user, onClose }) => {
     "Other",
   ];
 
+  // Helper to simulate bot typing
+  const addBotMessage = (text, delay = 1500) => {
+    setTyping(true); // show typing indicator
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { type: "bot", text }]);
+      setTyping(false); // hide typing after message
+    }, delay);
+  };
+
+  // Initial bot welcome
   useEffect(() => {
     if (step === 0) {
-      setMessages((prev) => [
-        ...prev,
-        { type: "bot", text: "Welcome to FTSA AI Help Center! How can we refer to you?" },
-      ]);
+      addBotMessage("Welcome to FTSA AI Help Center! How can we refer to you?");
     }
   }, [step]);
 
@@ -55,28 +62,19 @@ const HelpModal = ({ user, onClose }) => {
       setName(inputValue);
       setMessages((prev) => [...prev, { type: "user", text: inputValue }]);
       setInputValue("");
-      setMessages((prev) => [
-        ...prev,
-        { type: "bot", text: `Hi ${inputValue}, please provide your email.` },
-      ]);
+      addBotMessage(`Hi ${inputValue}, please provide your email.`);
       setStep(1);
     } else if (step === 1) {
       if (!inputValue.trim()) return;
       setEmail(inputValue);
       setMessages((prev) => [...prev, { type: "user", text: inputValue }]);
       setInputValue("");
-      setMessages((prev) => [
-        ...prev,
-        { type: "bot", text: "Please select your problem category:" },
-      ]);
+      addBotMessage("Please select your problem category:");
       setStep(2);
     } else if (step === 2) {
       if (!category) return;
       setMessages((prev) => [...prev, { type: "user", text: category }]);
-      setMessages((prev) => [
-        ...prev,
-        { type: "bot", text: "Kindly describe your problem in detail:" },
-      ]);
+      addBotMessage("Kindly describe your problem in detail:");
       setStep(3);
     } else if (step === 3) {
       if (!inputValue.trim()) return;
@@ -84,43 +82,27 @@ const HelpModal = ({ user, onClose }) => {
       const message = inputValue;
       setInputValue("");
       setTyping(true);
+
       try {
-      
-try {
-  const res = await APIControl.createSupportTicket({
-    name,
-    email,
-    category,
-    message,
-  });
+        const res = await APIControl.createSupportTicket({
+          name,
+          email,
+          category,
+          message,
+        });
 
-  console.log("API response:", res); // <-- DEBUG: see structure
+        const ticketId = res.data?.ticketId || res.ticketId; // handles both cases
 
-  const ticketId = res.data?.ticketId || res.ticketId; // handles both cases
-
-  setMessages((prev) => [
-    ...prev,
-    {
-      type: "bot",
-      text: ticketId
-        ? `Your ticket was generated: ${ticketId}\nWe will respond within 2-3 business days. Thank you for your patience.`
-        : "Your ticket was created, but we did not receive a ticket ID. Please check your email or try again later.",
-    },
-  ]);
-} catch (err) {
-  setMessages((prev) => [
-    ...prev,
-    { type: "bot", text: "Failed to create ticket. Please try again later." },
-  ]);
-}
-
+        addBotMessage(
+          ticketId
+            ? `Your ticket was generated: ${ticketId}\nWe will respond within 2-3 business days. Thank you for your patience.`
+            : "Your ticket was created, but we did not receive a ticket ID. Please check your email or try again later.",
+          2000
+        );
       } catch (err) {
-        setMessages((prev) => [
-          ...prev,
-          { type: "bot", text: "Failed to create ticket. Please try again later." },
-        ]);
+        addBotMessage("Failed to create ticket. Please try again later.", 2000);
       }
-      setTyping(false);
+
       setStep(4);
     }
   };
@@ -143,44 +125,63 @@ try {
         </div>
 
         <div className="input-container">
-          {step === 2 ? (
-            <div className="category-buttons">
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  className={category === c ? "selected" : ""}
-                  onClick={() => setCategory(c)}
-                >
-                  {c}
+          {/* Show input only when bot is not typing */}
+          {!typing &&
+            (step === 0 ? (
+              <div className="text-input-container">
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleNextStep()}
+                />
+                <button onClick={handleNextStep}>Send</button>
+              </div>
+            ) : step === 1 ? (
+              <div className="text-input-container">
+                <input
+                  type="text"
+                  placeholder="Enter your email"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleNextStep()}
+                />
+                <button onClick={handleNextStep}>Send</button>
+              </div>
+            ) : step === 2 ? (
+              <div className="category-buttons">
+                {categories.map((c) => (
+                  <button
+                    key={c}
+                    className={category === c ? "selected" : ""}
+                    onClick={() => setCategory(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+                <button onClick={handleNextStep} disabled={!category}>
+                  Next
                 </button>
-              ))}
-              <button onClick={handleNextStep} disabled={!category}>
-                Next
-              </button>
-            </div>
-          ) : step <= 3 ? (
-            <div className="text-input-container">
-              <input
-                type="text"
-                placeholder={
-                  step === 0
-                    ? "Enter your name"
-                    : step === 1
-                    ? "Enter your email"
-                    : "Describe your problem"
-                }
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleNextStep()}
-              />
-              <button onClick={handleNextStep}>Send</button>
-            </div>
-          ) : null}
+              </div>
+            ) : step === 3 ? (
+              <div className="text-input-container">
+                <input
+                  type="text"
+                  placeholder="Describe your problem"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleNextStep()}
+                />
+                <button onClick={handleNextStep}>Send</button>
+              </div>
+            ) : null)}
         </div>
       </div>
     </div>
   );
 };
+
 
 // ---- Help Page ----
 const HelpPage = () => {
