@@ -172,17 +172,20 @@ const HelpPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get("/api/faqs");
-        setFaqs(res.data || []);
-        setFilteredFaqs(res.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("/api/faqs");
+      // safely extract array from backend
+      const faqsArray = Array.isArray(res.data) ? res.data : Array.isArray(res.data.data) ? res.data.data : [];
+      setFaqs(faqsArray);
+      setFilteredFaqs(faqsArray);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  fetchData();
+}, []);
+
 
   useEffect(() => {
     if (!searchTerm) setFilteredFaqs(faqs);
