@@ -14,14 +14,7 @@
   --help-accent: #00BFFF; /* Slightly softer blue for help sections */
 }
 
-/* 2️⃣ Page Container */
-.help-container {
-  background-color: var(--bg-dark);
-  min-height: 100vh;
-  padding: 30px;
-  font-family: 'Orbitron', sans-serif;
-  color: var(--text-white);
-}
+
 
 /* 3️⃣ Section Cards */
 /* 3️⃣ Section Cards (Refined - Sleek, Pro look) */
@@ -156,4 +149,247 @@
   font-size: 0.9rem;
   color: var(--help-accent);
   text-shadow: 0 0 6px var(--help-accent);
+}
+/* src/styles/HelpPage.css */
+
+/* General Page Styles */
+.help-container {
+  font-family: 'Inter', sans-serif;
+  background-color: #0a0a0a;
+  color: #f0f0f0;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Header */
+.help-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.help-header h1 {
+  font-size: 2rem;
+  color: #00e676; /* green highlight */
+}
+
+/* Cards Container */
+.help-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Individual Card */
+.card {
+  background-color: #1c1c1c;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+}
+
+.card h3 {
+  color: #00e676;
+  margin-bottom: 10px;
+}
+
+.card p {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.card ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.card li {
+  padding: 4px 0;
+}
+
+/* FAQ Section */
+.faq-list {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border-top: 1px solid #333;
+  padding-top: 10px;
+}
+
+.faq-item {
+  margin-bottom: 15px;
+}
+
+.faq-item h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #00e676;
+}
+
+.faq-item p {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.faq-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.faq-list::-webkit-scrollbar-thumb {
+  background-color: #00e676;
+  border-radius: 3px;
+}
+
+/* Search input */
+input[type="search"] {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 10px;
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+/* Button */
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #00e676;
+  color: #000;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover {
+  background-color: #00c853;
+}
+
+/* Help Modal Backdrop */
+.help-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Modal */
+.help-modal {
+  background-color: #121212;
+  width: 400px;
+  max-width: 90%;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 15px #000;
+}
+
+/* Close Button */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  color: #f0f0f0;
+  font-size: 1.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+/* Messages Container */
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding-right: 5px;
+}
+
+.bot-message,
+.user-message {
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin: 5px 0;
+  max-width: 80%;
+  word-wrap: break-word;
+  font-size: 0.9rem;
+}
+
+.bot-message {
+  background-color: #00e676;
+  color: #000;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+
+.user-message {
+  background-color: #333;
+  color: #f0f0f0;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+/* Typing indicator */
+.messages-container .bot-message.typing {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Input Container */
+.input-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-input-container {
+  display: flex;
+  gap: 10px;
+}
+
+.text-input-container input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background-color: #1c1c1c;
+  color: #f0f0f0;
+}
+
+/* Category buttons */
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.category-buttons button {
+  flex: 1 1 45%;
+  font-size: 0.85rem;
+}
+
+.category-buttons button.selected {
+  background-color: #00c853;
+  color: #000;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .help-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .help-modal {
+    width: 90%;
+  }
 }
