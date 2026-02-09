@@ -60,6 +60,8 @@ const affiliateRoutes = require('./routes/affiliate');
 const FTSAHelpRoutes = require("./routes/RoutesFTSAhelp");
 const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
+const ftsaFaqRoutes = require('./routes/routesFtsaFaqs');
+
 
 
 
@@ -200,7 +202,8 @@ const Elimq5Service = require('./services/Elimq5Service');
 // Start automatic polling for EA generation
 new Elimq5Service();
 console.log('✅ Elimq5Service polling started');
-
+app.use('/api/FtsafaqsData', ftsaFaqRoutes);
+console.log('✅ /api/FtsafaqsData routes mounted');
 app.use("/api/proxy", proxyTokenRoutes);
 console.log("✅ /api/proxyToken routes mounted");
 // API routes for EX5 licenses

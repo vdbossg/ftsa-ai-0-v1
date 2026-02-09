@@ -5,12 +5,15 @@ import { AuthContext } from "../contexts/AuthContext";
 import "../styles/HelpPage.css";
 import APIControl from "../brain/APIControl";
 // ---- FAQ Item ----
-const FAQItem = ({ question, answer }) => (
-  <div className="faq-item">
-    <h4>{question}</h4>
-    <p>{answer}</p>
+const FAQItem = ({ faq, onClick }) => (
+  <div
+    className="faq-item cursor-pointer hover:bg-[#0B0C10] p-2 rounded"
+    onClick={() => onClick(faq)}
+  >
+    <h4 className="text-white font-semibold">{faq.question}</h4>
   </div>
 );
+
 
 // ---- Bot Message ----
 const BotMessage = ({ text }) => (
@@ -190,6 +193,7 @@ const HelpPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredFaqs, setFilteredFaqs] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFaq, setSelectedFaq] = useState(null); // for FAQ modal
 
   useEffect(() => {
   const fetchData = async () => {
@@ -255,15 +259,16 @@ const HelpPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <div className="faq-list">
-            {filteredFaqs.map((faq) => (
-              <FAQItem
-                key={faq._id || faq.id}
-                question={faq.question}
-                answer={faq.answer}
-              />
-            ))}
-            {filteredFaqs.length === 0 && <p>No FAQs found.</p>}
-          </div>
+  {filteredFaqs.map((faq) => (
+    <FAQItem
+      key={faq._id || faq.id}
+      faq={faq}
+      onClick={(f) => setSelectedFaq(f)}
+    />
+  ))}
+  {filteredFaqs.length === 0 && <p>No FAQs found.</p>}
+</div>
+
         </div>
 
         <div className="card">
@@ -275,6 +280,22 @@ const HelpPage = () => {
       </div>
 
       {modalOpen && <HelpModal user={user} onClose={() => setModalOpen(false)} />}
+        {/* FAQ Modal */}
+{selectedFaq && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-[#1F2833] rounded-lg p-6 max-w-md w-full relative text-white">
+      <button
+        className="absolute top-2 right-2 text-gray-400 hover:text-gray-200 text-xl font-bold"
+        onClick={() => setSelectedFaq(null)}
+      >
+        &times;
+      </button>
+      <h2 className="text-2xl font-bold mb-4">{selectedFaq.question}</h2>
+      <p className="text-gray-300 whitespace-pre-line">{selectedFaq.answer}</p>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
