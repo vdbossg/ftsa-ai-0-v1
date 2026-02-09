@@ -312,17 +312,22 @@ const HelpPage = () => {
       </div>
 
      
-      {/* Answer Card */}
-<div className="faq-card answer-card p-4 rounded-lg">
+    {/* Answer Card */}
+<div className="faq-card answer-card p-4 rounded-lg bg-green-600">
   <h3 className="text-white font-bold text-lg">Answer</h3>
   <div className="text-white mt-2">
-    {selectedFaq.answer.split("\n").map((line, idx) =>
-      line.startsWith("•") ? (
-        <li key={idx} className="ml-4 list-disc">{line.replace("•", "").trim()}</li>
-      ) : (
-        <p key={idx} className="mb-2">{line}</p>
-      )
-    )}
+    {selectedFaq.answer.split("\n").map((line, idx) => {
+      const trimmed = line.trim();
+      if (!trimmed) return null; // skip empty lines
+      if (trimmed.startsWith("•")) {
+        return (
+          <ul key={idx} className="ml-4 list-disc">
+            <li>{trimmed.replace("•", "").trim()}</li>
+          </ul>
+        );
+      }
+      return <p key={idx} className="mb-2">{trimmed}</p>;
+    })}
   </div>
 </div>
 
