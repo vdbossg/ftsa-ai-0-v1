@@ -312,7 +312,7 @@ const HelpPage = () => {
       </div>
 
      
-  {/* Answer Card */}
+ {/* Answer Card */}
 <div className="faq-card answer-card p-4 rounded-lg bg-green-600">
   <h3 className="text-white font-bold text-lg">Answer</h3>
   <div className="text-white mt-2">
@@ -320,52 +320,58 @@ const HelpPage = () => {
       const trimmed = line.trim();
       if (!trimmed) return null; // skip empty lines
 
-      // Regex to detect URLs and plain domains
-      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[^\s]+\.(com|net|org|co\.ke|io|ai|gov|edu)(\/[^\s]*)?)/gi;
+      // Function to wrap links exactly as they appear
+      const renderLineWithLinks = (text) => {
+        const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[^\s]+\.(com|net|org|co\.ke|io|ai|gov|edu)(\/[^\s]*)?)/gi;
+        const elements = [];
+        let lastIndex = 0;
 
-      // Split line by URLs
-      const parts = trimmed.split(urlRegex);
+        text.replace(urlRegex, (match, offset) => {
+          // push text before the match
+          if (offset > lastIndex) {
+            elements.push(text.slice(lastIndex, offset));
+          }
+          // push the matched link exactly as it is
+          elements.push(
+            <a
+              key={offset}
+              href={match} // use the link exactly as it is
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-200"
+            >
+              {match}
+            </a>
+          );
+          lastIndex = offset + match.length;
+          return match;
+        });
 
-      // Map each part into link or text
-       const renderedParts = parts.map((part, i) => {
-  if (!part) return null;
-  const match = part.match(urlRegex);
-  if (match) {
-    return (
-      <a
-        key={i}
-        href={part}  // use the link exactly as it is
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline text-blue-200"
-      >
-        {part}
-      </a>
-    );
-  }
-  return part;
-});
+        // push remaining text after last match
+        if (lastIndex < text.length) {
+          elements.push(text.slice(lastIndex));
+        }
 
+        return elements;
+      };
 
       // Check for bullets
       if (trimmed.startsWith("•")) {
         return (
           <ul key={idx} className="ml-4 list-disc">
-            <li>{renderedParts}</li>
+            <li>{renderLineWithLinks(trimmed)}</li>
           </ul>
         );
       }
 
       return (
         <p key={idx} className="mb-2">
-          {renderedParts}
+          {renderLineWithLinks(trimmed)}
         </p>
       );
     })}
   </div>
 </div>
-
-
     </div>
   </div>
 )}
