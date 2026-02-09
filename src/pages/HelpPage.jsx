@@ -197,19 +197,42 @@ const HelpPage = () => {
 
 
   useEffect(() => {
+  let isMounted = true; // avoid updating state if component unmounts
+
   const fetchData = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/FtsafaqsData");
-      console.log("FAQ Response:", res.data);
       const faqsArray = res.data?.faqs || [];
-      setFaqs(faqsArray);
-      setFilteredFaqs(faqsArray);
+      if (isMounted) {
+        setFaqs(faqsArray);
+        setFilteredFaqs((prevFiltered) => {
+          // preserve search filter
+          if (!searchTerm) return faqsArray;
+          return faqsArray.filter(
+            (f) =>
+              f.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              f.answer.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        });
+      }
     } catch (err) {
       console.error("Failed to fetch FAQs:", err);
     }
   };
+
+  // fetch initially
   fetchData();
-}, []);
+
+  // set interval to fetch every 3 seconds (3000ms)
+  const interval = setInterval(fetchData, 3000);
+
+  // cleanup on unmount
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+  };
+}, [searchTerm]); // include searchTerm so filteredFaqs stays correct
+
 
 
   useEffect(() => {
