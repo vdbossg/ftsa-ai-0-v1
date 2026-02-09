@@ -35,11 +35,6 @@ h1, h2, h3, h4 {
   transition: none; /* Text stays static */
 }
 
-/* Neon text helpers */
-.neon-blue { color: var(--neon-blue); text-shadow: 0 0 6px var(--neon-blue); transition: none; }
-.neon-green { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); transition: none; }
-.neon-orange { color: var(--neon-orange); text-shadow: 0 0 6px var(--neon-orange); transition: none; }
-.neon-red { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); transition: none; }
 
 .neon-glow {
   box-shadow: 0 0 8px var(--help-accent);
