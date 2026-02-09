@@ -198,9 +198,8 @@ const HelpPage = () => {
   useEffect(() => {
   const fetchData = async () => {
     try {
-      const res = await axios.get("/api/faqs");
-      // safely extract array from backend
-      const faqsArray = Array.isArray(res.data) ? res.data : Array.isArray(res.data.data) ? res.data.data : [];
+      const res = await axios.get("/api/FtsafaqsData");
+      const faqsArray = res.data?.faqs || [];
       setFaqs(faqsArray);
       setFilteredFaqs(faqsArray);
     } catch (err) {
