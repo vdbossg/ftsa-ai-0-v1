@@ -260,23 +260,21 @@ const HelpPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <div className="faq-list">
-  {filteredFaqs.map((faq) => (
-    <FAQItem
-      key={faq._id || faq.id}
-      faq={faq}
-      onClick={(f) => setSelectedFaq(f)}
-    />
-  ))}
- // only show FAQs after data is loaded
-{filteredFaqs.length > 0 ? (
-  filteredFaqs.map((faq) => (
-    <FAQItem key={faq._id} faq={faq} onClick={(f) => setSelectedFaq(f)} />
-  ))
-) : (
-  <p>Loading FAQs or no results found.</p>
-)}
-
+  {filteredFaqs.length > 0 ? (
+    filteredFaqs.map((faq) => (
+      <FAQItem
+        key={faq._id || faq.id}
+        faq={faq}
+        onClick={() => setSelectedFaq(faq)}
+      />
+    ))
+  ) : searchTerm ? (
+    <p>No FAQs found for "{searchTerm}".</p>
+  ) : (
+    <p>Loading FAQs...</p>
+  )}
 </div>
+
 
         </div>
 
