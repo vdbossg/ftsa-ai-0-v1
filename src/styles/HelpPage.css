@@ -149,7 +149,9 @@
   font-size: 0.9rem;
   color: var(--help-accent);
   text-shadow: 0 0 6px var(--help-accent);
+  flex: 0 0 auto;  /* make footer fixed height, stays at bottom in flex layout */
 }
+
 /* src/styles/HelpPage.css */
 
 /* General Page Styles */
@@ -157,15 +159,24 @@
   font-family: 'Inter', sans-serif;
   background-color: #0a0a0a;
   color: #f0f0f0;
-  min-height: 100vh;
+  height: 100vh;        /* changed from min-height to full viewport height */
+  display: flex;        /* add flex layout */
+  flex-direction: column; /* stack header, cards, footer vertically */
   padding: 20px;
 }
+
 
 /* Header */
 .help-header {
   text-align: center;
   margin-bottom: 30px;
+  position: sticky;   /* make header stick on top */
+  top: 0;
+  z-index: 10;
+  background-color: #0a0a0a; /* optional: same as page background */
+  flex: 0 0 auto;     /* do not grow/shrink */
 }
+
 
 .help-header h1 {
   font-size: 2rem;
@@ -175,10 +186,14 @@
 /* Cards Container */
 .help-cards {
   display: flex;
-  flex-direction: column; /* stack top-to-bottom */
-  gap: 20px; /* spacing between cards */
-  align-items: center; /* center horizontally */
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  flex: 1 1 auto;      /* take remaining vertical space */
+  width: 100%;         /* full width */
+  overflow-y: auto;    /* scrollable if content is too tall */
 }
+
 
 
 /* Individual Card */
