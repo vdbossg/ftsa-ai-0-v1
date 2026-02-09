@@ -267,7 +267,15 @@ const HelpPage = () => {
       onClick={(f) => setSelectedFaq(f)}
     />
   ))}
-  {filteredFaqs.length === 0 && <p>No FAQs found.</p>}
+ // only show FAQs after data is loaded
+{filteredFaqs.length > 0 ? (
+  filteredFaqs.map((faq) => (
+    <FAQItem key={faq._id} faq={faq} onClick={(f) => setSelectedFaq(f)} />
+  ))
+) : (
+  <p>Loading FAQs or no results found.</p>
+)}
+
 </div>
 
         </div>
