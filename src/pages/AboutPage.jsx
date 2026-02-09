@@ -41,21 +41,20 @@ const AboutPage = () => {
   }, []);
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <div className="error-msg">{error}</div>;
-  if (!aboutData) return <div className="error-msg">No about data available</div>;
+  if (error) return <div className="error-msg neon-red">{error}</div>;
+  if (!aboutData) return <div className="error-msg neon-orange">No about data available</div>;
 
   return (
     <div className="about-page">
       <header className="help-header">
-        <h1>FTSA AI</h1>
-        <h2>About Us</h2>
+        <h1 className="neon-blue">FTSA AI</h1>
+        <h2 className="neon-green">About Us</h2>
       </header>
 
       <div className="help-cards">
         {Object.keys(SECTION_HEADERS).map((key) => {
           const sectionData = aboutData[key];
-          if (!sectionData || (Array.isArray(sectionData) && sectionData.length === 0))
-            return null;
+          if (!sectionData || (Array.isArray(sectionData) && sectionData.length === 0)) return null;
 
           return (
             <Card
@@ -68,7 +67,7 @@ const AboutPage = () => {
         })}
       </div>
 
-      <footer className="help-footer">
+      <footer className="help-footer neon-blue">
         FTSA AI — Powered by Kelvin Mburu Gathuru
       </footer>
     </div>
@@ -81,17 +80,18 @@ const Card = ({ title, data, sectionKey }) => {
       case "criticalNotices":
       case "keyFeatures":
         return (
-          <ul className="answer-card">
+          <ul className="answer-card neon-green">
             {data.map((item, idx) => (
               <li key={idx}>{item}</li>
             ))}
           </ul>
         );
+
       case "offices":
         return (
-          <div className="answer-card">
+          <div className="answer-card neon-blue">
             {data.map(({ address, city, country, contact }, idx) => (
-              <div key={idx} style={{ marginBottom: "1rem" }}>
+              <div key={idx} className="office-card">
                 <p><strong>Address:</strong> {address}</p>
                 <p><strong>City:</strong> {city}</p>
                 <p><strong>Country:</strong> {country}</p>
@@ -107,11 +107,12 @@ const Card = ({ title, data, sectionKey }) => {
             ))}
           </div>
         );
+
       case "team":
         return (
-          <div className="answer-card" style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+          <div className="answer-card team-grid">
             {data.map(({ name, role, photo }, idx) => (
-              <div key={idx} className="card">
+              <div key={idx} className="card team-card neon-blue">
                 {photo && <img src={photo} alt={name} className="team-photo" />}
                 <h4>{name}</h4>
                 <p>{role}</p>
@@ -119,9 +120,10 @@ const Card = ({ title, data, sectionKey }) => {
             ))}
           </div>
         );
+
       case "roadmap":
         return (
-          <ul className="answer-card">
+          <ul className="answer-card neon-orange">
             {data.map(({ item, eta }, idx) => (
               <li key={idx}>
                 <strong>{item}</strong> {eta && <>— <em>{eta}</em></>}
@@ -129,16 +131,18 @@ const Card = ({ title, data, sectionKey }) => {
             ))}
           </ul>
         );
+
       case "whyExist":
-        return <p className="answer-card" style={{ whiteSpace: "pre-wrap" }}>{data}</p>;
+        return <p className="answer-card neon-green" style={{ whiteSpace: "pre-wrap" }}>{data}</p>;
+
       default:
         return <pre>{JSON.stringify(data, null, 2)}</pre>;
     }
   };
 
   return (
-    <section className="card">
-      <h3 className="help-title">{title}</h3>
+    <section className="card help-section neon-glow">
+      <h3 className="help-title neon-blue">{title}</h3>
       {renderContent()}
     </section>
   );
