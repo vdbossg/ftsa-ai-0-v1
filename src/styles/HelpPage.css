@@ -470,7 +470,7 @@ button:hover {
   font-size: 26px;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 0 15px rgba(0, 230, 118, 0.9);
+  animation: pulseWave 1.8s infinite;
 }
 
 /* Overlay that centers FTSA Help Support card */
@@ -482,4 +482,40 @@ button:hover {
   justify-content: center;
   align-items: center;
   z-index: 900;
+}
+@keyframes pulseWave {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(0, 230, 118, 0);
+    transform: scale(1);
+  }
+}
+.help-card-overlay .card {
+  animation: cardFloatIn 0.4s ease-out, cardBreathe 3s ease-in-out infinite;
+}
+
+@keyframes cardFloatIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cardBreathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
