@@ -8,7 +8,7 @@
   --bg-dark: #000000;
   --text-white: #ffffff;
   --neon-blue: #00ffff;
-  --neon-green: #00ff00;
+  --neon-green: #00e676;
   --neon-orange: #ffa500;
   --neon-red: #ff0000;
   --help-accent: #00bfff;
@@ -96,10 +96,10 @@ h1, h2, h3, h4 {
 .card-title {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #00FF00; /* Neon Green */
-  text-shadow: 0 0 6px #00FF00, 0 0 12px #00FF00, 0 0 18px #00FF00;
+  color: #00e676; /* updated from #00FF00 */
   transition: none; /* Text stays static */
 }
+
 
 /* ===== Answer Cards (Lists & Text) ===== */
 .answer-card {
