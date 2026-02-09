@@ -195,16 +195,17 @@ const HelpPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFaq, setSelectedFaq] = useState(null); // for FAQ modal
 
-  
+
   useEffect(() => {
   const fetchData = async () => {
     try {
-      const res = await axios.get("/api/FtsafaqsData");
+      const res = await axios.get("http://localhost:5000/api/FtsafaqsData");
+      console.log("FAQ Response:", res.data);
       const faqsArray = res.data?.faqs || [];
       setFaqs(faqsArray);
       setFilteredFaqs(faqsArray);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch FAQs:", err);
     }
   };
   fetchData();
