@@ -52,99 +52,101 @@ const AboutPage = () => {
       </header>
 
       <div className="help-cards">
-        {Object.keys(SECTION_HEADERS).map((key) => {
-          const sectionData = aboutData[key];
-          if (!sectionData || (Array.isArray(sectionData) && sectionData.length === 0)) return null;
 
-          return (
-            <Card
-              key={key}
-              title={SECTION_HEADERS[key]}
-              data={sectionData}
-              sectionKey={key}
-            />
-          );
-        })}
+        {/* CRITICAL ALERT */}
+        {aboutData.criticalNotices && aboutData.criticalNotices.length > 0 && (
+          <section className="card neon-glow critical-card">
+            <h3 className="card-title neon-blue">{SECTION_HEADERS.criticalNotices}</h3>
+            <ul className="card-list neon-green">
+              {aboutData.criticalNotices.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* KEY FEATURES */}
+        {aboutData.keyFeatures && aboutData.keyFeatures.length > 0 && (
+          <section className="card neon-glow features-card">
+            <h3 className="card-title neon-blue">{SECTION_HEADERS.keyFeatures}</h3>
+            <ul className="card-list neon-green">
+              {aboutData.keyFeatures.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* OUR OFFICES */}
+        {aboutData.offices && aboutData.offices.length > 0 && (
+          <section className="card neon-glow offices-card">
+            <h3 className="card-title neon-blue">{SECTION_HEADERS.offices}</h3>
+            <div className="card-grid">
+              {aboutData.offices.map(({ address, city, country, contact }, idx) => (
+                <div key={idx} className="sub-card office-card neon-blue">
+                  <p><strong>Address:</strong> {address}</p>
+                  <p><strong>City:</strong> {city}</p>
+                  <p><strong>Country:</strong> {country}</p>
+                  {contact && (
+                    <ul>
+                      {contact.phone && <li>Phone: {contact.phone}</li>}
+                      {contact.email && <li>Email: {contact.email}</li>}
+                      {contact.whatsapp && <li>WhatsApp: {contact.whatsapp}</li>}
+                      {contact.chat && <li>Chat: {contact.chat}</li>}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* FTSA TEAM */}
+        {aboutData.team && aboutData.team.length > 0 && (
+          <section className="card neon-glow team-card">
+            <h3 className="card-title neon-blue">{SECTION_HEADERS.team}</h3>
+            <div className="card-grid team-grid">
+              {aboutData.team.map(({ name, role, photo }, idx) => (
+                <div key={idx} className="sub-card team-member-card neon-blue">
+                  {photo && <img src={photo} alt={name} className="team-photo" />}
+                  <h4>{name}</h4>
+                  <p>{role}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ROAD MAP */}
+        {aboutData.roadmap && aboutData.roadmap.length > 0 && (
+          <section className="card neon-glow roadmap-card">
+            <h3 className="card-title neon-blue">{SECTION_HEADERS.roadmap}</h3>
+            <ul className="card-list neon-orange">
+              {aboutData.roadmap.map(({ item, eta }, idx) => (
+                <li key={idx}>
+                  <strong>{item}</strong>{eta && <> — <em>{eta}</em></>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* GENERAL ABOUT */}
+        {aboutData.whyExist && (
+          <section className="card neon-glow general-card">
+            <h3 className="card-title neon-blue">{SECTION_HEADERS.whyExist}</h3>
+            <p className="card-text neon-green" style={{ whiteSpace: "pre-wrap" }}>
+              {aboutData.whyExist}
+            </p>
+          </section>
+        )}
+
       </div>
 
       <footer className="help-footer neon-blue">
         FTSA AI — Powered by Kelvin Mburu Gathuru
       </footer>
     </div>
-  );
-};
-
-const Card = ({ title, data, sectionKey }) => {
-  const renderContent = () => {
-    switch (sectionKey) {
-      case "criticalNotices":
-      case "keyFeatures":
-        return (
-          <ul className="answer-card neon-green">
-            {data.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
-        );
-
-      case "offices":
-        return (
-          <div className="answer-card neon-blue">
-            {data.map(({ address, city, country, contact }, idx) => (
-              <div key={idx} className="office-card">
-                <p><strong>Address:</strong> {address}</p>
-                <p><strong>City:</strong> {city}</p>
-                <p><strong>Country:</strong> {country}</p>
-                {contact && (
-                  <ul>
-                    {contact.phone && <li>Phone: {contact.phone}</li>}
-                    {contact.email && <li>Email: {contact.email}</li>}
-                    {contact.whatsapp && <li>WhatsApp: {contact.whatsapp}</li>}
-                    {contact.chat && <li>Chat: {contact.chat}</li>}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        );
-
-      case "team":
-        return (
-          <div className="answer-card team-grid">
-            {data.map(({ name, role, photo }, idx) => (
-              <div key={idx} className="card team-card neon-blue">
-                {photo && <img src={photo} alt={name} className="team-photo" />}
-                <h4>{name}</h4>
-                <p>{role}</p>
-              </div>
-            ))}
-          </div>
-        );
-
-      case "roadmap":
-        return (
-          <ul className="answer-card neon-orange">
-            {data.map(({ item, eta }, idx) => (
-              <li key={idx}>
-                <strong>{item}</strong> {eta && <>— <em>{eta}</em></>}
-              </li>
-            ))}
-          </ul>
-        );
-
-      case "whyExist":
-        return <p className="answer-card neon-green" style={{ whiteSpace: "pre-wrap" }}>{data}</p>;
-
-      default:
-        return <pre>{JSON.stringify(data, null, 2)}</pre>;
-    }
-  };
-
-  return (
-    <section className="card help-section neon-glow">
-      <h3 className="help-title neon-blue">{title}</h3>
-      {renderContent()}
-    </section>
   );
 };
 

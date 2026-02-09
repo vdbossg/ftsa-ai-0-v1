@@ -14,7 +14,7 @@
   --help-accent: #00bfff;
 
   --card-bg: #1c1c1c;
-  --card-radius: 10px;
+  --card-radius: 12px;
   --card-shadow: 0 0 10px #000;
 
   --font-main: 'Inter', sans-serif;
@@ -39,6 +39,15 @@ h1, h2, h3, h4 {
 .neon-green { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); }
 .neon-orange { color: var(--neon-orange); text-shadow: 0 0 6px var(--neon-orange); }
 .neon-red { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); }
+
+.neon-glow {
+  box-shadow: 0 0 8px var(--help-accent);
+  transition: box-shadow 0.3s ease;
+}
+
+.neon-glow:hover {
+  box-shadow: 0 0 16px var(--help-accent);
+}
 
 /* ===== Layout ===== */
 .about-page {
@@ -70,7 +79,7 @@ h1, h2, h3, h4 {
   box-shadow: var(--card-shadow);
   padding: 20px;
   width: 100%;
-  max-width: 600px;
+  max-width: 650px;
   animation: slideUp 0.5s ease forwards;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -80,31 +89,12 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 20px var(--help-accent);
 }
 
-/* Help section variant */
-.help-section {
-  background: rgba(0,0,0,0.7);
-  border: 1px solid var(--help-accent);
-  border-radius: 0;
-  padding: 25px;
-  box-shadow: 0 0 6px var(--help-accent);
-  transition: box-shadow 0.3s ease;
+.card-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
 }
 
-.help-section:hover {
-  box-shadow: 0 0 12px var(--help-accent);
-}
-
-/* Card glow animation helper */
-.neon-glow {
-  box-shadow: 0 0 8px var(--help-accent);
-  transition: box-shadow 0.3s ease;
-}
-
-.neon-glow:hover {
-  box-shadow: 0 0 16px var(--help-accent);
-}
-
-/* ===== Answer Cards ===== */
+/* ===== Answer Cards (Lists & Text) ===== */
 .answer-card {
   background-color: #222;
   border-radius: 10px;
@@ -118,85 +108,62 @@ h1, h2, h3, h4 {
   margin-bottom: 0.5rem;
 }
 
-/* Team cards */
-.team-grid {
-  display: flex;
-  flex-wrap: wrap;
+.card-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-top: 1rem;
+}
+
+/* ===== Grid Layouts (Team & Offices) ===== */
+.card-grid {
+  display: grid;
   gap: 1rem;
 }
 
-.team-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.offices-card .card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.office-card {
+  background-color: #111;
+  padding: 12px;
+  border-left: 3px solid var(--neon-blue);
+  border-radius: 8px;
+  box-shadow: 0 0 6px #000;
+}
+
+.team-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.team-card, .team-member-card {
+  background-color: #1a1a1a;
   padding: 16px;
-  width: 150px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 6px var(--help-accent);
 }
 
 .team-photo {
   width: 100%;
+  height: 180px;
+  object-fit: cover;
   border-radius: 8px;
   margin-bottom: 0.5rem;
-  box-shadow: 0 0 6px var(--help-accent);
-}
-
-/* Offices */
-.office-card {
-  margin-bottom: 1rem;
-  padding: 12px;
-  border-left: 3px solid var(--neon-blue);
-  background-color: #111;
-  border-radius: 6px;
 }
 
 /* ===== Animations ===== */
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes cardFloatIn {
-  0% { transform: translateY(50px) scale(0.95); opacity: 0; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-@keyframes cardBreathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-
-/* Floating Bot card example */
-.help-card-overlay .card {
-  animation: cardFloatIn 0.6s ease forwards, cardBreathe 2s infinite alternate;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== Misc Styling ===== */
-ul, li {
-  list-style: none;
-  padding: 0;
-}
+ul, li { list-style: none; padding: 0; }
+p { margin: 0.25rem 0; }
 
 .error-msg {
   color: var(--neon-red);
   text-align: center;
   font-weight: bold;
-}
-
-p {
-  margin: 0.25rem 0;
-}
-
-/* Optional: subtle hover effect for answer cards */
-.answer-card:hover {
-  box-shadow: 0 0 14px var(--help-accent);
 }
