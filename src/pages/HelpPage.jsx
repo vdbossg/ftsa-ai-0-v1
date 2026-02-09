@@ -413,13 +413,11 @@ const HelpPage = () => {
   </div>
 )}
 {/* Footer */}
-<div style={{ height: "2px", backgroundColor: "#00FFFF", marginBottom: "20px", boxShadow: "0 0 6px #00FFFF" }}></div>
 <footer style={styles.footer}>
   <p style={styles.footerText}>
     FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
   </p>
 </footer>
-
 
     </div>
   );

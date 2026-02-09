@@ -149,9 +149,7 @@
   font-size: 0.9rem;
   color: var(--help-accent);
   text-shadow: 0 0 6px var(--help-accent);
-  flex: 0 0 auto;  /* make footer fixed height, stays at bottom in flex layout */
 }
-
 /* src/styles/HelpPage.css */
 
 /* General Page Styles */
@@ -159,24 +157,15 @@
   font-family: 'Inter', sans-serif;
   background-color: #0a0a0a;
   color: #f0f0f0;
-  height: 100vh;        /* changed from min-height to full viewport height */
-  display: flex;        /* add flex layout */
-  flex-direction: column; /* stack header, cards, footer vertically */
+  min-height: 100vh;
   padding: 20px;
 }
-
 
 /* Header */
 .help-header {
   text-align: center;
   margin-bottom: 30px;
-  position: sticky;   /* make header stick on top */
-  top: 0;
-  z-index: 10;
-  background-color: #0a0a0a; /* optional: same as page background */
-  flex: 0 0 auto;     /* do not grow/shrink */
 }
-
 
 .help-header h1 {
   font-size: 2rem;
@@ -186,14 +175,10 @@
 /* Cards Container */
 .help-cards {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
-  flex: 1 1 auto;      /* take remaining vertical space */
-  width: 100%;         /* full width */
-  overflow-y: auto;    /* scrollable if content is too tall */
+  flex-direction: column; /* stack top-to-bottom */
+  gap: 20px; /* spacing between cards */
+  align-items: center; /* center horizontally */
 }
-
 
 
 /* Individual Card */
@@ -468,12 +453,4 @@ button:hover {
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
-}
-/* Footer Divider Line */
-.help-footer-divider {
-  border: none;
-  height: 2px;
-  background: var(--help-accent); /* neon blue line */
-  margin: 20px 0 0 0; /* 20px space above footer */
-  box-shadow: 0 0 6px var(--help-accent); /* subtle neon glow */
 }
