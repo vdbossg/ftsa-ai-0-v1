@@ -32,13 +32,14 @@ body {
 
 h1, h2, h3, h4 {
   margin: 0.5rem 0;
+  transition: none; /* Text stays static */
 }
 
 /* Neon text helpers */
-.neon-blue { color: var(--neon-blue); text-shadow: 0 0 6px var(--neon-blue); }
-.neon-green { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); }
-.neon-orange { color: var(--neon-orange); text-shadow: 0 0 6px var(--neon-orange); }
-.neon-red { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); }
+.neon-blue { color: var(--neon-blue); text-shadow: 0 0 6px var(--neon-blue); transition: none; }
+.neon-green { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); transition: none; }
+.neon-orange { color: var(--neon-orange); text-shadow: 0 0 6px var(--neon-orange); transition: none; }
+.neon-red { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); transition: none; }
 
 .neon-glow {
   box-shadow: 0 0 8px var(--help-accent);
@@ -70,6 +71,7 @@ h1, h2, h3, h4 {
   text-align: center;
   margin-top: 3rem;
   font-weight: bold;
+  transition: none; /* Text stays static */
 }
 
 /* ===== Card Base ===== */
@@ -81,9 +83,10 @@ h1, h2, h3, h4 {
   width: 100%;
   max-width: 650px;
   animation: slideUp 0.5s ease forwards;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Card can lift */
 }
 
+/* Card hover effect (only card, not text) */
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 0 20px var(--help-accent);
@@ -93,8 +96,9 @@ h1, h2, h3, h4 {
 .card-title {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #00FF00; /* Neon Green for all headings */
+  color: #00FF00; /* Neon Green */
   text-shadow: 0 0 6px #00FF00, 0 0 12px #00FF00, 0 0 18px #00FF00;
+  transition: none; /* Text stays static */
 }
 
 /* ===== Answer Cards (Lists & Text) ===== */
@@ -105,16 +109,19 @@ h1, h2, h3, h4 {
   margin-top: 1rem;
   box-shadow: 0 0 6px #000;
   width: 100%;
+  transition: none; /* Text stays static */
 }
 
 .answer-card li {
   margin-bottom: 0.5rem;
+  transition: none; /* Text stays static */
 }
 
 .card-text {
   font-size: 1rem;
   line-height: 1.5;
   margin-top: 1rem;
+  transition: none; /* Text stays static */
 }
 
 /* ===== Grid Layouts (Team & Offices) ===== */
@@ -133,6 +140,7 @@ h1, h2, h3, h4 {
   border-left: 3px solid var(--neon-blue);
   border-radius: 8px;
   box-shadow: 0 0 6px #000;
+  transition: none; /* Text stays static */
 }
 
 .team-grid {
@@ -145,6 +153,7 @@ h1, h2, h3, h4 {
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 0 6px var(--help-accent);
+  transition: none; /* Text stays static */
 }
 
 .team-photo {
@@ -153,6 +162,7 @@ h1, h2, h3, h4 {
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 0.5rem;
+  transition: none; /* Image stays static */
 }
 
 /* ===== Animations ===== */
@@ -162,11 +172,12 @@ h1, h2, h3, h4 {
 }
 
 /* ===== Misc Styling ===== */
-ul, li { list-style: none; padding: 0; }
-p { margin: 0.25rem 0; }
+ul, li { list-style: none; padding: 0; transition: none; }
+p { margin: 0.25rem 0; transition: none; }
 
 .error-msg {
   color: var(--neon-red);
   text-align: center;
   font-weight: bold;
+  transition: none; /* Text stays static */
 }
