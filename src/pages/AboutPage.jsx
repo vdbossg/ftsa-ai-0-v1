@@ -19,7 +19,6 @@ const AboutPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch About Data
   const fetchAboutData = async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/aboutfullData`);
@@ -35,81 +34,62 @@ const AboutPage = () => {
     }
   };
 
-  // Initial fetch + silent background refresh every 2 seconds
   useEffect(() => {
     fetchAboutData();
-    const interval = setInterval(fetchAboutData, 2000);
+    const interval = setInterval(fetchAboutData, 2000); // silent refresh
     return () => clearInterval(interval);
   }, []);
 
   if (loading) return <LoadingSpinner />;
-  if (error)
-    return (
-      <div className="error-msg neon-glow-border">
-        {error} — Please check your backend.
-      </div>
-    );
-  if (!aboutData)
-    return (
-      <div className="error-msg neon-glow-border">
-        About data not available. Please update from admin panel.
-      </div>
-    );
+  if (error) return <div className="error-msg">{error}</div>;
+  if (!aboutData) return <div className="error-msg">No about data available</div>;
 
   return (
-    <div
-      className="about-page"
-      style={{
-        backgroundColor: "#000",
-        color: "#00FFFF",
-        fontFamily: "Orbitron, sans-serif",
-        minHeight: "100vh",
-        padding: "2rem",
-        overflowY: "auto",
-      }}
-    >
-      <header className="appbar" style={{ marginBottom: "2rem" }}>
+    <div className="about-page">
+      <header className="help-header">
         <h1>FTSA AI</h1>
         <h2>About Us</h2>
       </header>
 
-      {/* Render dynamic cards */}
-      {Object.keys(SECTION_HEADERS).map((key) => {
-        const sectionData = aboutData[key];
-        if (!sectionData || (Array.isArray(sectionData) && sectionData.length === 0))
-          return null;
+      <div className="help-cards">
+        {Object.keys(SECTION_HEADERS).map((key) => {
+          const sectionData = aboutData[key];
+          if (!sectionData || (Array.isArray(sectionData) && sectionData.length === 0))
+            return null;
 
-        return (
-          <Card key={key} title={SECTION_HEADERS[key]} data={sectionData} sectionKey={key} />
-        );
-      })}
+          return (
+            <Card
+              key={key}
+              title={SECTION_HEADERS[key]}
+              data={sectionData}
+              sectionKey={key}
+            />
+          );
+        })}
+      </div>
 
-      {/* Footer */}
-      <footer style={{ marginTop: "3rem", textAlign: "center", color: "#00FFFF" }}>
+      <footer className="help-footer">
         FTSA AI — Powered by Kelvin Mburu Gathuru
       </footer>
     </div>
   );
 };
 
-// Card component to handle all sections dynamically
 const Card = ({ title, data, sectionKey }) => {
   const renderContent = () => {
     switch (sectionKey) {
       case "criticalNotices":
       case "keyFeatures":
         return (
-          <ul>
+          <ul className="answer-card">
             {data.map((item, idx) => (
-              <li key={idx} style={{ marginBottom: "0.5rem" }}>
-                {item}
-              </li>
+              <li key={idx}>{item}</li>
             ))}
           </ul>
         );
       case "offices":
         return (
-          <div>
+          <div className="answer-card">
             {data.map(({ address, city, country, contact }, idx) => (
               <div key={idx} style={{ marginBottom: "1rem" }}>
                 <p><strong>Address:</strong> {address}</p>
@@ -129,26 +109,10 @@ const Card = ({ title, data, sectionKey }) => {
         );
       case "team":
         return (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+          <div className="answer-card" style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
             {data.map(({ name, role, photo }, idx) => (
-              <div
-                key={idx}
-                style={{
-                  backgroundColor: "#111",
-                  borderRadius: "10px",
-                  padding: "1rem",
-                  width: "200px",
-                  textAlign: "center",
-                  boxShadow: "0 0 10px #00FFFF",
-                }}
-              >
-                {photo && (
-                  <img
-                    src={photo}
-                    alt={name}
-                    style={{ width: "100%", borderRadius: "50%", marginBottom: "0.5rem" }}
-                  />
-                )}
+              <div key={idx} className="card">
+                {photo && <img src={photo} alt={name} className="team-photo" />}
                 <h4>{name}</h4>
                 <p>{role}</p>
               </div>
@@ -157,30 +121,24 @@ const Card = ({ title, data, sectionKey }) => {
         );
       case "roadmap":
         return (
-          <ul>
+          <ul className="answer-card">
             {data.map(({ item, eta }, idx) => (
-              <li key={idx} style={{ marginBottom: "0.75rem" }}>
+              <li key={idx}>
                 <strong>{item}</strong> {eta && <>— <em>{eta}</em></>}
               </li>
             ))}
           </ul>
         );
       case "whyExist":
-        return <p style={{ whiteSpace: "pre-wrap" }}>{data}</p>;
+        return <p className="answer-card" style={{ whiteSpace: "pre-wrap" }}>{data}</p>;
       default:
         return <pre>{JSON.stringify(data, null, 2)}</pre>;
     }
   };
 
   return (
-    <section
-      className="neon-glow-border"
-      style={{
-        marginBottom: "2rem",
-        padding: "1rem",
-      }}
-    >
-      <h3 style={{ marginBottom: "1rem", color: "#00FFFF" }}>{title}</h3>
+    <section className="card">
+      <h3 className="help-title">{title}</h3>
       {renderContent()}
     </section>
   );
