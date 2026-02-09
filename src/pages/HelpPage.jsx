@@ -334,7 +334,7 @@ const HelpPage = () => {
           return (
             <a
               key={i}
-              href={part.startsWith("http") ? part : `https://${part}`}
+              href={/^https?:\/\//i.test(part) ? part : `https://${part}`}
               target="_blank"
               rel="noopener noreferrer"
               className="underline text-blue-200"
