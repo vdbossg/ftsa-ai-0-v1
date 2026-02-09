@@ -287,29 +287,38 @@ const HelpPage = () => {
       </div>
 
       {modalOpen && <HelpModal user={user} onClose={() => setModalOpen(false)} />}
-        {/* FAQ Answer Modal */}
+       {/* FAQ Answer Modal */}
 {selectedFaq && (
   <div
     className="faq-modal-backdrop"
     onClick={() => setSelectedFaq(null)} // click outside to close
   >
     <div
-      className="faq-modal bg-[#1F2833] text-white rounded-lg p-6 max-w-md w-full relative"
+      className="faq-modal p-6 max-w-md w-full relative"
       onClick={(e) => e.stopPropagation()} // prevent modal click from closing
     >
+      {/* Close Button */}
       <button
-        className="absolute top-2 right-2 text-gray-400 hover:text-gray-200 text-xl font-bold"
+        className="absolute top-2 right-2 text-white hover:text-gray-200 text-xl font-bold"
         onClick={() => setSelectedFaq(null)}
       >
         &times;
       </button>
-      <h2 className="text-2xl font-bold mb-4">{selectedFaq.question}</h2>
-      <p className="whitespace-pre-line">{selectedFaq.answer}</p>
+
+      {/* Question Card */}
+      <div className="faq-card question-card mb-4 p-4 rounded-lg">
+        <h3 className="text-white font-bold text-lg">Question</h3>
+        <p className="text-white mt-2">{selectedFaq.question}</p>
+      </div>
+
+      {/* Answer Card */}
+      <div className="faq-card answer-card p-4 rounded-lg">
+        <h3 className="text-white font-bold text-lg">Answer</h3>
+        <p className="text-white mt-2 whitespace-pre-line">{selectedFaq.answer}</p>
+      </div>
     </div>
   </div>
 )}
-
-
     </div>
   );
 };

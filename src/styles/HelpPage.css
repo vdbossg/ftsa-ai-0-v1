@@ -396,19 +396,35 @@ button:hover {
 .faq-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.6); /* dark semi-transparent backdrop */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 50;
-  animation: fadeIn 0.2s ease-in-out;
 }
 
 .faq-modal {
   max-height: 80vh;
   overflow-y: auto;
+  background-color: #00a550; /* green background for modal */
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.3s ease-out;
+  width: 90%;
+  max-width: 500px;
+}
+
+.faq-card {
+  background-color: #007f3f; /* slightly darker green for cards */
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.question-card {
+  background-color: #00994d; /* different green for question */
+}
+
+.answer-card {
+  background-color: #00cc66; /* slightly lighter green for answer */
 }
 
 /* Simple animations */
