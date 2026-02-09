@@ -14,6 +14,20 @@ const FAQItem = ({ faq, onClick }) => (
   </div>
 );
 
+const styles = {
+  footer: {
+    borderTop: "2px solid #00FFFF",
+    paddingTop: "1rem",
+    paddingBottom: "1rem",
+    textAlign: "center",
+    marginTop: "40px", // space above footer
+  },
+  footerText: {
+    fontSize: "0.9rem",
+    color: "#00FF00",
+    textShadow: "0 0 6px #00FF00", // optional neon glow
+  },
+};
 
 // ---- Bot Message ----
 const BotMessage = ({ text }) => (
@@ -398,6 +412,13 @@ const HelpPage = () => {
     </div>
   </div>
 )}
+{/* Footer */}
+<footer style={styles.footer}>
+  <p style={styles.footerText}>
+    FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
+  </p>
+</footer>
+
     </div>
   );
 };
