@@ -195,6 +195,7 @@ const HelpPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFaq, setSelectedFaq] = useState(null); // for FAQ modal
 
+  
   useEffect(() => {
   const fetchData = async () => {
     try {
