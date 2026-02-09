@@ -412,6 +412,9 @@ button:hover {
   width: 90%;
   max-width: 500px;
 }
+.answer-card li {
+  margin-bottom: 0.5rem;
+}
 
 .faq-card {
   background-color: #007f3f; /* slightly darker green for cards */

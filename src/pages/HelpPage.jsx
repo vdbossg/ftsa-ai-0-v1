@@ -311,11 +311,21 @@ const HelpPage = () => {
         <p className="text-white mt-2">{selectedFaq.question}</p>
       </div>
 
+     
       {/* Answer Card */}
-      <div className="faq-card answer-card p-4 rounded-lg">
-        <h3 className="text-white font-bold text-lg">Answer</h3>
-        <p className="text-white mt-2 whitespace-pre-line">{selectedFaq.answer}</p>
-      </div>
+<div className="faq-card answer-card p-4 rounded-lg">
+  <h3 className="text-white font-bold text-lg">Answer</h3>
+  <div className="text-white mt-2">
+    {selectedFaq.answer.split("\n").map((line, idx) =>
+      line.startsWith("•") ? (
+        <li key={idx} className="ml-4 list-disc">{line.replace("•", "").trim()}</li>
+      ) : (
+        <p key={idx} className="mb-2">{line}</p>
+      )
+    )}
+  </div>
+</div>
+
     </div>
   </div>
 )}
