@@ -469,3 +469,11 @@ button:hover {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+/* Footer Divider Line */
+.help-footer-divider {
+  border: none;
+  height: 2px;
+  background: var(--help-accent); /* neon blue line */
+  margin: 20px 0 0 0; /* 20px space above footer */
+  box-shadow: 0 0 6px var(--help-accent); /* subtle neon glow */
+}
