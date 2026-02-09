@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\server\config\adminDb.js
 const mongoose = require('mongoose');
 
 let adminConnection;

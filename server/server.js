@@ -61,7 +61,7 @@ const FTSAHelpRoutes = require("./routes/RoutesFTSAhelp");
 const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
 const ftsaFaqRoutes = require('./routes/routesFtsaFaqs');
-
+const aboutFullDataRoutes = require("./routes/routesAboutfullData");
 
 
 
@@ -199,6 +199,8 @@ app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 const Elimq5Service = require('./services/Elimq5Service');
 
+app.use("/api/aboutfullData", aboutFullDataRoutes);
+console.log("✅ /api/aboutfullData route mounted");
 // Start automatic polling for EA generation
 new Elimq5Service();
 console.log('✅ Elimq5Service polling started');
