@@ -327,24 +327,25 @@ const HelpPage = () => {
       const parts = trimmed.split(urlRegex);
 
       // Map each part into link or text
-      const renderedParts = parts.map((part, i) => {
-        if (!part) return null;
-        const match = part.match(urlRegex);
-        if (match) {
-          return (
-            <a
-              key={i}
-              href={/^https?:\/\//i.test(part) ? part : `https://${part}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-200"
-            >
-              {part}
-            </a>
-          );
-        }
-        return part;
-      });
+       const renderedParts = parts.map((part, i) => {
+  if (!part) return null;
+  const match = part.match(urlRegex);
+  if (match) {
+    return (
+      <a
+        key={i}
+        href={part}  // use the link exactly as it is
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline text-blue-200"
+      >
+        {part}
+      </a>
+    );
+  }
+  return part;
+});
+
 
       // Check for bullets
       if (trimmed.startsWith("•")) {
