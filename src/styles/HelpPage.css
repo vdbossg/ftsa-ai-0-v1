@@ -174,10 +174,12 @@
 
 /* Cards Container */
 .help-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column; /* stack top-to-bottom */
+  gap: 20px; /* spacing between cards */
+  align-items: center; /* center horizontally */
 }
+
 
 /* Individual Card */
 .card {
@@ -185,7 +187,11 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px #000;
+  width: 100%;        /* full width of container */
+  max-width: 600px;   /* max width so cards don't stretch too wide */
+  animation: slideUp 0.5s ease forwards; /* optional slide-in animation */
 }
+
 
 .card h3 {
   color: #00e676;
