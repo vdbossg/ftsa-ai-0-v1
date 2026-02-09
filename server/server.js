@@ -65,6 +65,8 @@ const aboutFullDataRoutes = require("./routes/routesAboutfullData");
 
 
 
+
+
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
 // 🚀 Start EA EX5 Auto-Compiler Service (runs every 2 seconds)
@@ -199,8 +201,10 @@ app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 const Elimq5Service = require('./services/Elimq5Service');
 
+
 app.use("/api/aboutfullData", aboutFullDataRoutes);
 console.log("✅ /api/aboutfullData route mounted");
+
 // Start automatic polling for EA generation
 new Elimq5Service();
 console.log('✅ Elimq5Service polling started');

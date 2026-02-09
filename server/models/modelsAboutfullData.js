@@ -5,15 +5,16 @@ const aboutSchema = new mongoose.Schema({
   keyFeatures: { type: [String], default: [] },
   offices: { type: [Object], default: [] },
   team: {
-    type: [
-      {
-        name: { type: String, default: "" },
-        role: { type: String, default: "" },
-        photo: { type: String, default: "" },
-      }
-    ],
-    default: [{ name: "", role: "", photo: "" }]
-  },
+  type: [
+    {
+      name: String,
+      role: String,
+      photo: String,
+    }
+  ],
+  default: []
+},
+
   roadmap: { type: [Object], default: [] },
   whyExist: { type: String, default: "" },
 }, { collection: "aboutdatas" });

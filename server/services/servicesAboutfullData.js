@@ -1,20 +1,15 @@
-const connectAdminDB = require("../config/adminDb");
-const AboutAdmin = require("../models/modelsAboutfullData");
+// FTSA_AI_0.v1\server\services\servicesAboutfullData.js
+const axios = require("axios");
 
 const getAboutFullData = async () => {
-  const adminConn = await connectAdminDB();
-  const AboutModel = adminConn.model("AboutAdmin", AboutAdmin.schema);
-
-  const aboutData = await AboutModel.findOne().lean();
-
-  return {
-    criticalNotices: aboutData?.criticalNotices || [],
-    keyFeatures: aboutData?.keyFeatures || [],
-    offices: aboutData?.offices || [],
-    team: aboutData?.team?.length ? aboutData.team : [{ name: "", role: "", photo: "" }],
-    roadmap: aboutData?.roadmap || [],
-    whyExist: aboutData?.whyExist || "",
-  };
+  try {
+    // Fetch directly from App A
+    const { data } = await axios.get("http://localhost:5001/api/aboutData");
+    return data; // return exactly what App A sends
+  } catch (err) {
+    console.error("❌ Failed to fetch AboutData from App A:", err.message);
+    throw err;
+  }
 };
 
 module.exports = { getAboutFullData };

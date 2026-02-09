@@ -1,76 +1,60 @@
 // src/pages/AboutPage.jsx
-import React, { useState, useEffect, useContext } from "react";
-import NeonButton from "../components/NeonButton";
-import StatusBadge from "../components/StatusBadge";
+import React, { useState, useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { AuthContext } from "../contexts/AuthContext";
 import "../styles/AboutPage.css";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+const SECTION_HEADERS = {
+  criticalNotices: "CRITICAL ALERT",
+  keyFeatures: "KEY FEATURES",
+  offices: "OUR OFFICES",
+  team: "FTSA TEAM",
+  roadmap: "ROAD MAP",
+  whyExist: "GENERAL ABOUT",
+};
+
 const AboutPage = () => {
-  const { token, isAuthenticated } = useContext(AuthContext);
-  const [loading, setLoading] = useState(true);
   const [aboutData, setAboutData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch About page data from admin panel
-  useEffect(() => {
-  async function fetchAboutData() {
+  // Fetch About Data
+  const fetchAboutData = async () => {
     try {
-      setLoading(true);
-
-      // 🔹 DEBUG: check backend URL
-      console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
-
-
-      // Fetch About page data from backend
-const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-console.log("Using backend URL:", backendUrl);
-
-const response = await fetch(`${backendUrl}/api/about/public`, {
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-
-if (!response.ok) {
-  throw new Error(`Failed to fetch about data: ${response.status}`);
-}
-
-const data = await response.json(); // parse JSON directly
-setAboutData(data);
-
-
+      const res = await fetch(`${BACKEND_URL}/api/aboutfullData`);
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+      const data = await res.json();
+      setAboutData(data);
+      setError(null);
     } catch (err) {
-      setError(err.message);
       console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  fetchAboutData();
-}, []);
-
+  // Initial fetch + silent background refresh every 2 seconds
+  useEffect(() => {
+    fetchAboutData();
+    const interval = setInterval(fetchAboutData, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <div className="error-msg neon-glow-border">{error}</div>;
-
- if (!aboutData) {
-  return <div className="error-msg neon-glow-border">
-    About page data not available. Please update from admin panel.
-  </div>;
-}
-
-const { 
-  keyFeatures, 
-  whyExist, 
-  poweredBy, 
-  offices, 
-  team, 
-  roadmap, 
-  criticalNotices, 
-} = aboutData;
+  if (error)
+    return (
+      <div className="error-msg neon-glow-border">
+        {error} — Please check your backend.
+      </div>
+    );
+  if (!aboutData)
+    return (
+      <div className="error-msg neon-glow-border">
+        About data not available. Please update from admin panel.
+      </div>
+    );
 
   return (
     <div
@@ -89,86 +73,66 @@ const {
         <h2>About Us</h2>
       </header>
 
-      {/* Critical Notices */}
-      {criticalNotices?.length > 0 && (
-        <section
-          className="critical-notices neon-glow-border"
-          style={{
-            marginBottom: "2rem",
-            padding: "1rem",
-            color: "#FF5555",
-          }}
-        >
-          <h3>Critical Notices</h3>
-          <ul>
-            {criticalNotices.map((notice, idx) => (
-              <li key={idx}>
-                <StatusBadge text="ALERT" status="red" /> {notice}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Render dynamic cards */}
+      {Object.keys(SECTION_HEADERS).map((key) => {
+        const sectionData = aboutData[key];
+        if (!sectionData || (Array.isArray(sectionData) && sectionData.length === 0))
+          return null;
 
-      {/* Key Features */}
-      {keyFeatures?.length > 0 && (
-        <section className="key-features neon-glow-border" style={{ marginBottom: "2rem" }}>
-          <h3 style={{ color: "#00FFFF" }}>Key Features</h3>
+        return (
+          <Card key={key} title={SECTION_HEADERS[key]} data={sectionData} sectionKey={key} />
+        );
+      })}
+
+      {/* Footer */}
+      <footer style={{ marginTop: "3rem", textAlign: "center", color: "#00FFFF" }}>
+        FTSA AI — Powered by Kelvin Mburu Gathuru
+      </footer>
+    </div>
+  );
+};
+
+// Card component to handle all sections dynamically
+const Card = ({ title, data, sectionKey }) => {
+  const renderContent = () => {
+    switch (sectionKey) {
+      case "criticalNotices":
+      case "keyFeatures":
+        return (
           <ul>
-            {keyFeatures.map((feature, idx) => (
+            {data.map((item, idx) => (
               <li key={idx} style={{ marginBottom: "0.5rem" }}>
-                {feature}
+                {item}
               </li>
             ))}
           </ul>
-        </section>
-      )}
-
-      {/* Purpose / Why Exists */}
-      {whyExist && (
-        <section className="why-exist neon-glow-border" style={{ marginBottom: "2rem" }}>
-          <h3 style={{ color: "#FFA500" }}>Our Purpose</h3>
-          <p style={{ whiteSpace: "pre-wrap" }}>{whyExist}</p>
-        </section>
-      )}
-
-      {/* Powered By */}
-      <section className="powered-by neon-glow-border" style={{ marginBottom: "2rem" }}>
-        <h3 style={{ color: "#00FF00" }}>Powered By</h3>
-        <p>{poweredBy || "Kelvin Mburu Gathuru — Founder & CEO"}</p>
-      </section>
-
-      {/* Offices */}
-      {offices?.length > 0 && (
-        <section className="offices neon-glow-border" style={{ marginBottom: "2rem" }}>
-          <h3 style={{ color: "#00FFFF" }}>Our Offices / Location</h3>
-          {offices.map(({ address, city, country, contact }, idx) => (
-            <div key={idx} style={{ marginBottom: "1rem" }}>
-              <p><strong>Address:</strong> {address}</p>
-              <p><strong>City:</strong> {city}</p>
-              <p><strong>Country:</strong> {country}</p>
-              {contact && (
-                <ul>
-                  {contact.phone && <li>Phone: {contact.phone}</li>}
-                  {contact.email && <li>Email: {contact.email}</li>}
-                  {contact.whatsapp && <li>WhatsApp: {contact.whatsapp}</li>}
-                  {contact.chat && <li>Chat: {contact.chat}</li>}
-                </ul>
-              )}
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* Team */}
-      {team?.length > 0 && (
-        <section className="team neon-glow-border" style={{ marginBottom: "2rem" }}>
-          <h3 style={{ color: "#00FFFF" }}>Our Team</h3>
+        );
+      case "offices":
+        return (
+          <div>
+            {data.map(({ address, city, country, contact }, idx) => (
+              <div key={idx} style={{ marginBottom: "1rem" }}>
+                <p><strong>Address:</strong> {address}</p>
+                <p><strong>City:</strong> {city}</p>
+                <p><strong>Country:</strong> {country}</p>
+                {contact && (
+                  <ul>
+                    {contact.phone && <li>Phone: {contact.phone}</li>}
+                    {contact.email && <li>Email: {contact.email}</li>}
+                    {contact.whatsapp && <li>WhatsApp: {contact.whatsapp}</li>}
+                    {contact.chat && <li>Chat: {contact.chat}</li>}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      case "team":
+        return (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-            {(isAuthenticated ? team : team.slice(0, 1)).map(({ name, role, photo }, idx) => (
+            {data.map(({ name, role, photo }, idx) => (
               <div
                 key={idx}
-                className="team-card neon-glow-border"
                 style={{
                   backgroundColor: "#111",
                   borderRadius: "10px",
@@ -189,35 +153,36 @@ const {
                 <p>{role}</p>
               </div>
             ))}
-            {!isAuthenticated && (
-              <p style={{ color: "#FFA500", marginTop: "1rem" }}>
-                Login to see the full team.
-              </p>
-            )}
           </div>
-        </section>
-      )}
-
-
-      {/* Roadmap */}
-      {roadmap?.length > 0 && (
-        <section className="roadmap neon-glow-border" style={{ marginBottom: "2rem" }}>
-          <h3 style={{ color: "#FFA500" }}>Roadmap</h3>
+        );
+      case "roadmap":
+        return (
           <ul>
-            {roadmap.map(({ item, eta }, idx) => (
+            {data.map(({ item, eta }, idx) => (
               <li key={idx} style={{ marginBottom: "0.75rem" }}>
-                <strong>{item}</strong> — <em>{eta}</em>
+                <strong>{item}</strong> {eta && <>— <em>{eta}</em></>}
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        );
+      case "whyExist":
+        return <p style={{ whiteSpace: "pre-wrap" }}>{data}</p>;
+      default:
+        return <pre>{JSON.stringify(data, null, 2)}</pre>;
+    }
+  };
 
-      {/* Footer */}
-      <footer style={{ marginTop: "3rem", textAlign: "center", color: "#00FFFF" }}>
-        FTSA AI — Powered by Kelvin Mburu Gathuru
-      </footer>
-    </div>
+  return (
+    <section
+      className="neon-glow-border"
+      style={{
+        marginBottom: "2rem",
+        padding: "1rem",
+      }}
+    >
+      <h3 style={{ marginBottom: "1rem", color: "#00FFFF" }}>{title}</h3>
+      {renderContent()}
+    </section>
   );
 };
 
