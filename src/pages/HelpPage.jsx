@@ -334,12 +334,22 @@ const HelpPage = () => {
 
       {modalOpen && <HelpModal user={user} onClose={() => setModalOpen(false)} />}
         <div
-  className="floating-bot-icon"
+  className="floating-bot-icon-wrapper"
   onClick={() => setShowHelpCard(true)}
   title="FTSA Help"
 >
-  💬
+  {/* floating trail + label */}
+  <div className="floating-label">Need Help?</div>
+  <div className="floating-trail">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  {/* main icon */}
+  <div className="floating-bot-icon">💬</div>
 </div>
+
 
        {/* FAQ Answer Modal */}
 {selectedFaq && (

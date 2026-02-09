@@ -454,24 +454,7 @@ button:hover {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-/* Floating Help Icon */
-.floating-bot-icon {
-  position: fixed;
-  bottom: 22px;
-  right: 22px;
-  width: 72px;          /* 🔥 bigger */
-  height: 72px;         /* 🔥 bigger */
-  border-radius: 50%;
-  background-color: #00e676;
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34px;      /* 🔥 bigger icon */
-  cursor: pointer;
-  z-index: 1000;
-  animation: pulseWave 2s infinite;
-}
+
 
 /* Overlay that centers FTSA Help Support card */
 .help-card-overlay {
@@ -518,4 +501,66 @@ button:hover {
   50% {
     transform: scale(1.02);
   }
+}
+.floating-bot-icon-wrapper {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+/* Main pulsing icon */
+.floating-bot-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #00e676;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  animation: pulseWave 2s infinite;
+  position: relative;
+}
+
+/* Small trailing circles (like smoke) */
+.floating-trail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px; /* space from icon */
+}
+
+.floating-trail span {
+  width: 10px;
+  height: 10px;
+  background-color: #00e676;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: trailBounce 1.6s infinite;
+}
+
+.floating-trail span:nth-child(1) { animation-delay: 0s; }
+.floating-trail span:nth-child(2) { animation-delay: 0.2s; }
+.floating-trail span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Bounce animation for trail */
+@keyframes trailBounce {
+  0%   { transform: translateY(0) scale(0.8); opacity: 0.6; }
+  50%  { transform: translateY(-6px) scale(1); opacity: 1; }
+  100% { transform: translateY(0) scale(0.8); opacity: 0.6; }
+}
+
+/* Label above the trail */
+.floating-label {
+  color: #00e676;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  text-shadow: 0 0 4px #00e676;
+  font-family: 'Inter', sans-serif;
 }
