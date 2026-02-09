@@ -320,42 +320,42 @@ const HelpPage = () => {
       const trimmed = line.trim();
       if (!trimmed) return null; // skip empty lines
 
+      // Regex to detect most URLs, including www, .com, .co.ke, etc.
+      const urlRegex = /((https?:\/\/|www\.)[^\s]+|[^\s]+\.(com|net|org|co\.ke|io|ai|gov|edu)(\/[^\s]*)?)/gi;
+
+      // Function to replace detected URLs with <a> tag
+      const renderLine = (text) =>
+        text.split(urlRegex).map((part, i) =>
+          urlRegex.test(part) ? (
+            <a
+              key={i}
+              href={part.startsWith("http") ? part : `https://${part}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-200"
+            >
+              {part}
+            </a>
+          ) : (
+            part
+          )
+        );
+
       // Check for bullets
       if (trimmed.startsWith("•")) {
         return (
           <ul key={idx} className="ml-4 list-disc">
-            <li>
-              {trimmed.replace("•", "").trim().split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-                /^https?:\/\//.test(part) ? (
-                  <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-blue-200">
-                    {part}
-                  </a>
-                ) : (
-                  part
-                )
-              )}
-            </li>
+            <li>{renderLine(trimmed.replace("•", "").trim())}</li>
           </ul>
         );
       }
 
-      // Regular line: detect links
-      return (
-        <p key={idx} className="mb-2">
-          {trimmed.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-            /^https?:\/\//.test(part) ? (
-              <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-blue-200">
-                {part}
-              </a>
-            ) : (
-              part
-            )
-          )}
-        </p>
-      );
+      // Regular line
+      return <p key={idx} className="mb-2">{renderLine(trimmed)}</p>;
     })}
   </div>
 </div>
+
 
 
 
