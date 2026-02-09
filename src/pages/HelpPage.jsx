@@ -208,6 +208,7 @@ const HelpPage = () => {
   const [filteredFaqs, setFilteredFaqs] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFaq, setSelectedFaq] = useState(null); // for FAQ modal
+  const [showHelpCard, setShowHelpCard] = useState(false);
 
 
   useEffect(() => {
@@ -312,18 +313,34 @@ const HelpPage = () => {
   )}
 </div>
 
-
-        </div>
-
-        <div className="card">
-          <h3>FTSA Help Support</h3>
-          <button onClick={() => setModalOpen(true)}>
-            Welcome! How can we help you today?
-          </button>
         </div>
       </div>
+{showHelpCard && (
+  <div
+    className="help-card-overlay"
+    onClick={() => setShowHelpCard(false)}
+  >
+    <div
+      className="card"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h3>FTSA Help Support</h3>
+      <button onClick={() => setModalOpen(true)}>
+        Welcome! How can we help you today?
+      </button>
+    </div>
+  </div>
+)}
 
       {modalOpen && <HelpModal user={user} onClose={() => setModalOpen(false)} />}
+        <div
+  className="floating-bot-icon"
+  onClick={() => setShowHelpCard(true)}
+  title="FTSA Help"
+>
+  💬
+</div>
+
        {/* FAQ Answer Modal */}
 {selectedFaq && (
   <div
