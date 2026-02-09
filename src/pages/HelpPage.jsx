@@ -312,7 +312,7 @@ const HelpPage = () => {
       </div>
 
      
-   {/* Answer Card */}
+  {/* Answer Card */}
 <div className="faq-card answer-card p-4 rounded-lg bg-green-600">
   <h3 className="text-white font-bold text-lg">Answer</h3>
   <div className="text-white mt-2">
@@ -320,13 +320,18 @@ const HelpPage = () => {
       const trimmed = line.trim();
       if (!trimmed) return null; // skip empty lines
 
-      // Regex to detect most URLs, including www, .com, .co.ke, etc.
-      const urlRegex = /((https?:\/\/|www\.)[^\s]+|[^\s]+\.(com|net|org|co\.ke|io|ai|gov|edu)(\/[^\s]*)?)/gi;
+      // Regex to detect URLs and plain domains
+      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[^\s]+\.(com|net|org|co\.ke|io|ai|gov|edu)(\/[^\s]*)?)/gi;
 
-      // Function to replace detected URLs with <a> tag
-      const renderLine = (text) =>
-        text.split(urlRegex).map((part, i) =>
-          urlRegex.test(part) ? (
+      // Split line by URLs
+      const parts = trimmed.split(urlRegex);
+
+      // Map each part into link or text
+      const renderedParts = parts.map((part, i) => {
+        if (!part) return null;
+        const match = part.match(urlRegex);
+        if (match) {
+          return (
             <a
               key={i}
               href={part.startsWith("http") ? part : `https://${part}`}
@@ -336,27 +341,28 @@ const HelpPage = () => {
             >
               {part}
             </a>
-          ) : (
-            part
-          )
-        );
+          );
+        }
+        return part;
+      });
 
       // Check for bullets
       if (trimmed.startsWith("•")) {
         return (
           <ul key={idx} className="ml-4 list-disc">
-            <li>{renderLine(trimmed.replace("•", "").trim())}</li>
+            <li>{renderedParts}</li>
           </ul>
         );
       }
 
-      // Regular line
-      return <p key={idx} className="mb-2">{renderLine(trimmed)}</p>;
+      return (
+        <p key={idx} className="mb-2">
+          {renderedParts}
+        </p>
+      );
     })}
   </div>
 </div>
-
-
 
 
     </div>
