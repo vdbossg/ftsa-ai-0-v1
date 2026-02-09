@@ -131,6 +131,7 @@ const AboutPage = () => {
           </section>
         )}
 
+
         {/* GENERAL ABOUT */}
         {aboutData.whyExist && (
           <section className="card neon-glow general-card">

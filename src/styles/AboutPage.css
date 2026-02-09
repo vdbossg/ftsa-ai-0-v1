@@ -74,6 +74,7 @@ h1, h2, h3, h4 {
   transition: none; /* Text stays static */
 }
 
+
 /* ===== Card Base ===== */
 .card {
   background-color: var(--card-bg);
