@@ -312,24 +312,52 @@ const HelpPage = () => {
       </div>
 
      
-    {/* Answer Card */}
+   {/* Answer Card */}
 <div className="faq-card answer-card p-4 rounded-lg bg-green-600">
   <h3 className="text-white font-bold text-lg">Answer</h3>
   <div className="text-white mt-2">
     {selectedFaq.answer.split("\n").map((line, idx) => {
       const trimmed = line.trim();
       if (!trimmed) return null; // skip empty lines
+
+      // Check for bullets
       if (trimmed.startsWith("•")) {
         return (
           <ul key={idx} className="ml-4 list-disc">
-            <li>{trimmed.replace("•", "").trim()}</li>
+            <li>
+              {trimmed.replace("•", "").trim().split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+                /^https?:\/\//.test(part) ? (
+                  <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-blue-200">
+                    {part}
+                  </a>
+                ) : (
+                  part
+                )
+              )}
+            </li>
           </ul>
         );
       }
-      return <p key={idx} className="mb-2">{trimmed}</p>;
+
+      // Regular line: detect links
+      return (
+        <p key={idx} className="mb-2">
+          {trimmed.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+            /^https?:\/\//.test(part) ? (
+              <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline text-blue-200">
+                {part}
+              </a>
+            ) : (
+              part
+            )
+          )}
+        </p>
+      );
     })}
   </div>
 </div>
+
+
 
     </div>
   </div>
