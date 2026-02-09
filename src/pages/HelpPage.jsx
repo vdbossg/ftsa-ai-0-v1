@@ -287,10 +287,16 @@ const HelpPage = () => {
       </div>
 
       {modalOpen && <HelpModal user={user} onClose={() => setModalOpen(false)} />}
-        {/* FAQ Modal */}
+        {/* FAQ Answer Modal */}
 {selectedFaq && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-[#1F2833] rounded-lg p-6 max-w-md w-full relative text-white">
+  <div
+    className="faq-modal-backdrop"
+    onClick={() => setSelectedFaq(null)} // click outside to close
+  >
+    <div
+      className="faq-modal bg-[#1F2833] text-white rounded-lg p-6 max-w-md w-full relative"
+      onClick={(e) => e.stopPropagation()} // prevent modal click from closing
+    >
       <button
         className="absolute top-2 right-2 text-gray-400 hover:text-gray-200 text-xl font-bold"
         onClick={() => setSelectedFaq(null)}
@@ -298,10 +304,11 @@ const HelpPage = () => {
         &times;
       </button>
       <h2 className="text-2xl font-bold mb-4">{selectedFaq.question}</h2>
-      <p className="text-gray-300 whitespace-pre-line">{selectedFaq.answer}</p>
+      <p className="whitespace-pre-line">{selectedFaq.answer}</p>
     </div>
   </div>
 )}
+
 
     </div>
   );
