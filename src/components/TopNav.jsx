@@ -112,7 +112,7 @@ export default function TopNav() {
             <button onClick={() => setUnreadOnly(false)}>Read</button>
           </div>
 
-         <div style={styles.messageList}>
+          <div style={styles.messageList}>
   {(unreadOnly ? unreadMessages : messages.filter(m => m.status === "read"))
     .map((m) => (
       <div key={m._id} style={styles.messageRow}>
@@ -226,16 +226,18 @@ const styles = {
     justifyContent: "center"
   },
   modal: {
-    background: "#111",
-    border: "1px solid #00FFFF",
-    borderRadius: 10,
-    padding: "1rem",
-    width: 500,
-    maxHeight: "80vh",
-    overflowY: "auto",
-    color: "#fff",
-    position: "relative"
-  },
+  background: "#111",
+  border: "1px solid #00FFFF",
+  borderRadius: 10,
+  padding: "1rem",
+  width: 500,
+  maxHeight: "80vh",
+  color: "#fff",
+  position: "relative",
+  display: "flex",         // added
+  flexDirection: "column"   // added
+},
+
   close: {
     position: "absolute",
     top: 8,
@@ -269,12 +271,13 @@ const styles = {
     width: "3rem"
   },
   messageList: {
-  maxHeight: "60vh",     // scrollable up to 60% of viewport height
-  overflowY: "auto",     // vertical scroll if content is too tall
+  flexGrow: 1,          // fills remaining modal height
+  overflowY: "auto",    // enables scrolling
   marginTop: "1rem",
   borderTop: "1px solid #00FFFF",
   borderBottom: "1px solid #00FFFF",
   padding: "0.5rem 0"
-},
+}
 
 };
+
