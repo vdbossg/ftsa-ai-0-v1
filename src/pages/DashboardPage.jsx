@@ -281,15 +281,26 @@ loadLiveAds();
     liveAds.map((ad) => (
       <div key={ad._id} style={{ marginBottom: "1rem", borderBottom: "1px solid #00FFFF", paddingBottom: "0.5rem" }}>
         <p style={{ fontWeight: "bold", color: "#FFA500" }}>{ad.type}: {ad.description}</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-          {ad.media.map((m) => (
-            m.mediaType === "image" ? (
-              <img key={m._id} src={m.url} alt={m.fileName} style={{ width: "150px", borderRadius: "4px" }} />
-            ) : (
-              <video key={m._id} src={m.url} controls style={{ width: "250px", borderRadius: "4px" }} />
-            )
-          ))}
-        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center" }}>
+  {ad.media.map((m) =>
+    m.mediaType === "image" ? (
+      <img
+        key={m._id}
+        src={m.url}
+        alt={m.fileName}
+        style={{ width: "250px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
+      />
+    ) : (
+      <video
+        key={m._id}
+        src={m.url}
+        controls
+        style={{ width: "400px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
+      />
+    )
+  )}
+</div>
+
       </div>
     ))
   ) : (
