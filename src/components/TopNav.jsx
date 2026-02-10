@@ -19,7 +19,7 @@ export default function TopNav() {
   const loadMessages = async () => {
     if (!isAuthenticated) return;
     try {
-      const res = await fetch("/api/messageData/userid");
+      const res = await fetch("http://localhost:5000/api/messageData/userid");
       const data = await res.json();
       setMessages(data);
     } catch (err) {
