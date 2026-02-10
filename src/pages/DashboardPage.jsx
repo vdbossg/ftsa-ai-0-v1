@@ -247,7 +247,7 @@ loadLiveAds();
     {/* Right: Market Session */}
     <div
       className="market-session"
-      style={{ flexShrink: 0, fontSize: "1rem", color: "#00FF00", display: "flex", flexDirection: "column", alignItems: "flex-end" }}
+      style={{ flexShrink: 0, fontSize: "1rem", color: "#00FF00", display: "flex", flexDirection: "column", alignItems: "flex-start" }}
     >
       <div style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>
         MARKET SESSION: {overallStatus}
