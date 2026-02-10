@@ -274,40 +274,43 @@ loadLiveAds();
   </div>
 </section>
     {/* Live Ads Section */}
-<section className="live-ads neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
-  {/* <h2 style={{ color: "#00FFFF" }}>Live Ads</h2> */}
+{liveAds.length > 0 && (() => {
+  const ad = liveAds[0]; // show only the first live ad
+  return (
+    <div
+      key={ad._id}
+      className="p-6 bg-[#1F2833] rounded-md text-white mx-auto mb-6"
+      style={{ maxWidth: "900px" }}
+    >
+      {/* Optional Header */}
+      {/* <h2 className="text-2xl font-bold mb-2 text-center">Currently Live Ad</h2> */}
 
-  {liveAds.length > 0 ? (
-    liveAds.map((ad) => (
-      <div key={ad._id} style={{ marginBottom: "1rem", borderBottom: "1px solid #00FFFF", paddingBottom: "0.5rem" }}>
-        <p style={{ fontWeight: "bold", color: "#FFA500" }}>{ad.type}: {ad.description}</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center" }}>
-  {ad.media.map((m) =>
-    m.mediaType === "image" ? (
-      <img
-        key={m._id}
-        src={m.url}
-        alt={m.fileName}
-        style={{ width: "250px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
-      />
-    ) : (
-      <video
-        key={m._id}
-        src={m.url}
-        controls
-        style={{ width: "400px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
-      />
-    )
-  )}
-</div>
+      {/* Description */}
+      <p className="text-center mb-4">{ad.description}</p>
 
+      {/* Media Section */}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem" }}>
+        {ad.media.map((m) =>
+          m.mediaType === "image" ? (
+            <img
+              key={m._id}
+              src={m.url}
+              alt={m.fileName}
+              style={{ width: "300px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
+            />
+          ) : (
+            <video
+              key={m._id}
+              src={m.url}
+              controls
+              style={{ width: "500px", maxHeight: "70vh", borderRadius: "6px", objectFit: "contain" }}
+            />
+          )
+        )}
       </div>
-    ))
-  ) : (
-    <p>No live ads at the moment.</p>
-  )}
-</section>
-
+    </div>
+  );
+})()}
 
       <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
