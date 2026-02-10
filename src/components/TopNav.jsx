@@ -148,7 +148,10 @@ export default function TopNav() {
       {/* ===== FULL MESSAGE MODAL ===== */}
       {activeMessage && (
         <Modal onClose={() => setActiveMessage(null)}>
-          <h2>{activeMessage.subject}</h2>
+          <h2 style={{ color: activeMessage.priority === "urgent" ? "red" : "lime" }}>
+  {activeMessage.subject}
+</h2>
+
           <p style={styles.date}>
             {new Date(activeMessage.created_at).toLocaleString()}
           </p>
