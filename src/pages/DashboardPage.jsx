@@ -70,7 +70,10 @@ const [liveAds, setLiveAds] = useState([]);
       }
     }
     loadDashboard();
-    useEffect(() => {
+    
+
+  }, [isAuthenticated]);
+useEffect(() => {
   if (!isAuthenticated) return;
 
   async function fetchLiveAds() {
@@ -95,9 +98,6 @@ const [liveAds, setLiveAds] = useState([]);
   return () => clearInterval(interval);
 
 }, [isAuthenticated]);
-
-
-  }, [isAuthenticated]);
 
   // Update clock every second
   useEffect(() => {
