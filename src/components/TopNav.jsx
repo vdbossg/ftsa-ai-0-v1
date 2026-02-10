@@ -92,10 +92,12 @@ export default function TopNav() {
           </div>
 
           {/* 🔔 NOTIFICATION */}
-          <div style={styles.icon}>
-            <FaBell size={22} />
-            {unreadCount > 0 && <span style={styles.greenDot} />}
-          </div>
+<div style={styles.icon}>
+  <FaBell size={22} />
+  {unreadMessages.some(m => m.priority === "urgent") && <span style={styles.redDot} />}  {/* 🔴 */}
+  {unreadMessages.some(m => m.priority !== "urgent") && <span style={styles.greenDot} />} {/* 🟢 */}
+</div>
+
 
           {/* 👤 PROFILE */}
           <div style={styles.icon} onClick={() => navigate("/profile")}>
@@ -208,14 +210,26 @@ const styles = {
     justifyContent: "center"
   },
   greenDot: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    background: "lime",
-    borderRadius: "50%"
-  },
+  position: "absolute",
+  bottom: -2,
+  right: -2,
+  width: 8,
+  height: 8,
+  background: "lime",
+  borderRadius: "50%",
+  zIndex: 5
+},
+redDot: {
+  position: "absolute",
+  bottom: -2,
+  right: 8,       // slightly offset so red doesn't overlap green
+  width: 8,
+  height: 8,
+  background: "red",
+  borderRadius: "50%",
+  zIndex: 6
+},
+
   status: {
     position: "absolute",
     bottom: 0,
