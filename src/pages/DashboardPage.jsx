@@ -275,7 +275,8 @@ loadLiveAds();
 </section>
     {/* Live Ads Section */}
 <section className="live-ads neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
-  <h2 style={{ color: "#00FFFF" }}>Live Ads</h2>
+  {/* <h2 style={{ color: "#00FFFF" }}>Live Ads</h2> */}
+
   {liveAds.length > 0 ? (
     liveAds.map((ad) => (
       <div key={ad._id} style={{ marginBottom: "1rem", borderBottom: "1px solid #00FFFF", paddingBottom: "0.5rem" }}>
