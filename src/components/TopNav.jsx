@@ -94,23 +94,10 @@ export default function TopNav() {
 
         <div style={styles.right} ref={ref}>
           {/* ✉️ MESSAGE ICON */}
-          <div style={styles.iconWrapper} onClick={() => setShowListModal(true)}>
+          <div style={styles.icon} onClick={() => setShowListModal(true)}>
   <FaEnvelope size={22} />
   {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
-
-  {/* Wave animation */}
-  {unreadCount > 0 && (
-    <span
-      style={{
-        ...styles.pulse,
-        backgroundColor: unreadMessages.some(m => m.priority === "urgent")
-          ? "rgba(255,0,0,0.3)" // red for urgent
-          : "rgba(0,255,0,0.3)" // green for normal
-      }}
-    />
-  )}
 </div>
-
 
           {/* 🔔 NOTIFICATION */}
 <div style={styles.icon}>
@@ -326,30 +313,6 @@ redDot: {
   borderTop: "1px solid #00FFFF",
   borderBottom: "1px solid #00FFFF",
   padding: "0.5rem 0"
-},
-iconWrapper: {
-  position: "relative",
-  cursor: "pointer",
-  display: "inline-block"
-},
-
-pulse: {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 36,
-  height: 36,
-  borderRadius: "50%",
-  animation: "pulseAnim 1.5s infinite",
-  zIndex: 0
-},
-
-// Add keyframes for pulse
-"@keyframes pulseAnim": {
-  "0%": { transform: "translate(-50%, -50%) scale(0.8)", opacity: 0.7 },
-  "50%": { transform: "translate(-50%, -50%) scale(1.2)", opacity: 0.3 },
-  "100%": { transform: "translate(-50%, -50%) scale(0.8)", opacity: 0.7 }
 }
 
 };
