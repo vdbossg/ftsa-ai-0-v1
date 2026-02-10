@@ -28,10 +28,18 @@ export default function TopNav() {
   };
 
   useEffect(() => {
+  if (!isAuthenticated) return;
+
+  // Initial load
+  loadMessages();
+
+  // Poll every 2 seconds (2000 ms)
+  const id = setInterval(() => {
     loadMessages();
-    const id = setInterval(loadMessages, 180000); // 3 minutes
-    return () => clearInterval(id);
-  }, [isAuthenticated]);
+  }, 2000);
+
+  return () => clearInterval(id);
+}, [isAuthenticated]);
 
   /* ===== ONLINE / OFFLINE ===== */
   useEffect(() => {
