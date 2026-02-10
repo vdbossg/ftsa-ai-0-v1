@@ -1,4 +1,3 @@
-// src/components/TopNav.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { FaEnvelope, FaUserCircle, FaBell } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,12 +15,16 @@ export default function TopNav() {
 
   const ref = useRef(null);
 
-  /* ===== FETCH MESSAGES (silent background) ===== */
+  /* ===== FETCH MESSAGES (SILENT BACKGROUND) ===== */
   const loadMessages = async () => {
     if (!isAuthenticated) return;
-    const res = await fetch("/api/messageData/userid");
-    const data = await res.json();
-    setMessages(data);
+    try {
+      const res = await fetch("/api/messageData/userid");
+      const data = await res.json();
+      setMessages(data);
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    }
   };
 
   useEffect(() => {
@@ -44,11 +47,27 @@ export default function TopNav() {
   const unreadMessages = messages.filter(m => m.status === "new");
   const unreadCount = unreadMessages.length;
 
+  /* ===== OPEN MESSAGE (MARK READ HERE) ===== */
   const openMessage = async (msg) => {
     setActiveMessage(msg);
-    setMessages(prev =>
-      prev.map(m => m._id === msg._id ? { ...m, status: "read" } : m)
-    );
+
+    // Only mark as read if currently new
+    if (msg.status === "new") {
+      // Optimistic UI update
+      setMessages(prev =>
+        prev.map(m =>
+          m._id === msg._id ? { ...m, status: "read" } : m
+        )
+      );
+
+      try {
+        await fetch(`/api/messageData/read/${msg._id}`, {
+          method: "PATCH"
+        });
+      } catch (err) {
+        console.error("Failed to mark message as read:", err);
+      }
+    }
   };
 
   return (
@@ -73,7 +92,12 @@ export default function TopNav() {
           {/* 👤 PROFILE */}
           <div style={styles.icon} onClick={() => navigate("/profile")}>
             <FaUserCircle size={26} />
-            <span style={{ ...styles.status, background: online ? "lime" : "red" }} />
+            <span
+              style={{
+                ...styles.status,
+                background: online ? "lime" : "red"
+              }}
+            />
           </div>
         </div>
       </div>
@@ -89,7 +113,7 @@ export default function TopNav() {
           </div>
 
           {(unreadOnly ? unreadMessages : messages.filter(m => m.status === "read"))
-            .map((m, i) => (
+            .map((m) => (
               <div key={m._id} style={styles.messageRow}>
                 <div>
                   <strong>{m.subject}</strong>

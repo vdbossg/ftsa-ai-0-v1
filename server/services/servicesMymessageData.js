@@ -3,30 +3,31 @@ const path = require("path");
 const connectAdminDB = require("../config/adminDb");
 const mongoose = require("mongoose");
 
-// Import Message model from admin DB
+// Cached Message model
 let Message;
 
-// Load Message model from admin DB connection
+/* ===== LOAD MESSAGE MODEL (ADMIN DB) ===== */
 const loadMessageModel = async () => {
   if (!Message) {
     const adminConn = await connectAdminDB();
+
     const messageSchema = new mongoose.Schema({
       user_id: { type: String, required: true },
       subject: String,
       body: String,
       priority: String,
       sent_by: String,
-      status: { type: String, default: "new" },
+      status: { type: String, default: "new" }, // new | read
       created_at: { type: Date, default: Date.now },
     });
+
     Message = adminConn.model("Message", messageSchema, "messages");
   }
 };
 
-// Path to the JSON file that tracks the logged-in user
+/* ===== CURRENT LOGGED-IN USER ===== */
 const currentUserFile = path.join(__dirname, "currentWatcherUser.json");
 
-// Get current logged-in user ID
 const getCurrentUserId = () => {
   try {
     const data = fs.readFileSync(currentUserFile, "utf-8");
@@ -38,36 +39,40 @@ const getCurrentUserId = () => {
   }
 };
 
-// Fetch messages for logged-in user
+/* ===== FETCH ALL MESSAGES (NO STATUS CHANGE) ===== */
 const getMessagesForUser = async () => {
   await loadMessageModel();
   const userId = getCurrentUserId();
   if (!userId) return [];
 
   try {
-    const messages = await Message.find({ user_id: userId }).sort({ created_at: -1 });
-    return messages;
+    return await Message
+      .find({ user_id: userId })
+      .sort({ created_at: -1 });
   } catch (err) {
-    console.error("Error fetching messages from admin DB:", err);
+    console.error("Error fetching messages:", err);
     return [];
   }
 };
 
-// Mark user's new messages as read
-const markMessagesAsRead = async () => {
+/* ===== MARK A SINGLE MESSAGE AS READ ===== */
+const markMessageAsRead = async (messageId) => {
   await loadMessageModel();
   const userId = getCurrentUserId();
-  if (!userId) return;
+  if (!userId || !messageId) return;
 
   try {
-    await Message.updateMany({ user_id: userId, status: "new" }, { $set: { status: "read" } });
+    await Message.updateOne(
+      { _id: messageId, user_id: userId, status: "new" },
+      { $set: { status: "read" } }
+    );
   } catch (err) {
-    console.error("Error updating message status:", err);
+    console.error("Error marking message as read:", err);
   }
 };
 
 module.exports = {
   getCurrentUserId,
   getMessagesForUser,
-  markMessagesAsRead,
+  markMessageAsRead,
 };
