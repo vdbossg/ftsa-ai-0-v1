@@ -127,11 +127,14 @@ export default function TopNav() {
     .map((m) => (
       <div key={m._id} style={styles.messageRow}>
         <div>
-          <strong>{m.subject}</strong>
-          <div style={styles.date}>
-            {new Date(m.created_at).toLocaleString()}
-          </div>
-        </div>
+  <strong style={{ color: m.priority === "urgent" ? "red" : "lime" }}>
+    {m.subject}
+  </strong>
+  <div style={styles.date}>
+    {new Date(m.created_at).toLocaleString()}
+  </div>
+</div>
+
         <button onClick={() => openMessage(m)}>
           {unreadOnly ? "Read" : "Reread"}
         </button>
