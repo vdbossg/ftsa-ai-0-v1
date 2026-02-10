@@ -112,20 +112,23 @@ export default function TopNav() {
             <button onClick={() => setUnreadOnly(false)}>Read</button>
           </div>
 
-          {(unreadOnly ? unreadMessages : messages.filter(m => m.status === "read"))
-            .map((m) => (
-              <div key={m._id} style={styles.messageRow}>
-                <div>
-                  <strong>{m.subject}</strong>
-                  <div style={styles.date}>
-                    {new Date(m.created_at).toLocaleString()}
-                  </div>
-                </div>
-                <button onClick={() => openMessage(m)}>
-                  {unreadOnly ? "Read" : "Reread"}
-                </button>
-              </div>
-            ))}
+         <div style={styles.messageList}>
+  {(unreadOnly ? unreadMessages : messages.filter(m => m.status === "read"))
+    .map((m) => (
+      <div key={m._id} style={styles.messageRow}>
+        <div>
+          <strong>{m.subject}</strong>
+          <div style={styles.date}>
+            {new Date(m.created_at).toLocaleString()}
+          </div>
+        </div>
+        <button onClick={() => openMessage(m)}>
+          {unreadOnly ? "Read" : "Reread"}
+        </button>
+      </div>
+    ))}
+</div>
+
         </Modal>
       )}
 
@@ -264,5 +267,14 @@ const styles = {
   },
   left: {
     width: "3rem"
-  }
+  },
+  messageList: {
+  maxHeight: "60vh",     // scrollable up to 60% of viewport height
+  overflowY: "auto",     // vertical scroll if content is too tall
+  marginTop: "1rem",
+  borderTop: "1px solid #00FFFF",
+  borderBottom: "1px solid #00FFFF",
+  padding: "0.5rem 0"
+},
+
 };
