@@ -196,30 +196,75 @@ loadLiveAds();
         </p>
       </header>
 
-      {/* Digital Clock & Market Session */}
-      <section className="top-info neon-glow-border" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div className="digital-clock" style={{ fontSize: "1.5rem", color: "#00FFFF" }}>
-            {digitalClock.toLocaleTimeString()}
-          </div>
+      {/* Digital Clock */}
+<div style={{ fontSize: "1.5rem", color: "#00FFFF", marginBottom: "1rem", textAlign: "center" }}>
+  {digitalClock.toLocaleTimeString()}
+</div>
+
+{/* Live Ad | Market Session */}
+<section className="top-info neon-glow-border" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "2rem" }}>
+    
+    {/* Left: Live Ad */}
+    <div style={{ flex: 1 }}>
+      {liveAds.length > 0 && (() => {
+        const ad = liveAds[0]; // first live ad
+        const images = ad.media.filter(m => m.mediaType === "image");
+        const videos = ad.media.filter(m => m.mediaType === "video");
+
+        return (
           <div
-            className="market-session"
-            style={{ fontSize: "1rem", color: "#00FF00", display: "flex", flexDirection: "column" }}
+            key={ad._id}
+            className="p-4 bg-[#1F2833] rounded-md text-white"
+            style={{ maxWidth: "500px" }}
           >
-            <div style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>
-              MARKET SESSION: {overallStatus}
-            </div>
-            {marketSession && marketSession.map((s) => (
-              <div key={s.name} style={{ marginBottom: "0.25rem" }}>
-                {s.name}: {s.isOpen ? "Open" : "Closed"} <br />
-                <span style={{ fontSize: "0.9rem", color: "#FFA500" }}>
-                  {s.isOpen ? "Closes in " : "Opens in "} {s.countdown}
-                </span>
+            {ad.type && <h2 className="text-xl font-bold mb-2 text-center">{ad.type}</h2>}
+            {ad.description && <p className="text-center mb-2">{ad.description}</p>}
+
+            {/* Images Slider */}
+            {images.length > 0 && <ImageSlider images={images} />}
+
+            {/* Videos */}
+            {videos.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {videos.map((v) => (
+                  <video
+                    key={v._id}
+                    src={v.url}
+                    controls
+                    autoPlay
+                    loop
+                    className="w-full rounded max-h-[40vh] object-contain"
+                  />
+                ))}
               </div>
-            ))}
+            )}
           </div>
+        );
+      })()}
+    </div>
+
+    {/* Right: Market Session */}
+    <div
+      className="market-session"
+      style={{ flexShrink: 0, fontSize: "1rem", color: "#00FF00", display: "flex", flexDirection: "column", alignItems: "flex-end" }}
+    >
+      <div style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>
+        MARKET SESSION: {overallStatus}
+      </div>
+      {marketSession && marketSession.map((s) => (
+        <div key={s.name} style={{ marginBottom: "0.25rem", textAlign: "right" }}>
+          {s.name}: {s.isOpen ? "Open" : "Closed"} <br />
+          <span style={{ fontSize: "0.9rem", color: "#FFA500" }}>
+            {s.isOpen ? "Closes in " : "Opens in "} {s.countdown}
+          </span>
         </div>
-      </section>
+      ))}
+    </div>
+
+  </div>
+</section>
+
      {/* Market Strength Table */}
 <section
   className="market-strength neon-glow-border"
