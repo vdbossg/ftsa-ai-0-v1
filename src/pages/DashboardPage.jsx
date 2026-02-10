@@ -229,7 +229,14 @@ useEffect(() => {
             className="p-4 bg-[#1F2833] rounded-md text-white"
             style={{ maxWidth: "500px" }}
           >
-            {ad.type && <h2 className="text-xl font-bold mb-2 text-center">{ad.type}</h2>}
+            {ad.type && (
+  <h2
+    className="text-xl font-bold mb-2 text-center"
+    style={{ color: "#00FF00" }}
+  >
+    {ad.type}
+  </h2>
+)}
             {ad.description && <p className="text-center mb-2">{ad.description}</p>}
 
             {/* Images Slider */}
