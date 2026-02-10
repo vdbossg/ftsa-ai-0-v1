@@ -62,10 +62,13 @@ const markMessageAsRead = async (messageId) => {
   if (!userId || !messageId) return;
 
   try {
-    await Message.updateOne(
-      { _id: messageId, user_id: userId, status: "new" },
-      { $set: { status: "read" } }
-    );
+    const updated = await Message.findOneAndUpdate(
+  { _id: messageId, user_id: userId },
+  { $set: { status: "read" } },
+  { new: true } // return updated document
+);
+return updated;
+
   } catch (err) {
     console.error("Error marking message as read:", err);
   }

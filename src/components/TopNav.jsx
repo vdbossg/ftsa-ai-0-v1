@@ -61,9 +61,17 @@ export default function TopNav() {
       );
 
       try {
-        await fetch(`/api/messageData/read/${msg._id}`, {
-          method: "PATCH"
-        });
+        try {
+  const res = await fetch(`http://localhost:5000/api/messageData/read/${msg._id}`, {
+    method: "PATCH"
+  });
+  if (!res.ok) throw new Error("Thankyou for taking Actions!");
+  // reload messages to reflect DB update
+  loadMessages();
+} catch (err) {
+  console.error("Failed to mark message as read:", err);
+}
+
       } catch (err) {
         console.error("Failed to mark message as read:", err);
       }
