@@ -70,21 +70,32 @@ const [liveAds, setLiveAds] = useState([]);
       }
     }
     loadDashboard();
-    async function loadLiveAds() {
-  try {
-    const res = await fetch('http://localhost:5000/api/live-ads');
-    const json = await res.json();
-    if (json.success) {
-      setLiveAds(json.data);
-    } else {
-      console.error("Failed to load live ads:", json.message);
-    }
-  } catch (err) {
-    console.error("Error fetching live ads:", err);
-  }
-}
+    useEffect(() => {
+  if (!isAuthenticated) return;
 
-loadLiveAds();
+  async function fetchLiveAds() {
+    try {
+      const res = await fetch('http://localhost:5000/api/live-ads');
+      const json = await res.json();
+      if (json.success) {
+        setLiveAds(json.data);
+      }
+    } catch (err) {
+      console.error("Error fetching live ads:", err);
+    }
+  }
+
+  // Fetch immediately once
+  fetchLiveAds();
+
+  // Set interval to fetch every 2 seconds
+  const interval = setInterval(fetchLiveAds, 2000);
+
+  // Cleanup interval on unmount
+  return () => clearInterval(interval);
+
+}, [isAuthenticated]);
+
 
   }, [isAuthenticated]);
 
