@@ -62,6 +62,7 @@ const { startBridge } = require("./services/ftsafcsBridgeService");
 startBridge();
 const ftsaFaqRoutes = require('./routes/routesFtsaFaqs');
 const aboutFullDataRoutes = require("./routes/routesAboutfullData");
+const myMessageRoutes = require("./routes/routesMymessageData");
 
 
 
@@ -201,6 +202,8 @@ app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 const Elimq5Service = require('./services/Elimq5Service');
 
+app.use("/api", myMessageRoutes);
+console.log("✅ /api/messageData routes mounted");
 
 app.use("/api/aboutfullData", aboutFullDataRoutes);
 console.log("✅ /api/aboutfullData route mounted");

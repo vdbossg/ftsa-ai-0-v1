@@ -3,50 +3,32 @@ import React, { useEffect, useState, useRef } from "react";
 import { FaEnvelope, FaUserCircle, FaBell } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import APIControl from "../brain/APIControl";
 
 export default function TopNav() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notificationsSettings, setNotificationsSettings] = useState({
-    messages: true,
-    alerts: true,
-  });
+  const [unreadOnly, setUnreadOnly] = useState(true);
+  const [showListModal, setShowListModal] = useState(false);
+  const [activeMessage, setActiveMessage] = useState(null);
   const [online, setOnline] = useState(navigator.onLine);
-  const [openMenu, setOpenMenu] = useState(null); // messages | profile | notifications
 
   const ref = useRef(null);
 
-  /* ===== FETCH MESSAGES & SETTINGS ===== */
-  useEffect(() => {
+  /* ===== FETCH MESSAGES (silent background) ===== */
+  const loadMessages = async () => {
     if (!isAuthenticated) return;
+    const res = await fetch("/api/messageData/userid");
+    const data = await res.json();
+    setMessages(data);
+  };
 
-    async function load() {
-      // Load user settings
-      const settingsData = await APIControl.fetchSettingsData(user?.id);
-      if (settingsData?.notifications) {
-        setNotificationsSettings(settingsData.notifications);
-      }
-
-      // Load messages only if messages toggle is ON
-      if (settingsData?.notifications?.messages) {
-        const res = await fetch("/api/messages");
-        const data = await res.json();
-        setMessages(data);
-        setUnreadCount(data.filter(m => !m.read).length);
-      } else {
-        setMessages([]);
-        setUnreadCount(0);
-      }
-    }
-
-    load();
-    const id = setInterval(load, 30000);
+  useEffect(() => {
+    loadMessages();
+    const id = setInterval(loadMessages, 180000); // 3 minutes
     return () => clearInterval(id);
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated]);
 
   /* ===== ONLINE / OFFLINE ===== */
   useEffect(() => {
@@ -59,174 +41,118 @@ export default function TopNav() {
     };
   }, []);
 
-  /* ===== CLICK OUTSIDE CLOSE ===== */
-  useEffect(() => {
-    const close = e => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpenMenu(null);
-      }
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, []);
+  const unreadMessages = messages.filter(m => m.status === "new");
+  const unreadCount = unreadMessages.length;
 
-  /* ===== HANDLERS FOR TOGGLES ===== */
-  const toggleNotification = async (key) => {
-    const newVal = !notificationsSettings[key];
-    const updatedSettings = { ...notificationsSettings, [key]: newVal };
-    setNotificationsSettings(updatedSettings);
-    await APIControl.saveSettingsData({ notifications: updatedSettings });
+  const openMessage = async (msg) => {
+    setActiveMessage(msg);
+    setMessages(prev =>
+      prev.map(m => m._id === msg._id ? { ...m, status: "read" } : m)
+    );
   };
 
   return (
-    <div style={styles.nav}>
+    <>
+      <div style={styles.nav}>
+        <div style={styles.left} />
+        <div style={styles.title}>FTSA AI</div>
 
-  {/* LEFT SPACER */}
-  <div style={styles.left} />
+        <div style={styles.right} ref={ref}>
+          {/* ✉️ MESSAGE ICON */}
+          <div style={styles.icon} onClick={() => setShowListModal(true)}>
+            <FaEnvelope size={22} />
+            {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
+          </div>
 
-  {/* CENTER TITLE */}
-  <div style={styles.title}>FTSA AI</div>
+          {/* 🔔 NOTIFICATION */}
+          <div style={styles.icon}>
+            <FaBell size={22} />
+            {unreadCount > 0 && <span style={styles.greenDot} />}
+          </div>
 
-  {/* RIGHT ICONS */}
-  <div style={styles.right} ref={ref}>
-
-        {/* ✉️ MESSAGES */}
-        <Icon
-          badge={unreadCount}
-          onClick={() => setOpenMenu(openMenu === "messages" ? null : "messages")}
-        >
-          <FaEnvelope size={22} />
-          {openMenu === "messages" && (
-            <Dropdown>
-              {messages.length === 0 && <Item>No messages</Item>}
-              {messages.map(m => (
-                <Item
-                  key={m.id}
-                  unread={!m.read}
-                  onClick={async () => {
-                    if (!m.read) {
-                      await fetch(`/api/messages/${m.id}/read`, { method: "PATCH" });
-                      setMessages(prev => prev.map(x => x.id === m.id ? { ...x, read: true } : x));
-                      setUnreadCount(c => Math.max(c - 1, 0));
-                    }
-                  }}
-                >
-                  <strong>{m.from}</strong>
-                  <div>{m.text}</div>
-                </Item>
-              ))}
-            </Dropdown>
-          )}
-        </Icon>
-
-        {/* 🔔 NOTIFICATIONS */}
-        <Icon onClick={() => setOpenMenu(openMenu === "notifications" ? null : "notifications")}>
-          <FaBell size={22} />
-          {openMenu === "notifications" && (
-            <Dropdown>
-              <label style={labelStyle}>
-                Messages
-                <input
-                  type="checkbox"
-                  checked={notificationsSettings.messages}
-                  onChange={() => toggleNotification("messages")}
-                />
-              </label>
-              <label style={labelStyle}>
-                Alerts
-                <input
-                  type="checkbox"
-                  checked={notificationsSettings.alerts}
-                  onChange={() => toggleNotification("alerts")}
-                />
-              </label>
-            </Dropdown>
-          )}
-        </Icon>
-
-        {/* 👤 PROFILE */}
-        <Icon onClick={() => setOpenMenu(openMenu === "profile" ? null : "profile")}>
-          <FaUserCircle size={26} />
-          <span
-            style={{
-              ...styles.status,
-              background: online ? "lime" : "red"
-            }}
-          />
-          {openMenu === "profile" && (
-            <Dropdown>
-              <Item onClick={() => navigate("/profile")}>Profile</Item>
-              <Item onClick={() => navigate("/settings")}>Settings</Item>
-              <Item onClick={() => navigate("/logout")}>Logout</Item>
-            </Dropdown>
-          )}
-        </Icon>
-
+          {/* 👤 PROFILE */}
+          <div style={styles.icon} onClick={() => navigate("/profile")}>
+            <FaUserCircle size={26} />
+            <span style={{ ...styles.status, background: online ? "lime" : "red" }} />
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* ===== MESSAGE LIST MODAL ===== */}
+      {showListModal && (
+        <Modal onClose={() => setShowListModal(false)}>
+          <h3>Messages</h3>
+
+          <div style={styles.switch}>
+            <button onClick={() => setUnreadOnly(true)}>Unread</button>
+            <button onClick={() => setUnreadOnly(false)}>Read</button>
+          </div>
+
+          {(unreadOnly ? unreadMessages : messages.filter(m => m.status === "read"))
+            .map((m, i) => (
+              <div key={m._id} style={styles.messageRow}>
+                <div>
+                  <strong>{m.subject}</strong>
+                  <div style={styles.date}>
+                    {new Date(m.created_at).toLocaleString()}
+                  </div>
+                </div>
+                <button onClick={() => openMessage(m)}>
+                  {unreadOnly ? "Read" : "Reread"}
+                </button>
+              </div>
+            ))}
+        </Modal>
+      )}
+
+      {/* ===== FULL MESSAGE MODAL ===== */}
+      {activeMessage && (
+        <Modal onClose={() => setActiveMessage(null)}>
+          <h2>{activeMessage.subject}</h2>
+          <p style={styles.date}>
+            {new Date(activeMessage.created_at).toLocaleString()}
+          </p>
+          <div style={styles.body}>{activeMessage.body}</div>
+          <p><strong>Served by:</strong> {activeMessage.sent_by}</p>
+        </Modal>
+      )}
+    </>
   );
 }
 
-/* ===== SMALL COMPONENTS ===== */
-
-const Icon = ({ children, onClick, badge }) => (
-  <div onClick={onClick} style={styles.icon}>
-    {children}
-    {badge > 0 && <span style={styles.badge}>{badge}</span>}
+/* ===== MODAL ===== */
+const Modal = ({ children, onClose }) => (
+  <div style={styles.overlay}>
+    <div style={styles.modal}>
+      <button style={styles.close} onClick={onClose}>✕</button>
+      {children}
+    </div>
   </div>
 );
-
-const Dropdown = ({ children }) => (
-  <div style={styles.dropdown}>{children}</div>
-);
-
-const Item = ({ children, unread, onClick }) => (
-  <div
-    onClick={onClick}
-    style={{
-      padding: "0.5rem",
-      borderBottom: "1px solid #00FFFF",
-      background: unread ? "#002222" : "transparent",
-      cursor: "pointer"
-    }}
-  >
-    {children}
-  </div>
-);
-
-const labelStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  padding: "0.5rem",
-};
 
 /* ===== STYLES ===== */
-
 const styles = {
   nav: {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between", // <-- allow space for left, center, right
-  padding: "0.5rem 1rem",
-  background: "#111",
-  borderBottom: "2px solid #00FFFF",
-  color: "#00FFFF",
-  fontFamily: "Orbitron",
-  position: "relative"  // <-- needed for absolute positioning of title
-},
-
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0.5rem 1rem",
+    background: "#111",
+    borderBottom: "2px solid #00FFFF",
+    color: "#00FFFF",
+    fontFamily: "Orbitron",
+    position: "relative"
+  },
   title: {
-  position: "absolute",  // <-- absolute centers it in nav
-  left: "50%",
-  transform: "translateX(-50%)",
-  fontSize: "1.5rem",
-  fontWeight: "bold"
-},
-
+    position: "absolute",
+    left: "50%",
+    transform: "translateX(-50%)",
+    fontSize: "1.5rem",
+    fontWeight: "bold"
+  },
   right: {
     display: "flex",
-    gap: "1.2rem",
-    position: "relative"
+    gap: "1.2rem"
   },
   icon: {
     position: "relative",
@@ -246,21 +172,15 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
-  dropdown: {
+  greenDot: {
     position: "absolute",
-    right: 0,
-    top: "2.2rem",
-    width: 260,
-    background: "#111",
-    border: "1px solid #00FFFF",
-    borderRadius: 8,
-    zIndex: 2000
-
+    bottom: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    background: "lime",
+    borderRadius: "50%"
   },
-  left: {
-  width: "3rem", // adjust if needed to roughly match the width of your right icons
-},
-
   status: {
     position: "absolute",
     bottom: 0,
@@ -268,5 +188,57 @@ const styles = {
     width: 10,
     height: 10,
     borderRadius: "50%"
+  },
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    zIndex: 3000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  modal: {
+    background: "#111",
+    border: "1px solid #00FFFF",
+    borderRadius: 10,
+    padding: "1rem",
+    width: 500,
+    maxHeight: "80vh",
+    overflowY: "auto",
+    color: "#fff",
+    position: "relative"
+  },
+  close: {
+    position: "absolute",
+    top: 8,
+    right: 10,
+    background: "transparent",
+    border: "none",
+    color: "#00FFFF",
+    fontSize: "1.2rem",
+    cursor: "pointer"
+  },
+  messageRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    borderBottom: "1px solid #00FFFF",
+    padding: "0.5rem 0"
+  },
+  body: {
+    whiteSpace: "pre-wrap",
+    marginTop: "1rem"
+  },
+  date: {
+    fontSize: "0.75rem",
+    opacity: 0.7
+  },
+  switch: {
+    display: "flex",
+    gap: "0.5rem",
+    marginBottom: "1rem"
+  },
+  left: {
+    width: "3rem"
   }
 };
