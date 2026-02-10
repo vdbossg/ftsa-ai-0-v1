@@ -132,7 +132,8 @@ const DashboardPage = () => {
 
   if (error) return <div className="error-msg neon-glow-border">{error}</div>;
 
-  const { userInfo, trades, news, accounts, tradeAlerts, reminders } = dashboardData || {};
+  const { userInfo, trades, news, accounts } = dashboardData || {};
+
 
   return (
     <div
@@ -254,42 +255,6 @@ const DashboardPage = () => {
     </table>
   </div>
 </section>
-
-      {/* Alerts & Notifications */}
-      <section className="alerts-notifications neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
-        <h2 style={{ color: "#FFA500" }}>Alerts & Notifications</h2>
-        <ul>
-          {tradeAlerts && tradeAlerts.length > 0 ? (
-            tradeAlerts.map((alert, idx) => (
-              <li
-                key={idx}
-                style={{
-                  marginBottom: "0.5rem",
-                  color: alert.type === "error" ? "#FF0000" : alert.type === "warning" ? "#FFA500" : "#00FF00",
-                  fontWeight: "bold",
-                  textShadow: "0 0 8px currentColor",
-                }}
-              >
-                {alert.message}
-              </li>
-            ))
-          ) : (
-            <li>No alerts at this time.</li>
-          )}
-        </ul>
-      </section>
-
-      {/* Adds/Reminders */}
-      <section className="adds-reminders neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
-        <h2 style={{ color: "#00FFFF" }}>Adds / Reminders</h2>
-        <ul>
-          {reminders && reminders.length > 0 ? (
-            reminders.map((reminder, idx) => <li key={idx} style={{ marginBottom: "0.5rem" }}>{reminder}</li>)
-          ) : (
-            <li>No reminders.</li>
-          )}
-        </ul>
-      </section>
     
       <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025

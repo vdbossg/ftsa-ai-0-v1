@@ -63,7 +63,7 @@ startBridge();
 const ftsaFaqRoutes = require('./routes/routesFtsaFaqs');
 const aboutFullDataRoutes = require("./routes/routesAboutfullData");
 const myMessageRoutes = require("./routes/routesMymessageData");
-
+const liveAdsRoutes = require('./routes/routesLiveAds');
 
 
 
@@ -234,6 +234,9 @@ app.use("/api/trades", tradesRouter);
 app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/admin/affiliates', adminAffiliateRoutes);
 console.log('✅ /api/admin/affiliates routes mounted');
+
+app.use('/api/live-ads', liveAdsRoutes);
+console.log('✅ /api/live-ads route mounted');
 
 
 
