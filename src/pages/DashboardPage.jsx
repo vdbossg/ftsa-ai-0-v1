@@ -342,48 +342,7 @@ loadLiveAds();
     </table>
   </div>
 </section>
-  {/* Live Ads Section */}
-{liveAds.length > 0 && (() => {
-  const ad = liveAds[0]; // show only the first live ad
-  const images = ad.media.filter(m => m.mediaType === "image");
-  const videos = ad.media.filter(m => m.mediaType === "video");
-
-  return (
-    <div
-      key={ad._id}
-      className="p-6 bg-[#1F2833] rounded-md text-white mx-auto mb-6"
-      style={{ maxWidth: "900px" }}
-    >
-      {/* Ad Type */}
-      {ad.type && <h2 className="text-2xl font-bold mb-2 text-center">{ad.type}</h2>}
-
-      {/* Description */}
-      {ad.description && <p className="text-center mb-4">{ad.description}</p>}
-
-      {/* Images Slider */}
-      {images.length > 0 && <ImageSlider images={images} />}
-
-      {/* Videos */}
-      {videos.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {videos.map((v) => (
-            <video
-              key={v._id}
-              src={v.url}
-              controls
-              autoPlay
-              loop
-              className="w-full rounded max-h-[60vh] object-contain"
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-})()}
-
-
-      <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
+ <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
       </footer>
     </div>
