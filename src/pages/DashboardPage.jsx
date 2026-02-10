@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\src\pages\DashboardPage.jsx
 import React, { useEffect, useState, useContext } from "react";
 import NeonButton from "../components/NeonButton";
 import StatusBadge from "../components/StatusBadge";
@@ -17,6 +18,7 @@ const DashboardPage = () => {
   const [digitalClock, setDigitalClock] = useState(new Date());
   const [marketSession, setMarketSession] = useState([]);
   const [overallStatus, setOverallStatus] = useState("Closed");
+const [liveAds, setLiveAds] = useState([]);
 
   // Redirect unauthenticated users handled by router or higher context
   useEffect(() => {
@@ -44,6 +46,22 @@ const DashboardPage = () => {
       }
     }
     loadDashboard();
+    async function loadLiveAds() {
+  try {
+    const res = await fetch('http://localhost:5000/api/live-ads');
+    const json = await res.json();
+    if (json.success) {
+      setLiveAds(json.data);
+    } else {
+      console.error("Failed to load live ads:", json.message);
+    }
+  } catch (err) {
+    console.error("Error fetching live ads:", err);
+  }
+}
+
+loadLiveAds();
+
   }, [isAuthenticated]);
 
   // Update clock every second
@@ -255,7 +273,30 @@ const DashboardPage = () => {
     </table>
   </div>
 </section>
-    
+    {/* Live Ads Section */}
+<section className="live-ads neon-glow-border" style={{ marginBottom: "2rem", padding: "1rem" }}>
+  <h2 style={{ color: "#00FFFF" }}>Live Ads</h2>
+  {liveAds.length > 0 ? (
+    liveAds.map((ad) => (
+      <div key={ad._id} style={{ marginBottom: "1rem", borderBottom: "1px solid #00FFFF", paddingBottom: "0.5rem" }}>
+        <p style={{ fontWeight: "bold", color: "#FFA500" }}>{ad.type}: {ad.description}</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          {ad.media.map((m) => (
+            m.mediaType === "image" ? (
+              <img key={m._id} src={m.url} alt={m.fileName} style={{ width: "150px", borderRadius: "4px" }} />
+            ) : (
+              <video key={m._id} src={m.url} controls style={{ width: "250px", borderRadius: "4px" }} />
+            )
+          ))}
+        </div>
+      </div>
+    ))
+  ) : (
+    <p>No live ads at the moment.</p>
+  )}
+</section>
+
+
       <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
       </footer>
