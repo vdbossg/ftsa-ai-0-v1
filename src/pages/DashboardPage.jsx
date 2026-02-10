@@ -7,6 +7,46 @@ import { AuthContext } from '/src/contexts/AuthContext.jsx';
 import APIControl from "../brain/APIControl";
 import "../styles/DashboardPage.css";
 
+// Add this below your imports
+const ImageSlider = ({ images }) => {
+  const [current, setCurrent] = React.useState(0);
+
+  React.useEffect(() => {
+    if (images.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrent(prev => (prev + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  if (images.length === 0) return null;
+
+  return (
+    <div className="relative w-full mb-4">
+      <img
+        src={images[current].url}
+        alt={images[current].fileName || "ad-image"}
+        className="w-full max-h-[60vh] object-contain rounded"
+      />
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={() => setCurrent((current - 1 + images.length) % images.length)}
+            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white px-2 py-1 rounded"
+          >
+            ◀
+          </button>
+          <button
+            onClick={() => setCurrent((current + 1) % images.length)}
+            className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white px-2 py-1 rounded"
+          >
+            ▶
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
 
 const DashboardPage = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -273,44 +313,46 @@ loadLiveAds();
     </table>
   </div>
 </section>
-    {/* Live Ads Section */}
+  {/* Live Ads Section */}
 {liveAds.length > 0 && (() => {
   const ad = liveAds[0]; // show only the first live ad
+  const images = ad.media.filter(m => m.mediaType === "image");
+  const videos = ad.media.filter(m => m.mediaType === "video");
+
   return (
     <div
       key={ad._id}
       className="p-6 bg-[#1F2833] rounded-md text-white mx-auto mb-6"
       style={{ maxWidth: "900px" }}
     >
-      {/* Optional Header */}
-      {/* <h2 className="text-2xl font-bold mb-2 text-center">Currently Live Ad</h2> */}
+      {/* Ad Type */}
+      {ad.type && <h2 className="text-2xl font-bold mb-2 text-center">{ad.type}</h2>}
 
       {/* Description */}
-      <p className="text-center mb-4">{ad.description}</p>
+      {ad.description && <p className="text-center mb-4">{ad.description}</p>}
 
-      {/* Media Section */}
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem" }}>
-        {ad.media.map((m) =>
-          m.mediaType === "image" ? (
-            <img
-              key={m._id}
-              src={m.url}
-              alt={m.fileName}
-              style={{ width: "300px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
-            />
-          ) : (
+      {/* Images Slider */}
+      {images.length > 0 && <ImageSlider images={images} />}
+
+      {/* Videos */}
+      {videos.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {videos.map((v) => (
             <video
-              key={m._id}
-              src={m.url}
+              key={v._id}
+              src={v.url}
               controls
-              style={{ width: "500px", maxHeight: "70vh", borderRadius: "6px", objectFit: "contain" }}
+              autoPlay
+              loop
+              className="w-full rounded max-h-[60vh] object-contain"
             />
-          )
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 })()}
+
 
       <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
