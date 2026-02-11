@@ -46,7 +46,7 @@ const [liveAds, setLiveAds] = useState([]);
 const [scrollingTextData, setScrollingTextData] = useState(null); // For live scrolling text
 const [isModalOpen, setIsModalOpen] = useState(false); // Modal open/close
 
-  // Redirect unauthenticated users handled by router or higher context
+  // Redirect unauthenticated Es handled by router or higher context
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -97,14 +97,15 @@ async function fetchScrollingText() {
   try {
     const res = await fetch('http://localhost:5000/api/scrollingtexts/live');
     const json = await res.json();
-    if (json.success && json.data.length > 0) {
-      setScrollingTextData(json.data[0]); // take first "go_live"
+    // json is an array
+    if (Array.isArray(json) && json.length > 0) {
+      setScrollingTextData(json[0]); // take the first live scrolling text
     }
   } catch (err) {
     console.error("Error fetching scrolling text:", err);
   }
 }
-fetchScrollingText();
+
 
 
   // Set interval to fetch every 2 seconds
@@ -218,32 +219,14 @@ fetchScrollingText();
     >
       <header className="appbar" style={{ marginBottom: "1.5rem" }}>
         <h1>FTSA AI</h1>
-        {scrollingTextData && (
-  <div
-    onClick={() => setIsModalOpen(true)}
-    style={{
-      fontSize: "1rem",
-      color: "#00FFFF",
-      cursor: "pointer",
-      whiteSpace: "nowrap",
-      overflow: "hidden",
-      width: "100%",
-      display: "block",
-    }}
-  >
-    <div
-      style={{
-        display: "inline-block",
-        paddingLeft: "100%",
-        animation: "scroll-left 15s linear infinite",
-      }}
-    >
+       {scrollingTextData && (
+  <div className="ticker-window" onClick={() => setIsModalOpen(true)}>
+    <div className="ticker-text">
       {scrollingTextData.scrollingText}
     </div>
   </div>
 )}
-
-        
+      
       </header>
 
       {/* Digital Clock */}
