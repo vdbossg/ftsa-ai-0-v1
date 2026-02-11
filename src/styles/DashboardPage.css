@@ -149,10 +149,12 @@
 
 .ticker span {
   display: inline-block;
-  padding-right: 2rem;  /* small gap between repeats */
+  padding-right: 2rem;
   font-size: 1.1rem;
-  color: var(--neon-blue);
+  color: #00FF00;                 /* ✅ Live scrolling green */
+  text-shadow: 0 0 8px #00FF00;   /* 🔥 neon glow */
 }
+
 
 /* Duplicate text for seamless repeat */
 .ticker span::after {

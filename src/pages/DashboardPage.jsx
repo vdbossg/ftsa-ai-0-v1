@@ -260,17 +260,26 @@ useEffect(() => {
 
     {/* Button */}
     <button
-      onClick={() => setShowModal(true)}
-      style={{
-        backgroundColor: "#00FFFF",
-        color: "#000",
-        border: "none",
-        padding: "0.5rem 1rem",
-        borderRadius: "6px",
-        cursor: "pointer",
-        fontWeight: "bold",
-      }}
-    >
+  onClick={() => setShowModal(true)}
+  style={{
+    backgroundColor: "#00e676",   // ✅ new green
+    color: "#000",
+    border: "none",
+    padding: "0.5rem 1rem",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    boxShadow: "0 0 10px #00e676",
+    transition: "all 0.3s ease",
+  }}
+  onMouseEnter={(e) =>
+    (e.target.style.boxShadow = "0 0 20px #00e676")
+  }
+  onMouseLeave={(e) =>
+    (e.target.style.boxShadow = "0 0 10px #00e676")
+  }
+>
+
       Tap for more info
     </button>
   </div>
@@ -464,9 +473,16 @@ useEffect(() => {
         color: "#00FFFF",
       }}
     >
-      <h2 style={{ marginBottom: "1rem" }}>
-        {liveScrolling.title}
-      </h2>
+      <h2
+  style={{
+    marginBottom: "1rem",
+    color: "#00FF00",      // ✅ neon heading green
+    textShadow: "0 0 10px #00FF00",
+  }}
+>
+  {liveScrolling.title}
+</h2>
+
 
       <p style={{ marginBottom: "1rem" }}>
         {liveScrolling.description}
