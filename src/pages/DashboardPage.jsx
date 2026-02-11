@@ -50,33 +50,28 @@ const [showModal, setShowModal] = useState(false);
 
   // Redirect unauthenticated users handled by router or higher context
   useEffect(() => {
-    if (!isAuthenticated) return;
+  if (!isAuthenticated) return;
 
-    async function loadDashboard() {
-      try {
-        setLoading(true);
-        const response = await APIControl.fetchDashboardData();
-        console.log("Dashboard Data:", response); // ✅ Debug line
-        if (response.success) {
-          setDashboardData(response.data);
-          setError(null);
-        } else {
-          setError("Failed to load dashboard data.");
-        }
-
-
-        
-      } catch (err) {
+  async function loadDashboard() {
+    try {
+      const response = await APIControl.fetchDashboardData();
+      console.log("Dashboard Data:", response);
+      if (response.success) {
+        setDashboardData(response.data);
+        setError(null);
+      } else {
         setError("Failed to load dashboard data.");
-        console.error(err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      setError("Failed to load dashboard data.");
+      console.error(err);
     }
-    loadDashboard();
-    
+  }
 
-  }, [isAuthenticated]);
+  loadDashboard();
+  setLoading(false); // render page immediately
+}, [isAuthenticated]);
+
   useEffect(() => {
   if (!isAuthenticated) return;
 
@@ -251,18 +246,16 @@ useEffect(() => {
         position: "relative",
       }}
     >
-     <div className="ticker-wrapper">
+    <div className="ticker-wrapper">
   <div
     className="ticker"
     style={{
-      animationDuration: `${Math.max(
-        liveScrolling.scrollingText.length * 0.2,
-        12
-      )}s`,
+      animationDuration: `${Math.max(liveScrolling.scrollingText.length * 0.2, 12)}s`,
     }}
   >
-    <span>{liveScrolling.scrollingText}</span>
-    <span>{liveScrolling.scrollingText}</span>
+    <span data-text={liveScrolling.scrollingText}>
+      {liveScrolling.scrollingText}
+    </span>
   </div>
 </div>
 

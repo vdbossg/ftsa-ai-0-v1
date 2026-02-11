@@ -141,30 +141,32 @@
   padding: 0.25rem 0.5rem;           /* optional: spacing */
 }
 
-
 .ticker {
   display: inline-flex;
   white-space: nowrap;
-  animation-name: ticker-scroll;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  will-change: transform;   /* 🔥 performance boost */
+  animation: ticker-scroll 10s linear infinite;
 }
 
 .ticker span {
-  padding-right: 1.5rem;
+  display: inline-block;
+  padding-right: 2rem;  /* small gap between repeats */
   font-size: 1.1rem;
   color: var(--neon-blue);
-  white-space: nowrap;  /* important */
 }
 
+/* Duplicate text for seamless repeat */
+.ticker span::after {
+  content: attr(data-text); /* duplicate the text automatically */
+  padding-left: 2rem;
+}
 
-/* RIGHT ➜ LEFT smooth continuous */
+/* Smooth infinite scroll */
 @keyframes ticker-scroll {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%); /* only scroll half since we duplicated */
   }
 }
+
