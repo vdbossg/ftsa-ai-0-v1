@@ -34,36 +34,43 @@ const [accountTotals, setAccountTotals] = useState({
   };
 
   // Initial load (user info + news)
-  useEffect(() => {
-    let isMounted = true;
-    if (!isAuthenticated) return;
+useEffect(() => {
+  let isMounted = true;
 
-    setLoading(true);
-    setError(null);
+  // Immediately stop loading if user is not authenticated
+  if (!isAuthenticated) {
+    setLoading(false);
+    return;
+  }
 
-    Promise.all([APIControl.fetchUserInfo(), APIControl.fetchNews()])
-      .then(([userRes, newsRes]) => {
-        if (!isMounted) return;
+  setLoading(true);
+  setError(null);
 
-        if (userRes.success && newsRes.success) {
-          const userData = { ...userRes.data, marketNews: newsRes.data || [] };
-          setData(userData);
-        } else {
-          setError(userRes.error || newsRes.error || "Failed to load data");
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setError(err?.message || "Failed to load data");
-          setLoading(false);
-        }
-      });
+  Promise.all([APIControl.fetchUserInfo(), APIControl.fetchNews()])
+    .then(([userRes, newsRes]) => {
+      if (!isMounted) return;
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated]);
+      if (userRes.success && newsRes.success) {
+        const userData = { ...userRes.data, marketNews: newsRes.data || [] };
+        setData(userData);
+      } else {
+        setError(userRes.error || newsRes.error || "Failed to load data");
+      }
+
+      setLoading(false); // ✅ ensure this always runs after fetch
+    })
+    .catch((err) => {
+      if (isMounted) {
+        setError(err?.message || "Failed to load data");
+        setLoading(false); // ✅ ensure loading stops on error
+      }
+    });
+
+  return () => {
+    isMounted = false;
+  };
+}, [isAuthenticated]);
+
 useEffect(() => {
   if (!isAuthenticated) return;
 
