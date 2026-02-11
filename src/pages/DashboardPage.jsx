@@ -188,8 +188,6 @@ useEffect(() => {
   const { userInfo, trades, news, accounts } = dashboardData || {};
 
 
-  
-
   return (
     <div
       className="dashboard-page"
