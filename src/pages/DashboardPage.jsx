@@ -230,22 +230,18 @@ useEffect(() => {
         <h1>FTSA AI</h1>
         {liveScrolling && (
   <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "1rem",
-      overflow: "hidden",
-      whiteSpace: "nowrap",
-    }}
-  >
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+    whiteSpace: "nowrap",
+    width: "fit-content",   // ✅ prevents full stretch
+  }}
+>
+
     {/* Moving Text */}
-    <div
-      style={{
-        flex: 1,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
+    <div>
+
     <div className="ticker-wrapper">
   <div
     className="ticker"
