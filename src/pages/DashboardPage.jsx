@@ -200,6 +200,7 @@ useEffect(() => {
         overflowY: "auto",
       }}
     >
+      
       <header className="appbar" style={{ marginBottom: "1.5rem" }}>
         <h1>FTSA AI</h1>
         <p style={{ fontSize: "1rem", color: "#00FFFF", cursor: "pointer" }}>
