@@ -24,10 +24,12 @@ const ImageSlider = ({ images }) => {
   return (
     <div className="relative w-full mb-4">
       <img
-        src={images[current].url}
-        alt={images[current].fileName || "ad-image"}
-        className="w-full max-h-[60vh] object-contain rounded"
-      />
+  src={images[current].url}
+  alt={images[current].fileName || "ad-image"}
+  loading="lazy"
+  className="w-full max-h-[60vh] object-contain rounded"
+/>
+
     </div>
   );
 };
@@ -112,7 +114,7 @@ useEffect(() => {
   fetchLiveAds();
 
   // Set interval to fetch every 2 seconds
-  const interval = setInterval(fetchLiveAds, 2000);
+  const interval = setInterval(fetchLiveAds, 5000); // fetch every 5 seconds
 
   // Cleanup interval on unmount
   return () => clearInterval(interval);
@@ -201,7 +203,15 @@ useEffect(() => {
     );
   }
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+  return (
+    <div className="dashboard-page" style={{ color: "#00FFFF", fontFamily: "Orbitron" }}>
+      <h1>FTSA AI Dashboard</h1>
+      <p>Loading data...</p>
+    </div>
+  );
+}
+
 
   if (error) return <div className="error-msg neon-glow-border">{error}</div>;
 
@@ -473,31 +483,35 @@ useEffect(() => {
 
         if (type === "image") {
           return (
-            <img
-              key={index}
-              src={url}
-              alt="media"
-              style={{
-                width: "100%",
-                marginBottom: "1rem",
-                borderRadius: "8px",
-              }}
-            />
+           <img
+  key={index}
+  src={url}
+  alt="media"
+  loading="lazy"
+  style={{
+    width: "100%",
+    marginBottom: "1rem",
+    borderRadius: "8px",
+  }}
+/>
+
           );
         }
 
         if (type === "video") {
           return (
-            <video
-              key={index}
-              src={url}
-              controls
-              style={{
-                width: "100%",
-                marginBottom: "1rem",
-                borderRadius: "8px",
-              }}
-            />
+           <video
+  key={index}
+  src={url}
+  controls
+  preload="none"
+  style={{
+    width: "100%",
+    marginBottom: "1rem",
+    borderRadius: "8px",
+  }}
+/>
+
           );
         }
 
