@@ -113,3 +113,11 @@
     transform: rotate(360deg);
   }
 }
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}

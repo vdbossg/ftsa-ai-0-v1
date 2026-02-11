@@ -64,7 +64,7 @@ const ftsaFaqRoutes = require('./routes/routesFtsaFaqs');
 const aboutFullDataRoutes = require("./routes/routesAboutfullData");
 const myMessageRoutes = require("./routes/routesMymessageData");
 const liveAdsRoutes = require('./routes/routesLiveAds');
-
+const scrollingTextsRoutes = require('./routes/routesScrollingtexts');
 
 
 
@@ -201,6 +201,9 @@ console.log("✅ /api/FTSA Help routes mounted");
 app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 const Elimq5Service = require('./services/Elimq5Service');
+
+app.use('/api/scrollingtexts', scrollingTextsRoutes);
+console.log('✅ /api/scrollingtexts routes mounted');
 
 app.use("/api", myMessageRoutes);
 console.log("✅ /api/messageData routes mounted");

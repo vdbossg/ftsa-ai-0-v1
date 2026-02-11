@@ -43,6 +43,8 @@ const DashboardPage = () => {
   const [marketSession, setMarketSession] = useState([]);
   const [overallStatus, setOverallStatus] = useState("Closed");
 const [liveAds, setLiveAds] = useState([]);
+const [scrollingTextData, setScrollingTextData] = useState(null); // For live scrolling text
+const [isModalOpen, setIsModalOpen] = useState(false); // Modal open/close
 
   // Redirect unauthenticated users handled by router or higher context
   useEffect(() => {
@@ -90,6 +92,20 @@ useEffect(() => {
 
   // Fetch immediately once
   fetchLiveAds();
+// Fetch live scrolling text
+async function fetchScrollingText() {
+  try {
+    const res = await fetch('http://localhost:5000/api/scrollingtexts/live');
+    const json = await res.json();
+    if (json.success && json.data.length > 0) {
+      setScrollingTextData(json.data[0]); // take first "go_live"
+    }
+  } catch (err) {
+    console.error("Error fetching scrolling text:", err);
+  }
+}
+fetchScrollingText();
+
 
   // Set interval to fetch every 2 seconds
   const interval = setInterval(fetchLiveAds, 2000);
@@ -202,9 +218,32 @@ useEffect(() => {
     >
       <header className="appbar" style={{ marginBottom: "1.5rem" }}>
         <h1>FTSA AI</h1>
-        <p style={{ fontSize: "1rem", color: "#00FFFF", cursor: "pointer" }}>
-          [New App adjust. Tap for more info]
-        </p>
+        {scrollingTextData && (
+  <div
+    onClick={() => setIsModalOpen(true)}
+    style={{
+      fontSize: "1rem",
+      color: "#00FFFF",
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      width: "100%",
+      display: "block",
+    }}
+  >
+    <div
+      style={{
+        display: "inline-block",
+        paddingLeft: "100%",
+        animation: "scroll-left 15s linear infinite",
+      }}
+    >
+      {scrollingTextData.scrollingText}
+    </div>
+  </div>
+)}
+
+        
       </header>
 
       {/* Digital Clock */}
@@ -363,6 +402,81 @@ useEffect(() => {
  <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
       </footer>
+      {isModalOpen && scrollingTextData && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0,0,0,0.8)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999,
+      overflowY: "auto",
+      padding: "1rem",
+    }}
+    onClick={() => setIsModalOpen(false)}
+  >
+    <div
+      style={{
+        backgroundColor: "#0a0a0a",
+        padding: "2rem",
+        borderRadius: "10px",
+        color: "#FFFFFF",
+        maxWidth: "800px",
+        width: "100%",
+        position: "relative",
+      }}
+      onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+    >
+      <button
+        onClick={() => setIsModalOpen(false)}
+        style={{
+          position: "absolute",
+          top: "1rem",
+          right: "1rem",
+          background: "red",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "2rem",
+          height: "2rem",
+          fontWeight: "bold",
+          cursor: "pointer",
+        }}
+      >
+        X
+      </button>
+      {/* Title */}
+      <h2 style={{ color: "#00FF00", fontWeight: "bold", marginBottom: "1rem" }}>
+        {scrollingTextData.title}
+      </h2>
+      {/* Scrolling Text */}
+      <p style={{ fontWeight: "bold", marginBottom: "1rem" }}>
+        {scrollingTextData.scrollingText}
+      </p>
+      {/* Description */}
+      <p style={{ marginBottom: "1rem" }}>{scrollingTextData.description}</p>
+      {/* Media */}
+      {scrollingTextData.mediaUrl && scrollingTextData.mediaUrl.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          {scrollingTextData.mediaUrl.map((url, idx) => (
+            <img
+              key={idx}
+              src={url}
+              alt={`media-${idx}`}
+              style={{ maxWidth: "48%", borderRadius: "5px" }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
