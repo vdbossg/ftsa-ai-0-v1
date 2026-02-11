@@ -43,6 +43,8 @@ const DashboardPage = () => {
   const [marketSession, setMarketSession] = useState([]);
   const [overallStatus, setOverallStatus] = useState("Closed");
 const [liveAds, setLiveAds] = useState([]);
+const [liveScrolling, setLiveScrolling] = useState(null);
+const [showModal, setShowModal] = useState(false);
 
   // Redirect unauthenticated users handled by router or higher context
   useEffect(() => {
@@ -73,6 +75,24 @@ const [liveAds, setLiveAds] = useState([]);
     
 
   }, [isAuthenticated]);
+  useEffect(() => {
+  if (!isAuthenticated) return;
+
+  async function fetchScrollingText() {
+    try {
+      const res = await fetch("http://localhost:5000/api/scrollingtexts/live");
+      const data = await res.json();
+      if (data.length > 0) {
+        setLiveScrolling(data[0]); // only one go_live
+      }
+    } catch (err) {
+      console.error("Error fetching scrolling text:", err);
+    }
+  }
+
+  fetchScrollingText();
+}, [isAuthenticated]);
+
 useEffect(() => {
   if (!isAuthenticated) return;
 
@@ -203,9 +223,60 @@ useEffect(() => {
       
       <header className="appbar" style={{ marginBottom: "1.5rem" }}>
         <h1>FTSA AI</h1>
-        <p style={{ fontSize: "1rem", color: "#00FFFF", cursor: "pointer" }}>
-          [New App adjust. Tap for more info]
-        </p>
+        {liveScrolling && (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "1rem",
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+    }}
+  >
+    {/* Moving Text */}
+    <div
+      style={{
+        flex: 1,
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+     <div className="ticker-wrapper">
+  <div
+    className="ticker"
+    style={{
+      animationDuration: `${Math.max(
+        liveScrolling.scrollingText.length * 0.2,
+        12
+      )}s`,
+    }}
+  >
+    <span>{liveScrolling.scrollingText}</span>
+    <span>{liveScrolling.scrollingText}</span>
+  </div>
+</div>
+
+
+    </div>
+
+    {/* Button */}
+    <button
+      onClick={() => setShowModal(true)}
+      style={{
+        backgroundColor: "#00FFFF",
+        color: "#000",
+        border: "none",
+        padding: "0.5rem 1rem",
+        borderRadius: "6px",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      Tap for more info
+    </button>
+  </div>
+)}
+
       </header>
 
       {/* Digital Clock */}
@@ -361,9 +432,100 @@ useEffect(() => {
     </table>
   </div>
 </section>
+{showModal && liveScrolling && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(0,0,0,0.8)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999,
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: "#111",
+        padding: "2rem",
+        borderRadius: "10px",
+        maxWidth: "800px",
+        width: "90%",
+        maxHeight: "90vh",
+        overflowY: "auto",
+        color: "#00FFFF",
+      }}
+    >
+      <h2 style={{ marginBottom: "1rem" }}>
+        {liveScrolling.title}
+      </h2>
+
+      <p style={{ marginBottom: "1rem" }}>
+        {liveScrolling.description}
+      </p>
+
+      {/* Media */}
+      {liveScrolling.mediaUrl.map((url, index) => {
+        const type = liveScrolling.mediaType[index];
+
+        if (type === "image") {
+          return (
+            <img
+              key={index}
+              src={url}
+              alt="media"
+              style={{
+                width: "100%",
+                marginBottom: "1rem",
+                borderRadius: "8px",
+              }}
+            />
+          );
+        }
+
+        if (type === "video") {
+          return (
+            <video
+              key={index}
+              src={url}
+              controls
+              style={{
+                width: "100%",
+                marginBottom: "1rem",
+                borderRadius: "8px",
+              }}
+            />
+          );
+        }
+
+        return null;
+      })}
+
+      <button
+        onClick={() => setShowModal(false)}
+        style={{
+          marginTop: "1rem",
+          padding: "0.5rem 1rem",
+          backgroundColor: "#FF0000",
+          color: "#fff",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
  <footer style={{ textAlign: "center", padding: "1rem", color: "#00FFFF", borderTop: "1px solid #00FFFF" }}>
         FTSA AI-Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
       </footer>
+     
     </div>
   );
 };

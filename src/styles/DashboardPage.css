@@ -117,3 +117,48 @@
     transform: rotate(360deg);
   }
 }
+
+/* =========================
+   🎬 Scrolling Ticker
+   ========================= */
+
+.ticker-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.ticker {
+  display: inline-flex;
+  white-space: nowrap;
+  animation-name: ticker-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;   /* 🔥 performance boost */
+}
+
+.ticker span {
+  padding-right: 4rem;
+  font-size: 1.1rem;
+  color: var(--neon-blue);
+  white-space: nowrap;  /* important */
+}
+
+
+/* RIGHT ➜ LEFT smooth continuous */
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
