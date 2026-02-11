@@ -130,11 +130,17 @@
   white-space: nowrap;
 }
 
+/* 🎬 Scrolling Ticker - Fixed visible width */
 .ticker-wrapper {
-  flex: 1;
-  overflow: hidden;
+  width: 300px;         /* only show ~5-7 words */
+  max-width: 80vw;      /* responsive on smaller screens */
+  overflow: hidden;     /* hide overflow text */
   position: relative;
+  border-radius: 6px;   /* optional: nice rounded edges */
+  background-color: rgba(0,0,0,0.5); /* optional: highlight */
+  padding: 0.25rem 0.5rem;           /* optional: spacing */
 }
+
 
 .ticker {
   display: inline-flex;
