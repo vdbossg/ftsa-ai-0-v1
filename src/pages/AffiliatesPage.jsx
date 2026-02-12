@@ -92,7 +92,7 @@ const fetchEverything = async () => {
     if (!watcherUserId) return;
 
     // fetch directly from endpoint
-    const res = await fetch(`http://localhost:5000/api/affiliatestatus/${watcherUserId}`);
+    const res = await fetch(`http://localhost:5000/api/affiliatestatus/userid/`);
     const data = await res.json();
 
     if (data.success && data.data) {
