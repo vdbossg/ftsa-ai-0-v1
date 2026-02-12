@@ -89,15 +89,13 @@ const watcherUserId = user?.id; // use actual logged-in user
   // fetch affiliate & stats from /api/affiliatestatus/userid/
 const fetchEverything = async () => {
   try {
-    if (!watcherUserId) return;
-
-    // fetch directly from endpoint
     const res = await fetch(`http://localhost:5000/api/affiliatestatus/userid/`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const data = await res.json();
 
-    if (data.success && data.data) {
+    if (data?.success && data.data) {
       setAffiliate(data.data);
-
       setStats({
         downloaders: data.data.downloaders || 0,
         totalSubscriptions: data.data.totalSubscriptions || 0,
@@ -106,7 +104,6 @@ const fetchEverything = async () => {
         balance: data.data.withdrawableBalance || 0,
       });
     } else {
-      // no data → treat as NOT REGISTERED
       setAffiliate(null);
       setStats({
         downloaders: 0,
@@ -118,21 +115,29 @@ const fetchEverything = async () => {
     }
   } catch (e) {
     console.error("Failed to fetch affiliate data:", e);
+    setAffiliate(null);
+    setStats({
+      downloaders: 0,
+      totalSubscriptions: 0,
+      newDownloaders: 0,
+      newSubscribers: 0,
+      balance: 0,
+    });
+  } finally {
+    setLoading(false); // ✅ stop spinner
   }
 };
 
 
- useEffect(() => {
+useEffect(() => {
   if (!isAuthenticated) return;
 
-  fetchEverything(); // initial fetch
+  fetchEverything();
 
-  const interval = setInterval(() => {
-    fetchEverything(); // auto refresh every 2 seconds
-  }, 2000);
+  const interval = setInterval(fetchEverything, 2000);
+  return () => clearInterval(interval);
+}, [isAuthenticated]);
 
-  return () => clearInterval(interval); // cleanup on unmount
-}, [isAuthenticated, watcherUserId]);
 
 
   // registration submit
