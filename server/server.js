@@ -65,6 +65,13 @@ const aboutFullDataRoutes = require("./routes/routesAboutfullData");
 const myMessageRoutes = require("./routes/routesMymessageData");
 const liveAdsRoutes = require('./routes/routesLiveAds');
 const scrollingTextsRoutes = require('./routes/routesScrollingtexts');
+const newReferralRoutes = require('./routes/routesNewreferrals');
+const affiliatestatusRoutes = require('./routes/routesAffiliatestatusMy');
+
+
+
+
+
 
 
 
@@ -202,8 +209,14 @@ app.use("/api/elimq5", Elimq5Routes);
 console.log("✅ /api/elimq5 routes mounted");
 const Elimq5Service = require('./services/Elimq5Service');
 
+app.use('/api/byrer', newReferralRoutes);
+console.log('✅ /api/byrer routes mounted');
 app.use('/api/scrollingtexts', scrollingTextsRoutes);
 console.log('✅ /api/scrollingtexts routes mounted');
+// Later in server.js, after other `app.use('/api/...')`
+app.use('/api/affiliatestatus', affiliatestatusRoutes);
+console.log('✅ /api/affiliatestatus routes mounted');
+
 
 app.use("/api", myMessageRoutes);
 console.log("✅ /api/messageData routes mounted");

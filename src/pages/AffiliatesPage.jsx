@@ -85,49 +85,55 @@ const watcherUserId = user?.id; // use actual logged-in user
     return afterWindow && hasBalance && (affiliate.status === "active" || affiliate.status === "approved");
   }, [affiliate, nextWithdrawalDate]);
 
-  // fetch affiliate & stats
-  const fetchEverything = async () => {
+ 
+  // fetch affiliate & stats from /api/affiliatestatus/userid/
+const fetchEverything = async () => {
   try {
-    setLoading(true);
     if (!watcherUserId) return;
 
-// affiliate profile
-let aData = null;
-try {
-  const res = await APIControl.fetchAffiliate(watcherUserId);
-  aData = res.success ? res.data : null;
-} catch (err) {
-  aData = null; // user is not yet an affiliate
-}
+    // fetch directly from endpoint
+    const res = await fetch(`http://localhost:5000/api/affiliatestatus/${watcherUserId}`);
+    const data = await res.json();
 
-    setAffiliate(aData);
+    if (data.success && data.data) {
+      setAffiliate(data.data);
 
-    // stats for cards
-    let sData = null;
-    try {
-      sData = await APIControl.getAffiliateStats(watcherUserId);
-    } catch {}
-    setStats(
-      sData || {
-        downloaders: aData?.downloaders || 0,
-        totalSubscriptions: aData?.totalSubscriptions || 0,
-        newDownloaders: aData?.newDownloaders || 0,
-        newSubscribers: aData?.newSubscribersCount || 0,
-        balance: aData?.withdrawableBalance || 0,
-      }
-    );
+      setStats({
+        downloaders: data.data.downloaders || 0,
+        totalSubscriptions: data.data.totalSubscriptions || 0,
+        newDownloaders: data.data.newDownloaders || 0,
+        newSubscribers: data.data.newSubscribersCount || 0,
+        balance: data.data.withdrawableBalance || 0,
+      });
+    } else {
+      // no data → treat as NOT REGISTERED
+      setAffiliate(null);
+      setStats({
+        downloaders: 0,
+        totalSubscriptions: 0,
+        newDownloaders: 0,
+        newSubscribers: 0,
+        balance: 0,
+      });
+    }
   } catch (e) {
-    console.error(e);
-    alert("Failed to load affiliate data.");
-  } finally {
-    setLoading(false);
+    console.error("Failed to fetch affiliate data:", e);
   }
 };
 
 
-  useEffect(() => {
-    if (isAuthenticated) fetchEverything();
-  }, [isAuthenticated]); // eslint-disable-line
+ useEffect(() => {
+  if (!isAuthenticated) return;
+
+  fetchEverything(); // initial fetch
+
+  const interval = setInterval(() => {
+    fetchEverything(); // auto refresh every 2 seconds
+  }, 2000);
+
+  return () => clearInterval(interval); // cleanup on unmount
+}, [isAuthenticated, watcherUserId]);
+
 
   // registration submit
   const submitRegistration = async (e) => {
@@ -253,12 +259,19 @@ alert(data?.message || "Withdrawal request submitted.");
 
   if (loading) return <LoadingSpinner />;
 
-  const status =
-  affiliate?.status === "active" || affiliate?.status === "approved"
-    ? "online"
-    : affiliate?.status === "pending"
-    ? "warning"
-    : "offline";
+  const statusInfo = useMemo(() => {
+  if (!affiliate) return { label: "NOT REGISTERED", color: "purple" };
+  switch (affiliate.status) {
+    case "pending":
+      return { label: "PENDING FOR VERIFICATION", color: "orange" };
+    case "rejected":
+      return { label: "SUBMISSION DECLINED", color: "red" };
+    case "approved":
+      return { label: "ACTIVE", color: "green" };
+    default:
+      return { label: "UNKNOWN", color: "grey" };
+  }
+}, [affiliate]);
 
 
   return (
@@ -274,16 +287,8 @@ alert(data?.message || "Withdrawal request submitted.");
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <h1 style={{ margin: 0, textShadow: `0 0 10px ${neon.blue}` }}>FTSA AI • Affiliate Center</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <StatusBadge
-            status={status}
-            label={
-              affiliate?.status === "active"
-                ? "Active"
-                : affiliate?.status === "pending"
-                ? "Pending approval"
-                : "Not registered"
-            }
-          />
+          <StatusBadge status={statusInfo.color} label={statusInfo.label} />
+
           <NeonButton onClick={fetchEverything}>Refresh</NeonButton>
         </div>
       </header>
