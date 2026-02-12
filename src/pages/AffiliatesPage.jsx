@@ -421,12 +421,17 @@ alert(data?.message || "Withdrawal request submitted.");
 )}
 {affiliate?.status === "active" || affiliate?.status === "approved" ? (
   <NeonButton
-    onClick={() => setShowWithdraw(true)}
-    disabled={!canWithdraw}
-    title={!canWithdraw ? "Either window not open or balance is 0" : ""}
-  >
-    Request Withdrawal
-  </NeonButton>
+  onClick={() => {
+    if (!canWithdraw) {
+      alert("Either window not open or balance is 0");
+      return;
+    }
+    setShowWithdraw(true);
+  }}
+>
+  Request Withdrawal
+</NeonButton>
+
 ) : null}
 
       </section>
