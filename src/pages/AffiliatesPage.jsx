@@ -60,8 +60,7 @@ export default function AffiliatesPage() {
 
   // helpers
 
-const watcherUserId = user?._id || user?.id; // ensure proper backend ID
-
+const watcherUserId = user?.id; // use actual logged-in user
 
   const ticketWithExtension = useMemo(() => {
   if (!affiliate?.ticketNumber) return "";
@@ -90,7 +89,10 @@ const watcherUserId = user?._id || user?.id; // ensure proper backend ID
   // fetch affiliate & stats from /api/affiliatestatus/userid/
 const fetchEverything = async () => {
   try {
-    const res = await fetch(`http://localhost:5000/api/affiliatestatus/userid/${watcherUserId}`);
+    const res = await fetch(
+  `http://localhost:5000/api/affiliatestatus/userid`
+);
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
@@ -166,9 +168,8 @@ useEffect(() => {
   fd.append("idType", regForm.idType);
   fd.append("idNumber", regForm.idNumber);
   fd.append("username", regForm.username);
-  if (regForm.docFront) fd.append("docFront", regForm.docFront);
-if (regForm.docBack) fd.append("docBack", regForm.docBack);
-
+  fd.append("docFront", regForm.docFront); // File object
+  fd.append("docBack", regForm.docBack);   // File object
 
   try {
     setSaving(true);
@@ -274,10 +275,7 @@ alert(data?.message || "Withdrawal request submitted.");
     case "rejected":
       return { label: "SUBMISSION DECLINED", color: "red" };
     case "approved":
-      case "approved":
-case "active":  // include both possible backend values
-  return { label: "ACTIVE", color: "green" };
-
+      return { label: "ACTIVE", color: "green" };
     default:
       return { label: "UNKNOWN", color: "grey" };
   }
@@ -331,20 +329,20 @@ case "active":  // include both possible backend values
   Your referral link:
   <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
     <input
-  type="text"
-  readOnly
-  value={`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber || "XXXX"}`}
-  style={{
-    flex: 1,
-    padding: "6px 8px",
-    borderRadius: 6,
-    border: `1px solid ${neon.blue}`,
-    background: "#000",
-    color: neon.blue,
-  }}
-  onClick={(e) => e.target.select()}
-/>
-
+      type="text"
+      readOnly
+      value={`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`}
+      style={{
+        flex: 1,
+        padding: "6px 8px",
+        borderRadius: 6,
+        border: `1px solid ${neon.blue}`,
+        background: "#000",
+        color: neon.blue
+      }}
+      
+      onClick={(e) => e.target.select()}
+    />
     <NeonButton
       onClick={() => {
         navigator.clipboard.writeText(`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`);
