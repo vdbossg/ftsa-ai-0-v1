@@ -420,17 +420,10 @@ alert(data?.message || "Withdrawal request submitted.");
   <div style={{ color: neon.amber }}>Your registration is awaiting approval.</div>
 )}
 {affiliate?.status === "active" || affiliate?.status === "approved" ? (
-  <NeonButton
-  onClick={() => {
-    if (!canWithdraw) {
-      alert("Either window not open or balance is 0");
-      return;
-    }
-    setShowWithdraw(true);
-  }}
->
+  <NeonButton onClick={() => setShowWithdraw(true)}>
   Request Withdrawal
 </NeonButton>
+
 
 ) : null}
 
