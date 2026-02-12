@@ -370,22 +370,18 @@ alert(data?.message || "Withdrawal request submitted.");
 </div>
       {/* Cards */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
-        <Card title="Downloaders" value={stats?.downloaders ?? 0} />
-        <Card title="Total Subscriptions" value={stats?.totalSubscriptions ?? 0} />
-        <Card title="New Downloaders" value={stats?.newDownloaders ?? 0} />
-        <Card title="New Subscribers" value={stats?.newSubscribers ?? 0} />
-        <Card
-          title="Balance (USD)"
-          value={(stats?.balance ?? affiliate?.withdrawableBalance ?? 0).toFixed(2)}
-        />
-      </section>
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: 12,
+    marginBottom: 16,
+  }}
+>
+  <Card title="New Subscribers" value={stats?.newSubscribers ?? affiliate?.newSubscribersCount ?? 0} />
+  <Card title="Total Subscriptions" value={stats?.totalSubscriptions ?? 0} />
+  <Card title="Balance (USD)" value={(stats?.balance ?? affiliate?.withdrawableBalance ?? 0).toFixed(2)} />
+</section>
+
 
       {/* Withdraw policy */}
       <section
@@ -489,6 +485,22 @@ alert(data?.message || "Withdrawal request submitted.");
       {/* Withdraw Modal */}
       {showWithdraw && (
         <Modal title="Request Withdrawal" onClose={() => setShowWithdraw(false)}>
+          {/* Live Stats Cards */}
+<section
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: 12,
+    marginBottom: 16,
+  }}
+>
+  <Card title="Withdrawable Balance" value={(affiliate?.withdrawableBalance ?? 0).toFixed(2)} />
+  <Card title="Pending Commission" value={(affiliate?.pendingCommission ?? 0).toFixed(2)} />
+  <Card title="Paid Commission" value={(affiliate?.paidCommission ?? 0).toFixed(2)} />
+  <Card title="Total Commission" value={(affiliate?.totalCommission ?? 0).toFixed(2)} />
+  <Card title="New Subscribers" value={affiliate?.newSubscribersCount ?? 0} />
+</section>
+
           <form onSubmit={submitWithdraw} style={{ display: "grid", gap: 10 }}>
             <div style={{ marginBottom: 6, color: neon.green }}>
               Withdrawable balance: ${(affiliate?.withdrawableBalance || 0).toFixed(2)}
