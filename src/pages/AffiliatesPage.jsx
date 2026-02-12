@@ -293,7 +293,21 @@ alert(data?.message || "Withdrawal request submitted.");
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <h1 style={{ margin: 0, textShadow: `0 0 10px ${neon.blue}` }}>FTSA AI • Affiliate Center</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <StatusBadge status={statusInfo.color} label={statusInfo.label} />
+          <span
+  style={{
+    display: "inline-block",
+    padding: "4px 10px",
+    borderRadius: 12,
+    fontSize: 12,
+    fontWeight: 600,
+    backgroundColor: statusInfo.color, // neon.green, neon.red, neon.orange, etc.
+    color: "#000",
+    textTransform: "uppercase",
+    boxShadow: `0 0 8px ${statusInfo.color}`, // optional neon glow
+  }}
+>
+  {statusInfo.label}
+</span>
 
           <NeonButton onClick={fetchEverything}>Refresh</NeonButton>
         </div>
