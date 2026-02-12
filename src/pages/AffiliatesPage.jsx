@@ -257,18 +257,19 @@ alert(data?.message || "Withdrawal request submitted.");
     }
   };
  const statusInfo = useMemo(() => {
-  if (!affiliate) return { label: "NOT REGISTERED", color: "purple" };
+  if (!affiliate) return { label: "NOT REGISTERED", color: "#9C27B0" }; // purple
   switch (affiliate.status) {
     case "pending":
-      return { label: "PENDING FOR VERIFICATION", color: "orange" };
+      return { label: "PENDING FOR VERIFICATION", color: "#FFC107" }; // amber/orange
     case "rejected":
-      return { label: "SUBMISSION DECLINED", color: "red" };
+      return { label: "SUBMISSION DECLINED", color: "#FF3B30" }; // red
     case "approved":
-      return { label: "ACTIVE", color: "green" };
+      return { label: "ACTIVE", color: "#00FF00" }; // ✅ neon green
     default:
-      return { label: "UNKNOWN", color: "grey" };
+      return { label: "UNKNOWN", color: "#888888" }; // grey
   }
 }, [affiliate]);
+
   if (!isAuthenticated) {
     return (
       <div style={{ color: neon.red, padding: "2rem", fontFamily: "'Orbitron', sans-serif" }}>
@@ -300,14 +301,15 @@ alert(data?.message || "Withdrawal request submitted.");
     borderRadius: 12,
     fontSize: 12,
     fontWeight: 600,
-    backgroundColor: statusInfo.color, // neon.green, neon.red, neon.orange, etc.
+    backgroundColor: statusInfo.color, // uses #00FF00 when active
     color: "#000",
     textTransform: "uppercase",
-    boxShadow: `0 0 8px ${statusInfo.color}`, // optional neon glow
+    boxShadow: `0 0 8px ${statusInfo.color}`, // optional glow
   }}
 >
   {statusInfo.label}
 </span>
+
 
           <NeonButton onClick={fetchEverything}>Refresh</NeonButton>
         </div>
