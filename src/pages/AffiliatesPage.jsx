@@ -329,7 +329,7 @@ alert(data?.message || "Withdrawal request submitted.");
     <input
       type="text"
       readOnly
-      value={`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`}
+      value={`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.code}`}
       style={{
         flex: 1,
         padding: "6px 8px",
@@ -343,7 +343,7 @@ alert(data?.message || "Withdrawal request submitted.");
     />
     <NeonButton
       onClick={() => {
-        navigator.clipboard.writeText(`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.ticketNumber}`);
+        navigator.clipboard.writeText(`${process.env.REACT_APP_FRONTEND_URL}/register?ref=${affiliate?.code}`);
         alert("Referral link copied!");
       }}
       style={{ flexShrink: 0 }}
