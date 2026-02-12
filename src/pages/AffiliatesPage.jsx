@@ -256,18 +256,7 @@ alert(data?.message || "Withdrawal request submitted.");
       setWithdrawing(false);
     }
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div style={{ color: neon.red, padding: "2rem", fontFamily: "'Orbitron', sans-serif" }}>
-        Please log in to access Affiliates.
-      </div>
-    );
-  }
-
-  if (loading) return <LoadingSpinner />;
-
-  const statusInfo = useMemo(() => {
+ const statusInfo = useMemo(() => {
   if (!affiliate) return { label: "NOT REGISTERED", color: "purple" };
   switch (affiliate.status) {
     case "pending":
@@ -280,6 +269,15 @@ alert(data?.message || "Withdrawal request submitted.");
       return { label: "UNKNOWN", color: "grey" };
   }
 }, [affiliate]);
+  if (!isAuthenticated) {
+    return (
+      <div style={{ color: neon.red, padding: "2rem", fontFamily: "'Orbitron', sans-serif" }}>
+        Please log in to access Affiliates.
+      </div>
+    );
+  }
+
+  if (loading) return <LoadingSpinner />;
 
 
   return (
