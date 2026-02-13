@@ -67,7 +67,7 @@ const liveAdsRoutes = require('./routes/routesLiveAds');
 const scrollingTextsRoutes = require('./routes/routesScrollingtexts');
 const newReferralRoutes = require('./routes/routesNewreferrals');
 const affiliatestatusRoutes = require('./routes/routesAffiliatestatusMy');
-
+const withdrawalRoutes = require('./routes/routesWithdrawalRequest');
 
 
 
@@ -216,6 +216,9 @@ console.log('✅ /api/scrollingtexts routes mounted');
 // Later in server.js, after other `app.use('/api/...')`
 app.use('/api/affiliatestatus', affiliatestatusRoutes);
 console.log('✅ /api/affiliatestatus routes mounted');
+
+app.use('/api/WithdrawalRequest', withdrawalRoutes);
+console.log('✅ /api/WithdrawalRequest routes mounted');
 
 
 app.use("/api", myMessageRoutes);
