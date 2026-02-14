@@ -1,30 +1,50 @@
-const withdrawalService = require('../services/servicesWithdrawalRequest');
+const fs = require("fs");
+const path = require("path");
+const WithdrawalRequestService = require("../services/servicesWithdrawalRequest");
 
-// POST /api/WithdrawalRequest/:method/userid/
-async function postWithdrawal(req, res) {
-  try {
-    const method = req.params.method; // e.g., "M-bank", "M-visacard"
-    const methodKey = method.toLowerCase().replace('m-', '');
-    const data = req.body;
-    const saved = await withdrawalService.createWithdrawal(methodKey, data);
-    res.status(201).json(saved);
-  } catch (err) {
-    console.error('Error creating withdrawal:', err);
-    res.status(500).json({ error: err.message });
+const watcherPath = path.join(
+  __dirname,
+  "../services/currentWatcherUser.json"
+);
+
+class WithdrawalRequestController {
+  static getLoggedUser() {
+    if (!fs.existsSync(watcherPath)) return null;
+    const raw = fs.readFileSync(watcherPath);
+    const parsed = JSON.parse(raw);
+    return parsed.userId;
+  }
+
+  static async create(req, res) {
+    try {
+      const loggedUser = WithdrawalRequestController.getLoggedUser();
+
+      if (!loggedUser) {
+        return res.status(401).json({
+          success: false,
+          message: "No logged user found"
+        });
+      }
+
+      // Inject the loggedUser ID into the request body
+      const bodyWithUser = {
+        ...req.body,
+        userId: loggedUser // ✅ Add the logged-in user automatically
+      };
+
+      // Save EXACT body with userId
+      const saved = await WithdrawalRequestService.create(bodyWithUser);
+
+      return res.status(201).json(saved);
+
+    } catch (error) {
+      console.error("Withdrawal Error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
   }
 }
 
-// GET /api/WithdrawalRequest/:method/userid/
-async function getWithdrawal(req, res) {
-  try {
-    const method = req.params.method;
-    const methodKey = method.toLowerCase().replace('m-', '');
-    const withdrawals = await withdrawalService.getWithdrawals(methodKey);
-    res.status(200).json(withdrawals);
-  } catch (err) {
-    console.error('Error fetching withdrawals:', err);
-    res.status(500).json({ error: err.message });
-  }
-}
-
-module.exports = { postWithdrawal, getWithdrawal };
+module.exports = WithdrawalRequestController;

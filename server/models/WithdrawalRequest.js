@@ -1,16 +1,27 @@
-// server/models/WithdrawalRequest.js
 const mongoose = require("mongoose");
 
-const WithdrawalRequestSchema = new mongoose.Schema({
-  affiliate: { type: mongoose.Schema.Types.ObjectId, ref: "Affiliate", required: true },
-  amount: { type: Number, required: true },
-  method: { type: String, enum: ["mpesa", "paypal", "bank", "card"], required: true },
-  accountDetails: { type: Object, default: {} },
-  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
-  declineReason: { type: String, default: "" },
-  createdAt: { type: Date, default: Date.now },
-  processedAt: { type: Date },
-}, { timestamps: true });
+const WithdrawalRequestSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    code: { type: String },
+    ticketNumber: { type: String },
+    email: { type: String },
+    amount: { type: Number, required: true },
+    currency: { type: String },
+    method: { type: String }, // no enum restriction
+    details: { type: Object, default: {} },
+    withdrawableBalance: { type: Number, default: 0 },
+    pendingCommission: { type: Number, default: 0 },
+    paidCommission: { type: Number, default: 0 },
+    totalCommission: { type: Number, default: 0 },
+    newSubscribersCount: { type: Number, default: 0 },
+    totalReferredUsers: { type: Number, default: 0 },
+    lastWithdrawalAt: { type: String, default: "" },
+    status: { type: String, default: "pending" }
+  },
+  { timestamps: true }
+);
 
-// ✅ This prevents OverwriteModelError
-module.exports = mongoose.models.WithdrawalRequest || mongoose.model("WithdrawalRequest", WithdrawalRequestSchema);
+module.exports =
+  mongoose.models.WithdrawalRequest ||
+  mongoose.model("WithdrawalRequest", WithdrawalRequestSchema);

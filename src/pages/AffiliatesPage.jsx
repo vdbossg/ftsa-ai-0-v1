@@ -190,72 +190,113 @@ useEffect(() => {
 
 
   // withdraw submit (no amount field; backend computes from new subscribers)
-  const submitWithdraw = async (e) => {
-    e?.preventDefault?.();
-    if (!method) {
-      alert("Choose a payment method.");
-      return;
-    }
+// withdraw submit
+const submitWithdraw = async (e) => {
+  e?.preventDefault?.();
 
-    // Build accountDetails by method
-    let accountDetails = {};
-    switch (method) {
-      case "mpesa":
-        if (!payout.mpesaNumber) return alert("Enter your M-PESA number.");
-        accountDetails = { mpesaNumber: payout.mpesaNumber };
-        break;
-      case "paypal":
-        if (!payout.paypalEmail) return alert("Enter your PayPal email.");
-        accountDetails = { paypalEmail: payout.paypalEmail };
-        break;
-      case "bank":
-        if (!payout.bankIban || !payout.bankSwift)
-          return alert("Enter your Bank IBAN and SWIFT.");
-        accountDetails = { bankIban: payout.bankIban, bankSwift: payout.bankSwift };
-        break;
-      case "card":
-        if (!payout.cardNumber || !payout.cardCvv || !payout.cardExpiry)
-          return alert("Enter full card details.");
-        accountDetails = {
-          cardNumber: payout.cardNumber,
-          cardCvv: payout.cardCvv,
-          cardExpiry: payout.cardExpiry,
-        };
-        break;
-      default:
-        return alert("Unsupported method.");
-    }
+  if (!method) {
+    alert("Choose a payment method.");
+    return;
+  }
 
-    try {
-      setWithdrawing(true);
-      const data = await APIControl.requestWithdrawal({
-  affiliateId: affiliate._id,
-  method,
-  accountDetails,
-});
-alert(data?.message || "Withdrawal request submitted.");
+  if (!affiliate) {
+    alert("Affiliate data not loaded.");
+    return;
+  }
 
+  let endpointMethod = "";
+  let details = {};
 
-      // refresh
-      await fetchEverything();
-      setShowWithdraw(false);
-      setMethod("");
-      setPayout({
-        mpesaNumber: "",
-        paypalEmail: "",
-        bankIban: "",
-        bankSwift: "",
-        cardNumber: "",
-        cardCvv: "",
-        cardExpiry: "",
-      });
-    } catch (e) {
-      console.error(e);
-      alert(e.message || "Withdrawal request failed.");
-    } finally {
-      setWithdrawing(false);
-    }
+  switch (method) {
+    case "mpesa":
+      if (!payout.mpesaNumber) return alert("Enter your M-PESA number.");
+      endpointMethod = "M-m-pesa";
+      details = { phone_number: payout.mpesaNumber };
+      break;
+
+    case "paypal":
+      if (!payout.paypalEmail) return alert("Enter your PayPal email.");
+      endpointMethod = "M-paypal";
+      details = { email: payout.paypalEmail };
+      break;
+
+    case "bank":
+      if (!payout.bankIban || !payout.bankSwift)
+        return alert("Enter IBAN and SWIFT.");
+      endpointMethod = "M-bank";
+      details = {
+        account_number: payout.bankIban,
+        bank_code: payout.bankSwift,
+        account_name: `${affiliate.firstName} ${affiliate.lastName}`,
+      };
+      break;
+
+    case "card":
+      if (!payout.cardNumber || !payout.cardExpiry)
+        return alert("Enter full card details.");
+      endpointMethod = "M-visacard";
+
+      const [month, year] = payout.cardExpiry.split("/");
+
+      details = {
+        card_number: payout.cardNumber,
+        expiry_month: month,
+        expiry_year: `20${year}`,
+        cardholder_name: `${affiliate.firstName} ${affiliate.lastName}`,
+      };
+      break;
+
+    default:
+      return alert("Unsupported method.");
+  }
+
+  const payload = {
+    code: affiliate.code,
+    ticketNumber: affiliate.ticketNumber,
+    email: affiliate.email,
+    amount: affiliate.withdrawableBalance,
+    currency: "USD",
+    method,
+    details,
+    withdrawableBalance: affiliate.withdrawableBalance,
+    pendingCommission: affiliate.pendingCommission,
+    paidCommission: affiliate.paidCommission,
+    totalCommission: affiliate.totalCommission,
+    newSubscribersCount: affiliate.newSubscribersCount,
+    totalReferredUsers: affiliate.referredUsers?.length || 0,
+    lastWithdrawalAt: affiliate.lastWithdrawalAt || "",
+    status: "pending",
   };
+
+  try {
+    setWithdrawing(true);
+
+    const res = await fetch(
+      `http://localhost:5000/api/WithdrawalRequest/${endpointMethod}/${user.id}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+
+    alert(data?.message || "Withdrawal request submitted.");
+
+    await fetchEverything();
+    setShowWithdraw(false);
+
+  } catch (err) {
+    console.error(err);
+    alert("Withdrawal failed.");
+  } finally {
+    setWithdrawing(false);
+  }
+};
+  
  const statusInfo = useMemo(() => {
   if (!affiliate) return { label: "NOT REGISTERED", color: "#9C27B0" }; // purple
   switch (affiliate.status) {

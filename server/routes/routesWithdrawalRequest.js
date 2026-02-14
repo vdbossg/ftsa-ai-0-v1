@@ -1,9 +1,15 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const controller = require('../controllers/controllersWithdrawalRequest');
+const Controller = require("../controllers/controllersWithdrawalRequest");
 
-// All POST + GET routes per method
-router.post('/:method/userid', controller.postWithdrawal);
-router.get('/:method/userid', controller.getWithdrawal);
+// EXACT ROUTES YOU REQUESTED
+
+router.post("/WithdrawalRequest/M-bank/userid/", Controller.create);
+
+router.post("/WithdrawalRequest/M-visacard/userid/", Controller.create);
+
+router.post("/WithdrawalRequest/M-paypal/userid/", Controller.create);
+
+router.post("/WithdrawalRequest/M-m-pesa/userid/", Controller.create);
 
 module.exports = router;
