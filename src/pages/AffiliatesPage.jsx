@@ -644,12 +644,22 @@ function Select({ label, value, onChange, options, required }) {
           borderRadius: 8,
           border: `1px solid ${neon.blue}`,
           background: "#000",
-          color: neon.blue,
+          color: "#00FF00",       // ✅ exact neon green for selected text
           outline: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          appearance: "none",
         }}
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value} style={{ color: "#000" }}>
+          <option
+            key={o.value}
+            value={o.value}
+            style={{
+              color: "#00FF00",   // ✅ exact neon green for dropdown items
+              background: "#000", // keeps background black
+            }}
+          >
             {o.label}
           </option>
         ))}
@@ -657,7 +667,7 @@ function Select({ label, value, onChange, options, required }) {
     </label>
   );
 }
-
+  
 function FileInput({ label, onChange, required }) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
