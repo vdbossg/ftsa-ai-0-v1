@@ -198,38 +198,43 @@ useEffect(() => {
   // Map payout fields to backend "details" object
   let details = {};
   let endpoint = "";
-  switch (method) {
-    case "mpesa":
-      if (!payout.mpesaNumber) return alert("Enter your M-PESA number.");
-      details = { phone_number: payout.mpesaNumber };
-      endpoint = `/api/WithdrawalRequest/M-m-pesa/${affiliate._id}`;
-      break;
-    case "paypal":
-      if (!payout.paypalEmail) return alert("Enter your PayPal email.");
-      details = { email: payout.paypalEmail };
-      endpoint = `/api/WithdrawalRequest/M-paypal/${affiliate._id}`;
-      break;
-    case "bank":
-      if (!payout.bankIban || !payout.bankSwift)
-        return alert("Enter your Bank IBAN and SWIFT.");
-      details = { account_number: payout.bankIban, bank_code: payout.bankSwift, account_name: affiliate.firstName + " " + affiliate.lastName };
-      endpoint = `/api/WithdrawalRequest/M-bank/${affiliate._id}`;
-      break;
-    case "card":
-      if (!payout.cardNumber || !payout.cardCvv || !payout.cardExpiry)
-        return alert("Enter full card details.");
-      const [month, year] = payout.cardExpiry.split("/"); // MM/YY
-      details = {
-        card_number: payout.cardNumber,
-        expiry_month: month,
-        expiry_year: "20" + year,
-        cardholder_name: affiliate.firstName + " " + affiliate.lastName,
-      };
-      endpoint = `/api/WithdrawalRequest/M-visacard/${affiliate._id}`;
-      break;
-    default:
-      return alert("Unsupported method.");
-  }
+ switch (method) {
+  case "mpesa":
+    if (!payout.mpesaNumber) return alert("Enter your M-PESA number.");
+    details = { phone_number: payout.mpesaNumber };
+    endpoint = `/api/WithdrawalRequest/M-m-pesa/userid`;
+    break;
+  case "paypal":
+    if (!payout.paypalEmail) return alert("Enter your PayPal email.");
+    details = { email: payout.paypalEmail };
+    endpoint = `/api/WithdrawalRequest/M-paypal/userid`;
+    break;
+  case "bank":
+    if (!payout.bankIban || !payout.bankSwift)
+      return alert("Enter your Bank IBAN and SWIFT.");
+    details = {
+      account_number: payout.bankIban,
+      bank_code: payout.bankSwift,
+      account_name: affiliate.firstName + " " + affiliate.lastName,
+    };
+    endpoint = `/api/WithdrawalRequest/M-bank/userid`;
+    break;
+  case "card":
+    if (!payout.cardNumber || !payout.cardCvv || !payout.cardExpiry)
+      return alert("Enter full card details.");
+    const [month, year] = payout.cardExpiry.split("/"); // MM/YY
+    details = {
+      card_number: payout.cardNumber,
+      expiry_month: month,
+      expiry_year: "20" + year,
+      cardholder_name: affiliate.firstName + " " + affiliate.lastName,
+    };
+    endpoint = `/api/WithdrawalRequest/M-visacard/userid`;
+    break;
+  default:
+    return alert("Unsupported method.");
+}
+
 
   // Build full payload matching backend
   const payload = {
