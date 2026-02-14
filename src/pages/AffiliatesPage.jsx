@@ -25,6 +25,7 @@ export default function AffiliatesPage() {
 
   const [affiliate, setAffiliate] = useState(null);
   const [stats, setStats] = useState(null);
+  const [notification, setNotification] = useState(null); // { message: "", type: "success"|"error" }
 
   // modals
   const [showRegister, setShowRegister] = useState(false);
@@ -59,6 +60,14 @@ export default function AffiliatesPage() {
   });
 
   // helpers
+const showNotification = (message, type = "success") => {
+  setNotification({ message, type });
+
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    setNotification(null);
+  }, 3000);
+};
 
 const watcherUserId = user?.id; // use actual logged-in user
 
@@ -266,7 +275,7 @@ useEffect(() => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    alert(data?.message || "Withdrawal request submitted.");
+    showNotification(data?.message || "Withdrawal request submitted.", "success");
 
     // refresh affiliate stats
     await fetchEverything();
@@ -283,7 +292,7 @@ useEffect(() => {
     });
   } catch (err) {
     console.error(err);
-    alert(err.message || "Withdrawal request failed.");
+    showNotification(err.message || "Withdrawal request failed.", "error");
   } finally {
     setWithdrawing(false);
   }
@@ -585,7 +594,30 @@ useEffect(() => {
             )}
           </form>
         </Modal>
+        
       )}
+
+      {notification && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 20,
+      right: 20,
+      padding: "16px 24px",
+      borderRadius: 12,
+      backgroundColor: notification.type === "success" ? "#00FF00" : "#FF3B30",
+      color: "#000",
+      fontWeight: 600,
+      boxShadow: `0 0 12px ${notification.type === "success" ? "#00FF00" : "#FF3B30"}`,
+      zIndex: 9999,
+      minWidth: 200,
+      textAlign: "center",
+    }}
+  >
+    {notification.message}
+  </div>
+)}
+
     </div>
   );
 }
