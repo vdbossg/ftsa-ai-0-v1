@@ -272,7 +272,8 @@ const submitWithdraw = async (e) => {
     setWithdrawing(true);
 
     const res = await fetch(
-      `http://localhost:5000/api/WithdrawalRequest/${endpointMethod}/${user.id}`,
+      `http://localhost:5000/api/WithdrawalRequest/${endpointMethod}`
+,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
