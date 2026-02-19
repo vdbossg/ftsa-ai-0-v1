@@ -380,9 +380,10 @@ const allPairs = [
       <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: pendingTrade.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
         {pendingTrade.trend}
       </td>
-      <td style={tdVerticalLineStyle}>{eaUpdatedTrades[0]?.entry ?? tradeHistory[0]?.entry ?? pendingTrade.entry}</td>
-<td style={tdVerticalLineStyle}>{eaUpdatedTrades[0]?.sl ?? tradeHistory[0]?.sl ?? pendingTrade.sl}</td>
-<td style={tdVerticalLineStyle}>{eaUpdatedTrades[0]?.tp ?? tradeHistory[0]?.tp ?? pendingTrade.tp}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.entry}</td>
+<td style={tdVerticalLineStyle}>{pendingTrade.sl}</td>
+<td style={tdVerticalLineStyle}>{pendingTrade.tp}</td>
+
 <td style={lastTdStyle}>
   <span style={{
     display: "inline-block",
