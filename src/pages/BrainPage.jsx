@@ -23,6 +23,8 @@ export default function BrainPage() {
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
 const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
+const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); 
+// default 1000 or whatever you want as initial balance
 
 const scrollableTableContainer = {
   marginBottom: "2rem",
