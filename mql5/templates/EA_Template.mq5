@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                     FTSA_AI_FCS_EA_FINAL.0v1.mq5 |
+//|                                    FTSA_AI_FCS_EA_FINAL.0vi2.mq5 |
 //|                                          KELVIN SPECTER EAs FIRM |
 //|                                           kelvinmburug@gmail.com |
 //+------------------------------------------------------------------+
@@ -15,6 +15,8 @@ int    HTTP_TIMEOUT  = 5000;  // milliseconds
 //----------------- END USER CONFIG --------------
 
 string lastSignalID     = ""; // Track last executed signal
+string FRONTEND_UPDATE_URL = "http://127.0.0.1:5000/api/ftsacalculator/updateTrade"; // <-- Backend endpoint to notify frontend
+
 //----------------- TRADE EXECUTOR -----------------
 bool ExecuteTrade(
    string symbol,
@@ -131,6 +133,33 @@ string JsonValue(string json, string key)
 
    return StringSubstr(json,start,end-start);
 }
+bool PostUpdateToFrontend(string jsonPayload)
+{
+    char result[];
+    string response_headers;
+    uchar data[];
+    
+    // Convert string payload to uchar array
+    StringToCharArray(jsonPayload, data);
+    
+    int res = WebRequest(
+        "POST",
+        FRONTEND_UPDATE_URL,
+        "Content-Type: application/json\r\n",
+        HTTP_TIMEOUT,
+        data,
+        result,
+        response_headers
+    );
+    
+    if(res != 200)
+    {
+        Print("Failed to POST update to frontend, code=", res);
+        return false;
+    }
+    Print("Frontend updated with trade status.");
+    return true;
+}
 
 //----------------- FETCH SIGNAL -----------------
 bool FetchSignal()
@@ -180,7 +209,23 @@ double tp     = StringToDouble(JsonValue(json,"tp"));
 
 Print("Trade executed: ", type, " ", mode, " ", symbol);
 
-   return true;
+// --- Send trade status to frontend ---
+string jsonUpdate = "{";
+jsonUpdate += "\"id\":\"" + lastSignalID + "\",";
+jsonUpdate += "\"symbol\":\"" + symbol + "\",";
+jsonUpdate += "\"type\":\"" + type + "\",";
+jsonUpdate += "\"mode\":\"" + mode + "\",";
+jsonUpdate += "\"price\":" + DoubleToString(price, _Digits) + ",";
+jsonUpdate += "\"lots\":" + DoubleToString(lots, 2) + ",";
+jsonUpdate += "\"sl\":" + DoubleToString(sl, _Digits) + ",";
+jsonUpdate += "\"tp\":" + DoubleToString(tp, _Digits) + ",";
+jsonUpdate += "\"tradeActivated\":\"ACTIVE\"";
+jsonUpdate += "}";
+
+PostUpdateToFrontend(jsonUpdate); // send update immediately
+
+return true;
+
 }
 
 //----------------- MT5 HOOKS -----------------
@@ -197,5 +242,44 @@ int OnInit()
 
 void OnTick()
 {
-   FetchSignal();
+    // --- Monitor open trades for TP/SL hits ---
+    for(int i = PositionsTotal()-1; i >= 0; i--)
+    {
+        ulong ticket = PositionGetTicket(i);
+        if(PositionSelectByTicket(ticket))
+        {
+            double posSL = PositionGetDouble(POSITION_SL);
+            double posTP = PositionGetDouble(POSITION_TP);
+            double posPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+            string posSymbol = PositionGetString(POSITION_SYMBOL);
+            double posLots = PositionGetDouble(POSITION_VOLUME);
+            string posType = PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? "BUY" : "SELL";
+
+            // Check if price reached TP or SL
+            double currentPrice = SymbolInfoDouble(posSymbol, posType=="BUY"?SYMBOL_BID:SYMBOL_ASK);
+            bool closed = false;
+            string status = "";
+
+            if(posType=="BUY" && (currentPrice >= posTP || currentPrice <= posSL)) { closed=true; status="CLOSED"; }
+            if(posType=="SELL" && (currentPrice <= posTP || currentPrice >= posSL)) { closed=true; status="CLOSED"; }
+
+            if(closed)
+            {
+                string jsonUpdate = "{";
+                jsonUpdate += "\"id\":\"" + lastSignalID + "\",";
+                jsonUpdate += "\"symbol\":\"" + posSymbol + "\",";
+                jsonUpdate += "\"type\":\"" + posType + "\",";
+                jsonUpdate += "\"mode\":\"MARKET\",";
+                jsonUpdate += "\"lots\":" + DoubleToString(posLots, 2) + ",";
+                jsonUpdate += "\"tradeActivated\":\"" + status + "\"";
+                jsonUpdate += "}";
+
+                PostUpdateToFrontend(jsonUpdate); // notify frontend
+            }
+        }
+    }
+
+    // Fetch new signal from backend
+    FetchSignal();
 }
+

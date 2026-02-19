@@ -22,6 +22,7 @@ export default function BrainPage() {
 
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
+const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
 
 const scrollableTableContainer = {
   marginBottom: "2rem",
@@ -94,6 +95,21 @@ const loadBrainData = async (showLoader = false) => {
     if (showLoader) setLoading(false); // only hide loader if we showed it
   }
 };
+const fetchEaUpdates = async () => {
+  try {
+    const resp = await fetch("http://localhost:5000/api/ftsacalculator"); // GET latest trade with tradeActivated
+    if (!resp.ok) throw new Error("Failed to fetch EA trade updates");
+
+    const data = await resp.json();
+
+    if (data?.trendJson) {
+      setEaUpdatedTrades([data.trendJson]);
+    }
+  } catch (err) {
+    console.error("Error fetching EA updates:", err);
+  }
+};
+
 const updatePendingTrade = () => {
   if (!filteredSignals.length || !marketStrength.length) return;
 
@@ -181,6 +197,17 @@ useEffect(() => {
 
   return () => clearInterval(interval); // cleanup on unmount
 }, []);
+useEffect(() => {
+  fetchEaUpdates(); // initial fetch
+  const interval = setInterval(fetchEaUpdates, 2000); // fetch every 2 seconds
+  return () => clearInterval(interval);
+}, []);
+useEffect(() => {
+  if (eaUpdatedTrades[0]?.tradeActivated === "CLOSED") {
+    const timer = setTimeout(() => setEaUpdatedTrades([]), 5000); // remove after 5s
+    return () => clearTimeout(timer);
+  }
+}, [eaUpdatedTrades]);
 
 // Auto-refresh filtered signals every 5 seconds
 useEffect(() => {
@@ -311,22 +338,23 @@ const allPairs = [
       <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: pendingTrade.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
         {pendingTrade.trend}
       </td>
-      <td style={tdVerticalLineStyle}>{tradeHistory[0]?.entry ?? pendingTrade.entry}</td>
-<td style={tdVerticalLineStyle}>{tradeHistory[0]?.sl ?? pendingTrade.sl}</td>
-<td style={tdVerticalLineStyle}>{tradeHistory[0]?.tp ?? pendingTrade.tp}</td>
+      <td style={tdVerticalLineStyle}>{eaUpdatedTrades[0]?.entry ?? tradeHistory[0]?.entry ?? pendingTrade.entry}</td>
+<td style={tdVerticalLineStyle}>{eaUpdatedTrades[0]?.sl ?? tradeHistory[0]?.sl ?? pendingTrade.sl}</td>
+<td style={tdVerticalLineStyle}>{eaUpdatedTrades[0]?.tp ?? tradeHistory[0]?.tp ?? pendingTrade.tp}</td>
+<td style={lastTdStyle}>
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "8px",
+    backgroundColor: eaUpdatedTrades[0]?.tradeActivated === "ACTIVE" ? "#00FF00" :
+                     eaUpdatedTrades[0]?.tradeActivated === "CLOSED" ? "#FF0000" : "#FFA500",
+    color: "#000",
+    fontWeight: "bold"
+  }}>
+    {eaUpdatedTrades[0]?.tradeActivated || "Pending"}
+  </span>
+</td>
 
-      <td style={lastTdStyle}>
-        <span style={{
-          display: "inline-block",
-          padding: "2px 8px",
-          borderRadius: "8px",
-          backgroundColor: "#FFA500",
-          color: "#000",
-          fontWeight: "bold"
-        }}>
-          Pending
-        </span>
-      </td>
     </tr>
   ) : (
     <tr>

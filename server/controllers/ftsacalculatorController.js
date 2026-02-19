@@ -43,6 +43,31 @@ async function ftsaCalculator(req, res) {
     }
 }
 
+// POST: update trade status from EA
+async function updateTradeStatus(req, res) {
+    try {
+        const eaTrade = req.body;
+
+        if (!eaTrade || !eaTrade.symbol || !eaTrade.tradeActivated) {
+            return res.status(400).json({ success: false, message: "Invalid trade update" });
+        }
+
+        // Save or update in DB
+        const filter = { symbol: eaTrade.symbol, type: eaTrade.type.toUpperCase() };
+        const update = {
+            ...eaTrade,
+            updatedAt: new Date()
+        };
+        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+        const updatedTrade = await Trade.findOneAndUpdate(filter, update, options);
+
+        res.json({ success: true, data: updatedTrade });
+    } catch (err) {
+        console.error("Error updating trade from EA:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}
 
 // GET: fetch latest trade
 async function getLatestTrade(req, res) {
@@ -83,4 +108,5 @@ async function getLatestTrade(req, res) {
     }
 }
 
-module.exports = { ftsaCalculator, getLatestTrade };
+
+module.exports = { ftsaCalculator, getLatestTrade, updateTradeStatus };
