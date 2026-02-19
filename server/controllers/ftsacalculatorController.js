@@ -47,6 +47,8 @@ async function ftsaCalculator(req, res) {
 async function updateTradeStatus(req, res) {
     try {
         const eaTrade = req.body;
+console.log("📥 EA UPDATE RECEIVED:", eaTrade);
+
 
         if (!eaTrade || !eaTrade.symbol || !eaTrade.tradeActivated) {
             return res.status(400).json({ success: false, message: "Invalid trade update" });

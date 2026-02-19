@@ -139,31 +139,38 @@ bool PostUpdateToFrontend(string jsonPayload)
     string response_headers;
     uchar data[];
 
-// Convert string payload to uchar array in UTF-8
-StringToCharArray(jsonPayload, data, 0, CP_UTF8);
+    // Convert JSON string to UTF-8 byte array
+    StringToCharArray(jsonPayload, data, 0, CP_UTF8);
 
-// Include Content-Length in headers
-string headers = "Content-Type: application/json\r\nContent-Length: " + IntegerToString(ArraySize(data)) + "\r\n";
+    string headers = "Content-Type: application/json\r\n";
 
-int res = WebRequest(
+    int res = WebRequest(
     "POST",
     FRONTEND_UPDATE_URL,
     headers,
+    "",                         // cookie
     HTTP_TIMEOUT,
     data,
+    ArraySize(data),            // <<< THIS WAS MISSING
     result,
     response_headers
 );
 
-    
+
+    Print("Response code: ", res);
+    Print("Server response: ", CharArrayToString(result));
+    Print("Sent JSON: ", jsonPayload);
+
     if(res != 200)
     {
         Print("Failed to POST update to frontend, code=", res);
         return false;
     }
+
     Print("Frontend updated with trade status.");
     return true;
 }
+
 
 //----------------- FETCH SIGNAL -----------------
 bool FetchSignal()
