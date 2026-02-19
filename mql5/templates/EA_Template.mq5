@@ -222,7 +222,7 @@ Print("Trade executed: ", type, " ", mode, " ", symbol);
 
 // --- Send trade status to frontend ---
 string jsonUpdate = "{";
-jsonUpdate += "\"id\":\"" + lastSignalID + "\",";
+jsonUpdate += "\"tradeId\":\"" + lastSignalID + "\","; 
 jsonUpdate += "\"symbol\":\"" + symbol + "\",";
 jsonUpdate += "\"type\":\"" + type + "\",";
 jsonUpdate += "\"mode\":\"" + mode + "\",";
