@@ -263,15 +263,16 @@ useEffect(() => {
       const resp = await fetch('http://localhost:5000/api/ftsacalculator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pendingTrade }), // ✅ Send pendingTrade
+        body: JSON.stringify({ 
+          ...pendingTrade,
+          initialBalance: accountTotals.balance, // ✅ Add live balance
+          risk: settings.risk                     // ✅ Ensure risk is sent
+        }),
       });
 
       if (!resp.ok) throw new Error('Failed to send trade to backend');
-
       const data = await resp.json();
-      console.log('Trade calculation result:', data);
 
-      // Update tradeHistory with the calculated trade from backend
       if (data?.data?.trendJson) {
         setTradeHistory([data.data.trendJson]);
       }
@@ -281,9 +282,7 @@ useEffect(() => {
   };
 
   sendTradeToBackend();
-}, [pendingTrade]);
-
-
+}, [pendingTrade, accountTotals.balance, settings.risk]);
 
 
 // List of all major and minor currency pairs
