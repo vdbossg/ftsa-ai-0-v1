@@ -41,16 +41,11 @@ const mtTradeRoutes = require('./routes/mtTradeRoutes');
 const licenseRoutes = require('./routes/license');
 const settingsRoutes = require('./routes/settingsRoutes'); // CommonJS style
 const fcsRoutes = require("./routes/fcsRoutes");
-const tvspRoutes = require("./routes/tvsp.routes")
 const filterRoutes = require("./routes/filter.routes");
 const rmsRouter = require("./routes/rms");
-const validTradeRoutes = require("./routes/validTradeRoutes");
-const validTradeDataRoutes = require("./routes/validTradeDataRoutes");
 const ftsaRoutes = require('./routes/ftsacalculatorRoutes');
 const passwordRoutes = require("./routes/password");
 const userPhotoRoutes = require("./routes/userPhoto.routes");
-const tvAlertRoutes = require('./routes/tvAlertRoutes');
-const tvsConverterRoutes = require('./routes/tvsConverter.routes');
 const Elimq5Routes = require("./routes/Elimq5Routes");
 const proxyTokenRoutes = require("./routes/proxyTokenRoutes");
 const ex5LinkerRoutes = require("./routes/ex5LinkerRoutes");
@@ -69,9 +64,8 @@ const newReferralRoutes = require('./routes/routesNewreferrals');
 const affiliatestatusRoutes = require('./routes/routesAffiliatestatusMy');
 const withdrawalRoutes = require("./routes/routesWithdrawalRequest");
 
-
-
-
+const tvAlertsRoutes = require('./routes/tvAlertsRoutes');
+const finalTvSignalsRoute = require("./routes/finalTvSignals");
 
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -180,26 +174,17 @@ app.use('/api/settings', settingsRoutes);
 console.log('✅ /api/settings routes mounted');
 app.use("/api/fcs", fcsRoutes);
 console.log('✅ /api/fcs routes mounted');
-app.use("/api", tvspRoutes)
-console.log('✅ /api/tvsp routes mounted');
 app.use("/api/filter", filterRoutes);
 console.log('✅ /api/filter routes mounted');
 app.use("/api/rms", rmsRouter);
 console.log('✅ /api/rms routes mounted');
-app.use("/api", validTradeRoutes);
-console.log('✅ /api/validTrade routes mounted');
-app.use("/api", validTradeDataRoutes);
-console.log('✅ /api/validTradeData routes mounted');
+
 app.use('/api', ftsaRoutes);
 console.log('✅ /api/ftsacalculator routes mounted');
 app.use("/api/auth", passwordRoutes);
 console.log('✅ /api/passwordRoutes routes mounted');
 app.use("/api/user", userPhotoRoutes);
 console.log('✅ /api/userPhotoRoutes routes mounted');
-app.use('/api/tvAlert', tvAlertRoutes);
-console.log('✅ /api/tvAlert routes mounted');
-app.use('/api/tvsConverter', tvsConverterRoutes);
-console.log('✅ /api/tvsConverter routes mounted');
 app.use('/api/affiliate', affiliateRoutes);
 console.log('✅ /api/affiliate routes mounted');
 app.use("/api", FTSAHelpRoutes);
@@ -260,6 +245,12 @@ app.use('/api/live-ads', liveAdsRoutes);
 console.log('✅ /api/live-ads route mounted');
 
 
+
+app.use('/api/tv-alerts', tvAlertsRoutes);
+console.log('✅ /api/tv-alerts route mounted');
+
+app.use("/api", finalTvSignalsRoute);
+console.log('✅ /api/finalTvSignals route mounted');
 
 // Simple test route
 app.get('/', (req, res) => {

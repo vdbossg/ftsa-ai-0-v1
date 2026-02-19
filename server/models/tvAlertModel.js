@@ -1,23 +1,19 @@
+//FTSA_AI_0.v1\server\models\tvAlertModel.js
 const mongoose = require('mongoose');
 
 const tvAlertSchema = new mongoose.Schema({
-    symbol: { type: String, required: true },
-    type: { type: String, enum: ['BUY', 'SELL'], required: true },
-    timeframe: { type: String, required: true },
+  _id: String, // allow custom string IDs
+  symbol: { type: String, required: true },
+  type: { type: String, required: true }, // BUY or SELL
+  status: { type: String, enum: ['NEW','TP1','TP2','TP3','SL'], default: 'NEW' },
+  entry: Number,
+  sl: Number,
+  tp1: Number,
+  tp2: Number,
+  tp3: Number,
+  timeframe: String,
+  choch: Boolean,
+  chochType: String
+}, { timestamps: true });
 
-    // Both bullish and bearish 30m choch
-    "30m bullish choch": { type: Number },
-    "30m bearish choch": { type: Number },
-
-    // Both bullish and bearish 5m choch
-    "5m bullish choch": { type: Number },
-    "5m bearish choch": { type: Number },
-
-    "5m support": { type: Number, required: true },
-    "5m resistance": { type: Number, required: true },
-
-    timestamp: { type: Date, default: Date.now }
-});
-
-// Export the model
 module.exports = mongoose.model('TVAlert', tvAlertSchema);

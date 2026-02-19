@@ -338,46 +338,44 @@ const allPairs = [
   <div style={{ overflowX: "auto" }}>
     <table style={{ ...tableStyle, minWidth: "750px" }}>
       <thead>
-        <tr>
-          <th style={thShadowStyle}>Symbol</th>
-          <th style={thShadowStyle}>Type</th>
-          <th style={thShadowStyle}>Mode</th>
-          <th style={thShadowStyle}>Choch</th>
-          <th style={thShadowStyle}>Resistance</th>
-          <th style={thShadowStyle}>Support</th>
-          <th style={thShadowStyle}>Entry</th>
-          <th style={thShadowStyle}>SL</th>
-          <th style={thShadowStyle}>TP</th>
-          <th style={thShadowStyle}>Timeframe</th>
-        </tr>
-      </thead>
+  <tr>
+    <th style={thShadowStyle}>Symbol</th>
+    <th style={thShadowStyle}>Type</th>
+    <th style={thShadowStyle}>Status</th>
+    <th style={thShadowStyle}>Choch</th>
+    <th style={thShadowStyle}>Entry</th>
+    <th style={thShadowStyle}>SL</th>
+    <th style={thShadowStyle}>TP</th>
+    <th style={thShadowStyle}>Timeframe</th>
+  </tr>
+</thead>
+
       <tbody>
         {filteredSignals.length > 0 ? (
           filteredSignals.map((signal, idx) => (
-            <tr
-              key={idx}
-              style={{
-                backgroundColor: signal.type === "BUY" ? "#003300" :
-                                 signal.type === "SELL" ? "#330000" : "transparent",
-                color: signal.type === "BUY" ? "#00FF00" :
-                       signal.type === "SELL" ? "#FF0000" : "#00FFFF"
-              }}
-            >
-              <td style={tdVerticalLineStyle}>{signal.symbol}</td>
-              <td style={tdVerticalLineStyle}>
-                {signal.type === "BUY" && <span style={{ color: "#00FF00" }}>↑ BUY</span>}
-                {signal.type === "SELL" && <span style={{ color: "#FF0000" }}>↓ SELL</span>}
-                {!["BUY","SELL"].includes(signal.type) && signal.type}
-              </td>
-              <td style={tdVerticalLineStyle}>{signal.mode || "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.choch || "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.resistance ?? "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.support ?? "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.entry ?? "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.sl ?? "-"}</td>
-              <td style={tdVerticalLineStyle}>{signal.tp ?? "-"}</td>
-              <td style={lastTdStyle}>{signal.timeframe || "-"}</td>
-            </tr>
+           <tr
+  key={idx}
+  style={{
+    backgroundColor: signal.type === "BUY" ? "#003300" :
+                     signal.type === "SELL" ? "#330000" : "transparent",
+    color: signal.type === "BUY" ? "#00FF00" :
+           signal.type === "SELL" ? "#FF0000" : "#00FFFF"
+  }}
+>
+  <td style={tdVerticalLineStyle}>{signal.symbol}</td>
+  <td style={tdVerticalLineStyle}>
+    {signal.type === "BUY" && <span style={{ color: "#00FF00" }}>↑ BUY</span>}
+    {signal.type === "SELL" && <span style={{ color: "#FF0000" }}>↓ SELL</span>}
+    {!["BUY","SELL"].includes(signal.type) && signal.type}
+  </td>
+  <td style={tdVerticalLineStyle}>{signal.status || "-"}</td>
+  <td style={tdVerticalLineStyle}>{signal.choch ? `${signal.choch} (${signal.chochType})` : "-"}</td>
+  <td style={tdVerticalLineStyle}>{signal.entry ?? "-"}</td>
+  <td style={tdVerticalLineStyle}>{signal.sl ?? "-"}</td>
+  <td style={tdVerticalLineStyle}>{signal.tp3 ?? "-"}</td>
+  <td style={lastTdStyle}>{signal.timeframe || "-"}</td>
+</tr>
+
           ))
         ) : (
           <tr>
