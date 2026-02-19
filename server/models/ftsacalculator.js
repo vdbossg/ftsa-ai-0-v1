@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\server\models\ftsacalculator.js
 const mongoose = require('mongoose');
 
 const tradeSchema = new mongoose.Schema({

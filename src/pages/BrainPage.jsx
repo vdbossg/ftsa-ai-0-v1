@@ -227,31 +227,35 @@ await loadBrainData(true);
 
   initialize();
 }, []);
+// Send pendingTrade to backend for calculation whenever it changes
 useEffect(() => {
-  const fetchTodaysTrade = async () => {
+  if (!pendingTrade) return;
+
+  const sendTradeToBackend = async () => {
     try {
-      const resp = await fetch('http://localhost:5000/api/ftsacalculator');
-      if (!resp.ok) throw new Error('Failed to fetch latest trade');
+      const resp = await fetch('http://localhost:5000/api/ftsacalculator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingTrade }), // ✅ Send pendingTrade
+      });
+
+      if (!resp.ok) throw new Error('Failed to send trade to backend');
 
       const data = await resp.json();
+      console.log('Trade calculation result:', data);
 
-      // Use only trendJson for today's trade
-      if (data.trendJson) {
-        setTradeHistory([data.trendJson]);
+      // Update tradeHistory with the calculated trade from backend
+      if (data?.data?.trendJson) {
+        setTradeHistory([data.data.trendJson]);
       }
     } catch (err) {
-      console.error('Error fetching today\'s trade:', err);
+      console.error('Error sending trade to backend:', err);
     }
   };
 
-  // Initial fetch
-  fetchTodaysTrade();
+  sendTradeToBackend();
+}, [pendingTrade]);
 
-  // Refresh every 5 seconds
-  const interval = setInterval(fetchTodaysTrade, 5000);
-
-  return () => clearInterval(interval);
-}, []);
 
 
 
@@ -307,9 +311,10 @@ const allPairs = [
       <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: pendingTrade.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
         {pendingTrade.trend}
       </td>
-      <td style={tdVerticalLineStyle}>{pendingTrade.entry}</td>
-      <td style={tdVerticalLineStyle}>{pendingTrade.sl}</td>
-      <td style={tdVerticalLineStyle}>{pendingTrade.tp}</td>
+      <td style={tdVerticalLineStyle}>{tradeHistory[0]?.entry ?? pendingTrade.entry}</td>
+<td style={tdVerticalLineStyle}>{tradeHistory[0]?.sl ?? pendingTrade.sl}</td>
+<td style={tdVerticalLineStyle}>{tradeHistory[0]?.tp ?? pendingTrade.tp}</td>
+
       <td style={lastTdStyle}>
         <span style={{
           display: "inline-block",

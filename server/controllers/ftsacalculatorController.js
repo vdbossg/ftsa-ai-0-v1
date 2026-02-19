@@ -1,20 +1,34 @@
+//FTSA_AI_0.v1\server\controllers\ftsacalculatorController.js
 const Trade = require('../models/ftsacalculator');
 const { calculateTrade } = require('../services/ftsacalculatorService');
 
-// POST: calculate and save trade
+// POST: calculate and save trade from frontend's Today's Trade
 async function ftsaCalculator(req, res) {
     try {
-        const tradeData = req.body;
+        // Get the trade sent by frontend
+        const tradeData = req.body.pendingTrade;
 
-        // Basic validation
-        const requiredFields = ['tradeId', 'symbol', 'type', 'mode', 'entry', 'sl', 'tp', 'initialBalance', 'risk', 'tpTargets'];
-        for (let field of requiredFields) {
-            if (!(field in tradeData)) {
-                return res.status(400).json({ success: false, message: `Missing field: ${field}` });
-            }
+        if (!tradeData) {
+            return res.status(400).json({ success: false, message: "No pending trade provided" });
         }
 
-        const result = await calculateTrade(tradeData);
+        // Map frontend trade to calculation format
+        const tradeForCalc = {
+            tradeId: tradeData.symbol + "_" + Date.now(),
+            symbol: tradeData.symbol,
+            type: tradeData.type,
+            mode: tradeData.mode || "PENDING",
+            entry: tradeData.entry,
+            sl: tradeData.sl,
+            tp: tradeData.tp,
+            initialBalance: tradeData.initialBalance ?? 1000, // default if frontend does not provide
+            risk: tradeData.risk ?? 1,                        // default if frontend does not provide
+            tpTargets: tradeData.tpTargets ?? "tp1",          // default if frontend does not provide
+            dailyMaxLoss: tradeData.dailyMaxLoss ?? 1
+        };
+
+        // Call existing calculateTrade service
+        const result = await calculateTrade(tradeForCalc);
 
         res.json({
             success: true,
@@ -28,6 +42,7 @@ async function ftsaCalculator(req, res) {
         });
     }
 }
+
 
 // GET: fetch latest trade
 async function getLatestTrade(req, res) {
