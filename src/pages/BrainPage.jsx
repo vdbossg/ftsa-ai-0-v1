@@ -21,6 +21,7 @@ export default function BrainPage() {
 });
 
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
+const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
 
 const scrollableTableContainer = {
   marginBottom: "2rem",
@@ -93,9 +94,48 @@ const loadBrainData = async (showLoader = false) => {
     if (showLoader) setLoading(false); // only hide loader if we showed it
   }
 };
+const updatePendingTrade = () => {
+  if (!filteredSignals.length || !marketStrength.length) return;
+
+  // Get top 3 strongest pairs
+  const top3Pairs = [...marketStrength]
+    .sort((a, b) => b.strength - a.strength)
+    .slice(0, 3)
+    .map(p => p.pair);
+
+  // Find first valid signal that is in top 3
+  const validTrade = filteredSignals.find(signal =>
+    top3Pairs.includes(signal.symbol)
+  );
+
+  if (!validTrade) {
+    // No valid trade, remove pending
+    setPendingTrade(null);
+    return;
+  }
+
+  // If the current pending trade is already the same, do nothing
+  if (pendingTrade?.symbol === validTrade.symbol) return;
+
+  // Otherwise, set new pending trade
+  setPendingTrade({
+    symbol: validTrade.symbol,
+    type: validTrade.type,
+    mode: validTrade.mode || "-",
+    trend: validTrade.type === "BUY" ? "bullish" : "bearish",
+    entry: validTrade.entry ?? "-",
+    sl: validTrade.sl ?? "-",
+    tp: validTrade.tp3 ?? "-",
+    time: new Date().toLocaleTimeString(),
+    tradeActivated: "PENDING",
+  });
+};
 
 useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
 useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
+useEffect(() => {
+  updatePendingTrade();
+}, [filteredSignals, marketStrength]);
 
 useEffect(() => {
   let ws;
@@ -257,40 +297,39 @@ const allPairs = [
           <th style={thShadowStyle}>Trade Activated</th>
         </tr>
       </thead>
-      <tbody>
-        {tradeHistory.length > 0 ? (
-          tradeHistory.map((t, idx) => (
-            <tr key={idx} style={{ backgroundColor: "#000000" }}>
-              <td style={tdVerticalLineStyle}>{t.time}</td>
-              <td style={tdVerticalLineStyle}>{t.type}</td>
-              <td style={tdVerticalLineStyle}>{t.mode}</td>
-              <td style={tdVerticalLineStyle}>{t.pair}</td>
-              <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: t.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
-                {t.trend}
-              </td>
-              <td style={tdVerticalLineStyle}>{t.entry}</td>
-              <td style={tdVerticalLineStyle}>{t.sl}</td>
-              <td style={tdVerticalLineStyle}>{t.tp}</td>
-              <td style={lastTdStyle}>
-                <span style={{
-                  display: "inline-block",
-                  padding: "2px 8px",
-                  borderRadius: "8px",
-                  backgroundColor: t.tradeActivated === "PENDING" ? "#FFA500" : "#00FF00",
-                  color: "#000",
-                  fontWeight: "bold"
-                }}>
-                  {t.tradeActivated === "PENDING" ? "Pending" : "Active"}
-                </span>
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={9} style={{ textAlign: "center" }}>No trades yet</td>
-          </tr>
-        )}
-      </tbody>
+     <tbody>
+  {pendingTrade ? (
+    <tr key="pending" style={{ backgroundColor: "#000000" }}>
+      <td style={tdVerticalLineStyle}>{pendingTrade.time}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.type}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.mode}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.symbol}</td>
+      <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: pendingTrade.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
+        {pendingTrade.trend}
+      </td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.entry}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.sl}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.tp}</td>
+      <td style={lastTdStyle}>
+        <span style={{
+          display: "inline-block",
+          padding: "2px 8px",
+          borderRadius: "8px",
+          backgroundColor: "#FFA500",
+          color: "#000",
+          fontWeight: "bold"
+        }}>
+          Pending
+        </span>
+      </td>
+    </tr>
+  ) : (
+    <tr>
+      <td colSpan={9} style={{ textAlign: "center" }}>No trades yet</td>
+    </tr>
+  )}
+</tbody>
+
     </table>
   </div>
 </section>
