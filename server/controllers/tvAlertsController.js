@@ -12,11 +12,12 @@ exports.handleTVAlert = async (req, res) => {
     if (!symbol || !type) return res.status(400).json({ message: 'Symbol and type are required' });
 
     // Upsert document per symbol
-    const alertDoc = await TVAlert.findOneAndUpdate(
-      { symbol },
-      { type, status, entry, sl, tp1, tp2, tp3, timeframe, choch, chochType },
-      { new: true, upsert: true }
-    );
+const alertDoc = await TVAlert.findOneAndUpdate(
+  { symbol },
+  { type, status, entry, sl, tp1, tp2, tp3, timeframe, choch, chochType },
+  { new: true, upsert: true }
+);
+
 
     res.status(200).json({ message: 'Alert received', data: alertDoc });
   } catch (err) {
