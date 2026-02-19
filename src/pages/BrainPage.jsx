@@ -303,29 +303,46 @@ useEffect(() => {
 
   const sendTradeToBackend = async () => {
     try {
+      // Prepare a clean trade object with live balance and numeric values
+      const tradeToSend = {
+        ...pendingTrade,
+        initialBalance: accountTotals.balance, // live balance from MT + Prop
+        risk: settings.risk,
+        tpTargets: settings.tpTargets,
+        dailyMaxLoss: settings.dailyMaxLoss,
+        entry: Number(pendingTrade.entry) || 0,
+        sl: Number(pendingTrade.sl) || 0,
+        tp: Number(pendingTrade.tp) || 0
+      };
+
       const resp = await fetch('http://localhost:5000/api/ftsacalculator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          pendingTrade,              // send original trade intact
-          initialBalance: accountTotals.balance,
-          risk: settings.risk,
-          tpTargets: settings.tpTargets,
-          dailyMaxLoss: settings.dailyMaxLoss
-        }),
+        body: JSON.stringify({ pendingTrade: tradeToSend }),
       });
 
       if (!resp.ok) throw new Error('Failed to send trade to backend');
       const data = await resp.json();
 
       if (data?.data) {
-        // Only store backend-calculated fields in eaUpdatedTrades
         const { signalJson, trendJson } = data.data;
+
+        // Update EA trades with backend-calculated results
         setEaUpdatedTrades([{
           tradeActivated: trendJson.tradeActivated,
           lots: signalJson.lots,
-          adjustedTp: signalJson.tp
+          tp: signalJson.tp,
+          sl: signalJson.sl
         }]);
+
+        // Also update pendingTrade with calculated TP/SL if needed
+        setPendingTrade(prev => ({
+          ...prev,
+          tp: signalJson.tp,
+          sl: signalJson.sl,
+          lots: signalJson.lots,
+          tradeActivated: trendJson.tradeActivated
+        }));
       }
     } catch (err) {
       console.error('Error sending trade to backend:', err);
