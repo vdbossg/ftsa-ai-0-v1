@@ -871,12 +871,10 @@ async fetchRmsSettings() {
 
 /**
  * Fetch filtered signals for the new Brain table
- * @param {Object} filters - e.g. { strengthMin: 50, trend: 'Bullish' }
  */
-async fetchFilteredSignals(filters = {}) {
+async fetchFilteredSignals() {
   try {
-    const params = new URLSearchParams(filters).toString();
-    const response = await fetch(`${BASE_URL}/api/filter/filteredSignals?${params}`, {
+    const response = await fetch(`${BASE_URL}/api/finalTvsignals`, {
       headers: {
         ...(localStorage.getItem("authToken") && { "Authorization": `Bearer ${localStorage.getItem("authToken")}` })
       }
@@ -884,14 +882,16 @@ async fetchFilteredSignals(filters = {}) {
 
     if (!response.ok) return { success: false, data: [] };
 
-    const data = await response.json();
-    // Ensure always return an array
-    return { success: true, data: Array.isArray(data) ? data : [] };
+    const json = await response.json();
+
+    // The API returns { message, data }, so we return data
+    return { success: true, data: Array.isArray(json.data) ? json.data : [] };
   } catch (err) {
     console.error("Error fetching filtered signals:", err);
     return { success: false, data: [] };
   }
 },
+
 
 
 /**
