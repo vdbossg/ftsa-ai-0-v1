@@ -25,6 +25,47 @@ const [pendingTrade, setPendingTrade] = useState(null); // for a single valid tr
 const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
 const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); 
 // default 1000 or whatever you want as initial balance
+// Fetch live account balances from MT and Prop accounts
+useEffect(() => {
+  const fetchAccounts = async () => {
+    try {
+      const [mtRes, propRes] = await Promise.all([
+        fetch("http://localhost:5000/api/mtaccounts"),
+        fetch("http://localhost:5000/api/propaccounts")
+      ]);
+      const mtData = await mtRes.json();
+      const propData = await propRes.json();
+
+      let balance = 0;
+
+      if (mtData.success && Array.isArray(mtData.accounts)) {
+        mtData.accounts.forEach(acc => {
+          if (acc.account?.isConnected) {
+            const summary = acc.summary?.data || {};
+            balance += summary.balance || 0;
+          }
+        });
+      }
+
+      if (propData.success && Array.isArray(propData.accounts)) {
+        propData.accounts.forEach(acc => {
+          if (acc.account?.isConnected) {
+            const summary = acc.summary?.data || {};
+            balance += summary.balance || 0;
+          }
+        });
+      }
+
+      setAccountTotals(prev => ({ ...prev, balance }));
+    } catch (err) {
+      console.error("Failed to fetch accounts:", err);
+    }
+  };
+
+  fetchAccounts();
+  const interval = setInterval(fetchAccounts, 1000); // live update every second
+  return () => clearInterval(interval);
+}, []);
 
 const scrollableTableContainer = {
   marginBottom: "2rem",
