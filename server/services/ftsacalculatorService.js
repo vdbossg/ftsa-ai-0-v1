@@ -107,8 +107,7 @@ async function calculateTrade(tradeData) {
 
 const pipValue = getPipValue(tradeData.symbol);
 
-const lots = parseFloat(calculateLotSize(riskAmount, slPips, pipValue).toFixed(3)); // rounds to 3 decimals
-
+const lots = parseFloat(calculateLotSize(riskAmount, slPips, pipValue).toFixed(2)); // rounds to 2 decimals
     const adjustedTp = adjustTp(tradeData.type, tradeData.entry, tradeData.tp, tradeData.tpTargets);
 
     const tradeObject = {

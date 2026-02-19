@@ -138,19 +138,23 @@ bool PostUpdateToFrontend(string jsonPayload)
     char result[];
     string response_headers;
     uchar data[];
-    
-    // Convert string payload to uchar array
-    StringToCharArray(jsonPayload, data);
-    
-    int res = WebRequest(
-        "POST",
-        FRONTEND_UPDATE_URL,
-        "Content-Type: application/json\r\n",
-        HTTP_TIMEOUT,
-        data,
-        result,
-        response_headers
-    );
+
+// Convert string payload to uchar array in UTF-8
+StringToCharArray(jsonPayload, data, 0, CP_UTF8);
+
+// Include Content-Length in headers
+string headers = "Content-Type: application/json\r\nContent-Length: " + IntegerToString(ArraySize(data)) + "\r\n";
+
+int res = WebRequest(
+    "POST",
+    FRONTEND_UPDATE_URL,
+    headers,
+    HTTP_TIMEOUT,
+    data,
+    result,
+    response_headers
+);
+
     
     if(res != 200)
     {
