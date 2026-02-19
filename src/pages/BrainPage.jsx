@@ -307,17 +307,25 @@ useEffect(() => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          ...pendingTrade,
-          initialBalance: accountTotals.balance, // ✅ Add live balance
-          risk: settings.risk                     // ✅ Ensure risk is sent
+          pendingTrade,              // send original trade intact
+          initialBalance: accountTotals.balance,
+          risk: settings.risk,
+          tpTargets: settings.tpTargets,
+          dailyMaxLoss: settings.dailyMaxLoss
         }),
       });
 
       if (!resp.ok) throw new Error('Failed to send trade to backend');
       const data = await resp.json();
 
-      if (data?.data?.trendJson) {
-        setTradeHistory([data.data.trendJson]);
+      if (data?.data) {
+        // Only store backend-calculated fields in eaUpdatedTrades
+        const { signalJson, trendJson } = data.data;
+        setEaUpdatedTrades([{
+          tradeActivated: trendJson.tradeActivated,
+          lots: signalJson.lots,
+          adjustedTp: signalJson.tp
+        }]);
       }
     } catch (err) {
       console.error('Error sending trade to backend:', err);
@@ -325,8 +333,7 @@ useEffect(() => {
   };
 
   sendTradeToBackend();
-}, [pendingTrade, accountTotals.balance, settings.risk]);
-
+}, [pendingTrade, accountTotals.balance, settings.risk, settings.tpTargets, settings.dailyMaxLoss]);
 
 // List of all major and minor currency pairs
 const allPairs = [
@@ -373,40 +380,32 @@ const allPairs = [
      <tbody>
   {pendingTrade ? (
     <tr key="pending" style={{ backgroundColor: "#000000" }}>
-  <td style={tdVerticalLineStyle}>{pendingTrade.time}</td>
-  <td style={tdVerticalLineStyle}>{pendingTrade.type}</td>
-  <td style={tdVerticalLineStyle}>{pendingTrade.mode}</td>
-  <td style={tdVerticalLineStyle}>{pendingTrade.symbol}</td>
-  <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: pendingTrade.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
-    {pendingTrade.trend}
-  </td>
-  <td style={tdVerticalLineStyle}>
-    {eaUpdatedTrades[0]?.entry ?? tradeHistory[0]?.entry ?? pendingTrade.entry ?? "-"}
-  </td>
-  <td style={tdVerticalLineStyle}>
-    {eaUpdatedTrades[0]?.sl ?? tradeHistory[0]?.sl ?? pendingTrade.sl ?? "-"}
-  </td>
-  <td style={tdVerticalLineStyle}>
-    {eaUpdatedTrades[0]?.tp ?? tradeHistory[0]?.tp ?? pendingTrade.tp ?? "-"}
-  </td>
-  <td style={tdVerticalLineStyle}>
-    {eaUpdatedTrades[0]?.lots ?? tradeHistory[0]?.lots ?? pendingTrade.lots ?? "-"}
-  </td>
-  <td style={lastTdStyle}>
-    <span style={{
-      display: "inline-block",
-      padding: "2px 8px",
-      borderRadius: "8px",
-      backgroundColor: eaUpdatedTrades[0]?.tradeActivated === "ACTIVE" ? "#00FF00" :
-                       eaUpdatedTrades[0]?.tradeActivated === "CLOSED" ? "#FF0000" : "#FFA500",
-      color: "#000",
-      fontWeight: "bold"
-    }}>
-      {eaUpdatedTrades[0]?.tradeActivated || "Pending"}
-    </span>
-  </td>
-</tr>
+      <td style={tdVerticalLineStyle}>{pendingTrade.time}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.type}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.mode}</td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.symbol}</td>
+      <td style={{ ...tdVerticalLineStyle, textAlign: "center", color: pendingTrade.trend === "bullish" ? "#00FF00" : "#FF0000" }}>
+        {pendingTrade.trend}
+      </td>
+      <td style={tdVerticalLineStyle}>{pendingTrade.entry}</td>
+<td style={tdVerticalLineStyle}>{pendingTrade.sl}</td>
+<td style={tdVerticalLineStyle}>{pendingTrade.tp}</td>
 
+<td style={lastTdStyle}>
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "8px",
+    backgroundColor: eaUpdatedTrades[0]?.tradeActivated === "ACTIVE" ? "#00FF00" :
+                     eaUpdatedTrades[0]?.tradeActivated === "CLOSED" ? "#FF0000" : "#FFA500",
+    color: "#000",
+    fontWeight: "bold"
+  }}>
+    {eaUpdatedTrades[0]?.tradeActivated || "Pending"}
+  </span>
+</td>
+
+    </tr>
   ) : (
     <tr>
       <td colSpan={9} style={{ textAlign: "center" }}>No trades yet</td>
