@@ -222,9 +222,12 @@ double tp     = StringToDouble(JsonValue(json,"tp"));
 
 Print("Trade executed: ", type, " ", mode, " ", symbol);
 
+// Build tradeId using symbol + lastSignalID
+string tradeId = symbol + "_" + lastSignalID;
+
 // --- Send trade status to frontend ---
 string jsonUpdate = "{";
-jsonUpdate += "\"id\":\"" + lastSignalID + "\",";
+jsonUpdate += "\"tradeId\":\"" + tradeId + "\",";   // ✅ now declared
 jsonUpdate += "\"symbol\":\"" + symbol + "\",";
 jsonUpdate += "\"type\":\"" + type + "\",";
 jsonUpdate += "\"mode\":\"" + mode + "\",";
@@ -279,7 +282,8 @@ void OnTick()
             if(closed)
             {
                 string jsonUpdate = "{";
-                jsonUpdate += "\"id\":\"" + lastSignalID + "\",";
+                string tradeId = posSymbol + "_" + lastSignalID;
+                jsonUpdate += "\"tradeId\":\"" + tradeId + "\",";
                 jsonUpdate += "\"symbol\":\"" + posSymbol + "\",";
                 jsonUpdate += "\"type\":\"" + posType + "\",";
                 jsonUpdate += "\"mode\":\"MARKET\",";
