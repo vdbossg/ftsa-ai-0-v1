@@ -133,7 +133,7 @@ string JsonValue(string json, string key)
 
    return StringSubstr(json,start,end-start);
 }
-bool PostUpdateToFrontend(string jsonPayload)
+ bool PostUpdateToFrontend(string jsonPayload)
 {
     char result[];
     string response_headers;
@@ -144,30 +144,32 @@ bool PostUpdateToFrontend(string jsonPayload)
 
     string headers = "Content-Type: application/json\r\n";
 
+    // Send POST request
     int res = WebRequest(
-    "POST",
-    FRONTEND_UPDATE_URL,
-    headers,
-    "",                         // cookie
-    HTTP_TIMEOUT,
-    data,
-    ArraySize(data),            // <<< THIS WAS MISSING
-    result,
-    response_headers
-);
+        "POST",
+        FRONTEND_UPDATE_URL,
+        headers,
+        "",                         // cookie
+        HTTP_TIMEOUT,
+        data,
+        ArraySize(data)-1,          // <-- important: exclude the null terminator
+        result,
+        response_headers
+    );
 
-
+    string serverResponse = CharArrayToString(result);
     Print("Response code: ", res);
-    Print("Server response: ", CharArrayToString(result));
+    Print("Server response: ", serverResponse);
     Print("Sent JSON: ", jsonPayload);
 
+    // Extra debug: check if server returned JSON parse errors
     if(res != 200)
     {
-        Print("Failed to POST update to frontend, code=", res);
+        Print("❌ Failed to POST update to frontend, code=", res);
         return false;
     }
 
-    Print("Frontend updated with trade status.");
+    Print("✅ Frontend updated with trade status.");
     return true;
 }
 
