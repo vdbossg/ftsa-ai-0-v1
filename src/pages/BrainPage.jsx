@@ -353,29 +353,24 @@ useEffect(() => {
 }, [pendingTrade, accountTotals.balance, settings.risk, settings.tpTargets, settings.dailyMaxLoss]);
 
 // List of all major and minor currency pairs
-const allPairs = [
-  // ===== MAJOR FOREX PAIRS =====
-  "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+const allPairs = [// ===== MAJOR FOREX =====
+  "FRXEURUSD","FRXGBPUSD","FRXUSDJPY","FRXUSDCHF","FRXAUDUSD","FRXNZDUSD","FRXUSDCAD",
 
-  // ===== MINOR (CROSS) FOREX PAIRS =====
-  "EURGBP","EURJPY","EURCHF","EURAUD","EURCAD","EURNZD",
-  "GBPJPY","GBPCHF","GBPAUD","GBPCAD","GBPNZD",
-  "AUDJPY","AUDNZD","AUDCHF","AUDCAD",
-  "CADJPY","CADCHF",
-  "CHFJPY",
-  "NZDJPY","NZDCHF","NZDCAD",
+  // ===== MINOR CROSS FOREX =====
+  "FRXEURGBP","FRXEURJPY","FRXEURCHF","FRXEURAUD","FRXEURCAD","FRXEURNZD",
+  "FRXGBPJPY","FRXGBPCHF","FRXGBPAUD","FRXGBPCAD","FRXGBPNZD",
+  "FRXAUDJPY","FRXAUDNZD","FRXAUDCHF","FRXAUDCAD",
+  "FRXCADJPY","FRXCADCHF","FRXCHFJPY",
+  "FRXNZDJPY","FRXNZDCHF","FRXNZDCAD",
 
   // ===== INDICES =====
-   "OTC_NDX",
-    "OTC_DJI",   // Nasdaq 100
-
+  "OTC_NDX","OTC_DJI",
 
   // ===== METALS =====
-  "XAUUSD",    // Gold
+  "XAUUSD",
 
   // ===== CRYPTO =====
-  "cryBTCUSD",
-  "cryETHUSD"
+  "CRYBTCUSD","CRYETHUSD"
 ];
 
   return (

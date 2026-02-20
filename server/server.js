@@ -134,6 +134,9 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
+
 app.use('/api/user', userRoutes);
 console.log('✅ /api/user routes mounted');
 // API routes
