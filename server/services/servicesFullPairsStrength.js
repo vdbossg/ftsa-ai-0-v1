@@ -1,32 +1,44 @@
 // services/servicesFullPairsStrength.js
 require('dotenv').config();
-const MetaApi = require('metaapi.cloud-sdk').default;
+const { TDClient } = require('twelvedata');
 const FullPairsStrengthModel = require('../models/modelsFullPairsStrength');
 
-const MT5_TOKEN = process.env.MT5_API_TOKEN;
+// Twelve Data API key from .env
+const TD_API_KEY = process.env.TD_API_KEY;
+const td = new TDClient(TD_API_KEY);
 
-// initialize MetaApi client once
-const metaApiClient = new MetaApi(MT5_TOKEN);
-
-// Symbols list
+// Symbols list (Twelve Data format)
 const SYMBOLS = [
-  "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
-  "EURGBP","EURJPY","EURCHF","EURAUD","EURCAD","EURNZD",
-  "GBPJPY","GBPCHF","GBPAUD","GBPCAD","GBPNZD",
-  "AUDJPY","AUDNZD","AUDCHF","AUDCAD",
-  "CADJPY","CADCHF","CHFJPY","NZDJPY","NZDCHF","NZDCAD",
+  "EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","NZD/USD","USD/CAD",
+  "EUR/GBP","EUR/JPY","EUR/CHF","EUR/AUD","EUR/CAD","EUR/NZD",
+  "GBP/JPY","GBP/CHF","GBP/AUD","GBP/CAD","GBP/NZD",
+  "AUD/JPY","AUD/NZD","AUD/CHF","AUD/CAD",
+  "CAD/JPY","CAD/CHF","CHF/JPY","NZD/JPY","NZD/CHF","NZD/CAD",
   "US30","NAS100","SPX500","GER40","UK100","FRA40","JP225","AUS200","HK50",
-  "XAUUSD","XAGUSD","XPTUSD","XPDUSD",
+  "XAU/USD","XAG/USD","XPT/USD","XPD/USD",
   "USOIL","UKOIL",
-  "BTCUSD","ETHUSD","LTCUSD","XRPUSD","ADAUSD","BNBUSD","SOLUSD","DOGEUSD"
+  "BTC/USD","ETH/USD","LTC/USD","XRP/USD","ADA/USD","BNB/USD","SOL/USD","DOGE/USD"
 ];
 
-// Fetch candles from MetaApi Market Data (no MT5 account required)
-async function fetchCandles(symbol, timeframeSeconds = 14400, count = 50) {
+// Fetch candles from Twelve Data
+async function fetchCandles(symbol, interval = "4h", count = 50) {
   try {
-    const marketData = metaApiClient.marketDataApi;
-    const candles = await marketData.getCandles(symbol, timeframeSeconds, count);
-    return candles;
+    const ts = td.timeSeries({
+      symbol,
+      interval,       // "1min", "5min", "1h", "4h", "1day", etc.
+      outputsize: count,
+      timezone: "Etc/UTC"
+    });
+    const data = await ts.asBars();
+
+    // Convert to candle format
+    return data.map(c => ({
+      close: parseFloat(c.close),
+      open: parseFloat(c.open),
+      high: parseFloat(c.high),
+      low: parseFloat(c.low),
+      datetime: c.datetime
+    }));
   } catch (err) {
     console.error(`❌ Failed to fetch ${symbol} market data:`, err.message);
     return [];
@@ -48,14 +60,16 @@ function strengthSignal(strength) {
   return "🟥";
 }
 
-// Update Full Pairs Strength
+// Update Full Pairs Strength (parallel fetch)
 async function updateFullPairsStrength() {
-  const marketStrength = [];
+  try {
+    // Fetch all candles in parallel
+    const candlesPromises = SYMBOLS.map(symbol => fetchCandles(symbol, "4h", 7));
+    const candlesResults = await Promise.all(candlesPromises);
 
-  for (let symbol of SYMBOLS) {
-    try {
-      const htfCandles = await fetchCandles(symbol, 14400, 7); // 4H only
-      if (!htfCandles.length) continue;
+    const marketStrength = SYMBOLS.map((symbol, idx) => {
+      const htfCandles = candlesResults[idx];
+      if (!htfCandles.length) return null;
 
       const htfMomentum = computeMomentum(htfCandles);
       const strength = Math.min(Math.abs(htfMomentum) * 50, 100);
@@ -64,7 +78,7 @@ async function updateFullPairsStrength() {
       const lastClose = htfCandles[htfCandles.length - 1].close;
       const previousClose = htfCandles[htfCandles.length - 2].close;
 
-      marketStrength.push({
+      return {
         symbol,
         strength: Math.round(strength),
         bias,
@@ -72,14 +86,15 @@ async function updateFullPairsStrength() {
         htfMomentumPct: parseFloat(htfMomentum.toFixed(2)),
         lastClose,
         previousClose
-      });
-    } catch (err) {
-      console.error(`❌ Failed to process ${symbol}:`, err.message);
-    }
-  }
+      };
+    }).filter(Boolean); // remove nulls
 
-  FullPairsStrengthModel.update(marketStrength);
-  return FullPairsStrengthModel.getJSON();
+    FullPairsStrengthModel.update(marketStrength);
+    return FullPairsStrengthModel.getJSON();
+  } catch (err) {
+    console.error('❌ Failed to update full pairs strength:', err.message);
+    return [];
+  }
 }
 
 // Optional loop every 5s
