@@ -354,7 +354,6 @@ useEffect(() => {
 
 // List of all major and minor currency pairs
 const allPairs = [
-
   // ===== MAJOR FOREX PAIRS =====
   "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
 
@@ -369,23 +368,10 @@ const allPairs = [
   // ===== INDICES =====
   "US30",      // Dow Jones
   "NAS100",    // Nasdaq 100
-  "SPX500",    // S&P 500
-  "GER40",     // DAX
-  "UK100",     // FTSE 100
-  "FRA40",     // CAC 40
-  "JP225",     // Nikkei 225
-  "AUS200",    // ASX 200
-  "HK50",      // Hang Seng
+
 
   // ===== METALS =====
   "XAUUSD",    // Gold
-  "XAGUSD",    // Silver
-  "XPTUSD",    // Platinum
-  "XPDUSD",    // Palladium
-
-  // ===== ENERGY =====
-  "USOIL",     // WTI
-  "UKOIL",     // Brent
 
   // ===== CRYPTO =====
   "BTCUSD",
@@ -396,7 +382,6 @@ const allPairs = [
   "BNBUSD",
   "SOLUSD",
   "DOGEUSD"
-
 ];
 
   return (

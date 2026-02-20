@@ -66,7 +66,7 @@ const withdrawalRoutes = require("./routes/routesWithdrawalRequest");
 
 const tvAlertsRoutes = require('./routes/tvAlertsRoutes');
 const finalTvSignalsRoute = require("./routes/finalTvSignals");
-const fullPairsStrengthRoutes = require('./routes/routesFullPairsStrength');
+
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -246,8 +246,7 @@ console.log('✅ /api/tv-alerts route mounted');
 app.use("/api", finalTvSignalsRoute);
 console.log('✅ /api/finalTvSignals route mounted');
 
-app.use('/api', fullPairsStrengthRoutes);
-console.log("✅ /api/FullPairsStrength route mounted");
+
 // Simple test route
 app.get('/', (req, res) => {
   res.send('FTSA AI Backend Server running');
@@ -300,8 +299,6 @@ wss.on('connection', (ws) => {
 
 
 const { setWebSocketServer: strongestPairWS, startWatcher } = require('./services/strongestPairWatcher');
-const { startLoop } = require('./services/servicesFullPairsStrength');
-startLoop(5000);
 
 strongestPairWS(wss); // connect WS server
 startWatcher(5000);    // check every 5 seconds
