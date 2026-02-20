@@ -39,23 +39,18 @@ const allPairs = Array.isArray(configPairs) && configPairs.length > 0
   "NZDJPY","NZDCHF","NZDCAD",
 
   // ===== INDICES =====
-  "US30",      // Dow Jones
-  "NAS100",    // Nasdaq 100
+   "OTC_NDX",
+    "OTC_DJI",   // Nasdaq 100
 
 
   // ===== METALS =====
   "XAUUSD",    // Gold
 
   // ===== CRYPTO =====
-  "BTCUSD",
-  "ETHUSD",
-  "LTCUSD",
-  "XRPUSD",
-  "ADAUSD",
-  "BNBUSD",
-  "SOLUSD",
-  "DOGEUSD"
+  "CRYBTCUSD",
+  "CRYETHUSD"
 ];
+
 
 // ---------- TUNABLE CONSTANTS ----------
 const DERIV_API_TOKEN = process.env.DERIV_API_TOKEN;

@@ -366,22 +366,16 @@ const allPairs = [
   "NZDJPY","NZDCHF","NZDCAD",
 
   // ===== INDICES =====
-  "US30",      // Dow Jones
-  "NAS100",    // Nasdaq 100
+   "OTC_NDX",
+    "OTC_DJI",   // Nasdaq 100
 
 
   // ===== METALS =====
   "XAUUSD",    // Gold
 
   // ===== CRYPTO =====
-  "BTCUSD",
-  "ETHUSD",
-  "LTCUSD",
-  "XRPUSD",
-  "ADAUSD",
-  "BNBUSD",
-  "SOLUSD",
-  "DOGEUSD"
+  "CRYBTCUSD",
+  "CRYETHUSD"
 ];
 
   return (
