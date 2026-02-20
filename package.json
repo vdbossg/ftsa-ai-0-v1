@@ -24,6 +24,7 @@
     "fs-extra": "^11.3.3",
     "jsonwebtoken": "^9.0.2",
     "lightweight-charts": "^5.0.9",
+    "metaapi.cloud-sdk": "^29.3.3",
     "mongoose": "^8.17.2",
     "multer": "^2.0.2",
     "node-binance-api": "^1.0.16",

@@ -86,7 +86,17 @@ let derivWS = null;
 function clamp(v, a = 0, b = 100) {
   return Math.max(a, Math.min(b, v));
 }
+function formatDerivSymbol(pair) {
+  // 6-letter forex pairs like EURUSD, GBPJPY etc.
+  const forexRegex = /^[A-Z]{6}$/;
 
+  if (forexRegex.test(pair)) {
+    return "frx" + pair;  // Only forex gets frx
+  }
+
+  // Indices, crypto, metals, oil
+  return pair;
+}
 /**
  * Convert momentum percent -> 0..100 strength.
  */
@@ -196,14 +206,17 @@ function connectDerivWS() {
 }
 
 function subscribePair(pair, granularity) {
+  const symbol = formatDerivSymbol(pair);
+
   const payload = {
-    ticks_history: "frx" + pair,
+    ticks_history: symbol,
     end: "latest",
     count: 100,
     granularity,
     style: "candles",
     subscribe: 1
   };
+
   derivWS.send(JSON.stringify(payload));
 }
 
