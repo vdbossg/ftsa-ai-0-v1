@@ -374,8 +374,8 @@ const allPairs = [
   "XAUUSD",    // Gold
 
   // ===== CRYPTO =====
-  "CRYBTCUSD",
-  "CRYETHUSD"
+  "cryBTCUSD",
+  "cryETHUSD"
 ];
 
   return (

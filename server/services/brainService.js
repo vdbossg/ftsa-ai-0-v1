@@ -36,6 +36,7 @@ const allPairs = Array.isArray(configPairs) && configPairs.length > 0
   "AUDJPY","AUDNZD","AUDCHF","AUDCAD",
   "CADJPY","CADCHF",
   "CHFJPY",
+
   "NZDJPY","NZDCHF","NZDCAD",
 
   // ===== INDICES =====
@@ -47,8 +48,8 @@ const allPairs = Array.isArray(configPairs) && configPairs.length > 0
   "XAUUSD",    // Gold
 
   // ===== CRYPTO =====
-  "CRYBTCUSD",
-  "CRYETHUSD"
+  "cryBTCUSD",
+  "cryETHUSD"
 ];
 
 
