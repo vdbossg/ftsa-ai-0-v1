@@ -15,7 +15,6 @@ if (!process.env.TD_API_KEY) {
 const twelvedata = require('twelvedata');
 const FullPairsStrengthModel = require('../models/modelsFullPairsStrength');
 
-const twelvedata = require('twelvedata');
 const td = twelvedata({ apiKey: process.env.TD_API_KEY });
 console.log('✅ Twelve Data client initialized with Node key');
 
