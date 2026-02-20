@@ -27,13 +27,48 @@ const configPairs = loadAppConfig()?.pairs;
 const allPairs = Array.isArray(configPairs) && configPairs.length > 0 
   ? configPairs
   : [
-      "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
-      "EURGBP","EURJPY","EURCHF","EURAUD","EURNZD",
-      "GBPJPY","GBPCHF","GBPAUD","GBPNZD",
-      "AUDJPY","AUDNZD","AUDCHF",
-      "CADJPY","CADCHF",
-      "CHFJPY","NZDJPY","NZDCHF"
-    ];
+  // ===== MAJOR FOREX PAIRS =====
+  "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
+
+  // ===== MINOR (CROSS) FOREX PAIRS =====
+  "EURGBP","EURJPY","EURCHF","EURAUD","EURCAD","EURNZD",
+  "GBPJPY","GBPCHF","GBPAUD","GBPCAD","GBPNZD",
+  "AUDJPY","AUDNZD","AUDCHF","AUDCAD",
+  "CADJPY","CADCHF",
+  "CHFJPY",
+  "NZDJPY","NZDCHF","NZDCAD",
+
+  // ===== INDICES =====
+  "US30",      // Dow Jones
+  "NAS100",    // Nasdaq 100
+  "SPX500",    // S&P 500
+  "GER40",     // DAX
+  "UK100",     // FTSE 100
+  "FRA40",     // CAC 40
+  "JP225",     // Nikkei 225
+  "AUS200",    // ASX 200
+  "HK50",      // Hang Seng
+
+  // ===== METALS =====
+  "XAUUSD",    // Gold
+  "XAGUSD",    // Silver
+  "XPTUSD",    // Platinum
+  "XPDUSD",    // Palladium
+
+  // ===== ENERGY =====
+  "USOIL",     // WTI
+  "UKOIL",     // Brent
+
+  // ===== CRYPTO =====
+  "BTCUSD",
+  "ETHUSD",
+  "LTCUSD",
+  "XRPUSD",
+  "ADAUSD",
+  "BNBUSD",
+  "SOLUSD",
+  "DOGEUSD"
+];
 
 // ---------- TUNABLE CONSTANTS ----------
 const DERIV_API_TOKEN = process.env.DERIV_API_TOKEN;

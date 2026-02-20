@@ -1,10 +1,10 @@
 {
-  "symbol": "GBPUSD",
-  "type": "SELL",
+  "symbol": "GBPJPY",
+  "type": "BUY",
   "mode": "PENDING",
-  "lots": 0.15,
-  "sl": 1.351,
-  "tp": 1.343,
-  "price": 1.349,
-  "id": "1771524179016"
+  "lots": 0.1,
+  "sl": 168,
+  "tp": 170,
+  "price": 168.5,
+  "id": "1771595210553"
 }
