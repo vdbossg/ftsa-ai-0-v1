@@ -27,32 +27,7 @@ const configPairs = loadAppConfig()?.pairs;
 const allPairs = Array.isArray(configPairs) && configPairs.length > 0 
   ? configPairs
   : [
-  // ===== MAJOR FOREX PAIRS =====
-  //"EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
-
-  // ===== MINOR (CROSS) FOREX PAIRS =====
-  //"EURGBP","EURJPY","EURCHF","EURAUD","EURCAD","EURNZD",
-  //"GBPJPY","GBPCHF","GBPAUD","GBPCAD","GBPNZD",
-  //"AUDJPY","AUDNZD","AUDCHF","AUDCAD",
- // "CADJPY","CADCHF",
- // "CHFJPY",
-
-  //"NZDJPY","NZDCHF","NZDCAD",
-
-  // ===== INDICES =====
-  // "OTC_NDX",
-   // "OTC_DJI",   // Nasdaq 100
-
-
-  // ===== METALS =====
- // "XAUUSD",    // Gold
-
-  // ===== CRYPTO =====
- // "cryBTCUSD",
- // "cryETHUSD"
-//];
-
-
+ 
   // Forex
   "EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","NZDUSD","USDCAD",
   "EURGBP","EURJPY","EURCHF","EURAUD","EURCAD","EURNZD",
@@ -88,19 +63,15 @@ function clamp(v, a = 0, b = 100) {
   return Math.max(a, Math.min(b, v));
 }
 function formatDerivSymbol(pair) {
-  pair = pair.toUpperCase();
+  // 6-letter forex pairs like EURUSD, GBPJPY etc.
+  const forexRegex = /^[A-Z]{6}$/;
 
-  // Forex → prefix FRX
-  if (/^[A-Z]{6}$/.test(pair)) return "FRX" + pair;
+  if (forexRegex.test(pair)) {
+    return "frx" + pair;  // Only forex gets frx
+  }
 
-  // Crypto → prefix CRY
-  if (pair === "BTCUSD" || pair === "ETHUSD") return "CRY" + pair;
-
-  // Indices & metals → exact Deriv symbol
-  const allowed = ["OTC_NDX","OTC_DJI","XAUUSD"];
-  if (allowed.includes(pair)) return pair;
-
-  return pair; // fallback
+  // Indices, crypto, metals, oil
+  return pair;
 }
 /**
  * Convert momentum percent -> 0..100 strength.

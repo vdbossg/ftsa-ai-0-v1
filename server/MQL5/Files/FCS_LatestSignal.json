@@ -1,10 +1,10 @@
 {
-  "symbol": "AUDUSD",
-  "type": "BUY",
+  "symbol": "GBPUSD",
+  "type": "SELL",
   "mode": "PENDING",
-  "lots": 0.06,
-  "sl": 0.68,
-  "tp": 0.6890000000000001,
-  "price": 0.685,
-  "id": "1771615045297"
+  "lots": 0.15,
+  "sl": 1.35115,
+  "tp": 1.3431,
+  "price": 1.34914,
+  "id": "1771615221750"
 }

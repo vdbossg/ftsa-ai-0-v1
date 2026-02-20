@@ -372,6 +372,7 @@ const allPairs =  [
   "BTCUSD","ETHUSD"
 ];
 
+
   return (
     <div
       style={{
