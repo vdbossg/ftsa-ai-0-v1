@@ -1,11 +1,26 @@
 // services/servicesFullPairsStrength.js
-require('dotenv').config();
-const { TDClient } = require('twelvedata');
+// Load dotenv safely from project root
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+// Debug: confirm the Node backend key is loaded
+console.log('Loaded TD_API_KEY for Node:', process.env.TD_API_KEY);
+
+if (!process.env.TD_API_KEY) {
+  console.error('❌ TD_API_KEY is missing! Check your .env file');
+  process.exit(1); // stops execution to prevent Twelve Data crash
+}
+
+// 3️⃣ Load dependencies
+const twelvedata = require('twelvedata');
 const FullPairsStrengthModel = require('../models/modelsFullPairsStrength');
 
-// Twelve Data API key from .env
-const TD_API_KEY = process.env.TD_API_KEY;
-const td = new TDClient(TD_API_KEY);
+const twelvedata = require('twelvedata');
+const td = twelvedata({ apiKey: process.env.TD_API_KEY });
+console.log('✅ Twelve Data client initialized with Node key');
+
+// 5️⃣ Log success
+console.log('✅ Twelve Data client initialized with API key');
 
 // Symbols list (Twelve Data format)
 const SYMBOLS = [
@@ -63,7 +78,6 @@ function strengthSignal(strength) {
 // Update Full Pairs Strength (parallel fetch)
 async function updateFullPairsStrength() {
   try {
-    // Fetch all candles in parallel
     const candlesPromises = SYMBOLS.map(symbol => fetchCandles(symbol, "4h", 7));
     const candlesResults = await Promise.all(candlesPromises);
 
@@ -87,7 +101,7 @@ async function updateFullPairsStrength() {
         lastClose,
         previousClose
       };
-    }).filter(Boolean); // remove nulls
+    }).filter(Boolean);
 
     FullPairsStrengthModel.update(marketStrength);
     return FullPairsStrengthModel.getJSON();
