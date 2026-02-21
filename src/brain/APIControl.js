@@ -842,37 +842,43 @@ async saveRmsSettings(settings) {
   }
 },
 
-/**
- * Fetch latest RMS settings
- */
-// FTSA_AI_0.v1\src\brain\APIControl.js (frontend)
 async fetchRmsSettings() {
   try {
     const token = localStorage.getItem("authToken");
-    if (!token) return { success: false, data: null, error: "No auth token" };
+    if (!token) {
+      return { success: false, data: null, error: "No auth token" };
+    }
 
-    // Read currentWatcherUser.json to get current userId
-    const userRes = await fetch(`${BASE_URL}/api/currentWatcherUser`);
-    const userData = await userRes.json();
-    const userId = userData?.userId;
-    if (!userId) return { success: false, data: null, error: "No current user" };
-
-    const response = await fetch(`${BASE_URL}/api/rms?userId=${userId}`, { // send userId as query
+    const response = await fetch(`${BASE_URL}/api/rms`, {
       headers: {
         "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
       },
     });
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      return { success: false, data: null, error: errData.error || "Failed to fetch RMS settings" };
+      return {
+        success: false,
+        data: null,
+        error: errData.error || "Failed to fetch RMS settings"
+      };
     }
 
     const data = await response.json();
-    return { success: true, data: data.data || null };
+
+    return {
+      success: true,
+      data: data.data || null
+    };
+
   } catch (err) {
     console.error("Error fetching RMS settings:", err);
-    return { success: false, data: null, error: err.message || "Unexpected error" };
+    return {
+      success: false,
+      data: null,
+      error: err.message
+    };
   }
 },
 /**
