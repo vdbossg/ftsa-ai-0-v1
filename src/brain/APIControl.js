@@ -845,12 +845,19 @@ async saveRmsSettings(settings) {
 /**
  * Fetch latest RMS settings
  */
+// FTSA_AI_0.v1\src\brain\APIControl.js (frontend)
 async fetchRmsSettings() {
   try {
     const token = localStorage.getItem("authToken");
     if (!token) return { success: false, data: null, error: "No auth token" };
 
-    const response = await fetch(`${BASE_URL}/api/rms`, {
+    // Read currentWatcherUser.json to get current userId
+    const userRes = await fetch(`${BASE_URL}/api/currentWatcherUser`);
+    const userData = await userRes.json();
+    const userId = userData?.userId;
+    if (!userId) return { success: false, data: null, error: "No current user" };
+
+    const response = await fetch(`${BASE_URL}/api/rms?userId=${userId}`, { // send userId as query
       headers: {
         "Authorization": `Bearer ${token}`,
       },
@@ -868,7 +875,6 @@ async fetchRmsSettings() {
     return { success: false, data: null, error: err.message || "Unexpected error" };
   }
 },
-
 /**
  * Fetch filtered signals for the new Brain table
  */

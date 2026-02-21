@@ -1,8 +1,9 @@
-//FTSA_AI_0.v1\server\models\Rms.js
+// FTSA_AI_0.v1\server\models\Rms.js
 const mongoose = require("mongoose");
 
 const RmsSchema = new mongoose.Schema(
   {
+    userId: { type: String, required: true, index: true }, // Link RMS to a specific user
     maxTrades: { type: Number, default: 1 },
     risk: { type: Number, default: 1 },           // Risk % per trade
     dailyMaxLoss: { type: Number, default: 1 },   // Daily max loss %
