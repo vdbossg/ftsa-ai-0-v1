@@ -75,18 +75,23 @@ function calculateLotSize(riskAmount, slPips, pipValue) {
 
 
 // Adjust TP based on tpTargets
-function adjustTp(type, entry, tp, tpTargets) {
-    let distance = tp - entry;
-    if (type.toUpperCase() === 'SELL') distance = entry - tp;
+// Adjust TP based on tpTargets (fixed for TP1 and TP2)
+function adjustTp(type, entry, fullTp, tpTargets) {
+    entry = Number(entry);
+    fullTp = Number(fullTp);
+    if (isNaN(entry) || isNaN(fullTp)) return entry; // fallback
 
-    switch (tpTargets.toLowerCase()) {
+    const isBuy = type.toUpperCase() === 'BUY';
+    const distance = Math.abs(fullTp - entry);
+
+    switch(tpTargets.toLowerCase()) {
         case 'tp1':
-            return type.toUpperCase() === 'BUY' ? entry + distance / 3 : entry - distance / 3;
+            return parseFloat((isBuy ? entry + distance/3 : entry - distance/3).toFixed(5));
         case 'tp2':
-            return type.toUpperCase() === 'BUY' ? entry + (2 * distance) / 3 : entry - (2 * distance) / 3;
+            return parseFloat((isBuy ? entry + 2*distance/3 : entry - 2*distance/3).toFixed(5));
         case 'tp3':
         default:
-            return tp;
+            return parseFloat(fullTp.toFixed(5));
     }
 }
 
