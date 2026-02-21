@@ -13,7 +13,12 @@ export default function BrainPage() {
   const [filteredSignals, setFilteredSignals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [settings, setSettings] = useState(null); // initially null
+  const [settings, setSettings] = useState({
+  maxTrades: 1,
+  risk: 1,
+  dailyMaxLoss: 1,
+  tpTargets: "tp1",
+});
 
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
@@ -138,7 +143,7 @@ const fetchEaUpdates = async () => {
     const resp = await fetch("http://localhost:5000/api/ftsacalculator"); // GET latest trade with tradeActivated
     if (!resp.ok) throw new Error("Failed to fetch EA trade updates");
 
-
+    
     const data = await resp.json();
 
     if (data?.trendJson) {
@@ -274,14 +279,14 @@ useEffect(() => {
       // Load saved RMS settings
       const resp = await APIControl.fetchRmsSettings();
       if (resp.success && resp.data) {
-  const s = resp.data;
-  setSettings({
-    maxTrades: s.maxTrades,
-    risk: s.risk,
-    dailyMaxLoss: s.dailyMaxLoss,
-    tpTargets: s.tpTargets,
-  });
-}
+        const s = resp.data;
+        setSettings({
+          maxTrades: s.maxTrades ?? 1,
+          risk: s.risk ?? 1,
+          dailyMaxLoss: s.dailyMaxLoss ?? 1,
+          tpTargets: s.tpTargets ?? "tp1",
+        });
+      }
 
      // Load initial brain data once, show loader only for first load
 await loadBrainData(true);
@@ -295,13 +300,14 @@ await loadBrainData(true);
 }, []);
 // Send pendingTrade to backend for calculation whenever it changes
 useEffect(() => {
-  if (!pendingTrade || !settings) return; // <-- check for settings
+  if (!pendingTrade) return;
 
   const sendTradeToBackend = async () => {
     try {
+      // Prepare a clean trade object with live balance and numeric values
       const tradeToSend = {
         ...pendingTrade,
-        initialBalance: accountTotals.balance,
+        initialBalance: accountTotals.balance, // live balance from MT + Prop
         risk: settings.risk,
         tpTargets: settings.tpTargets,
         dailyMaxLoss: settings.dailyMaxLoss,
@@ -322,6 +328,7 @@ useEffect(() => {
       if (data?.data) {
         const { signalJson, trendJson } = data.data;
 
+        // Update EA trades with backend-calculated results
         setEaUpdatedTrades([{
           tradeActivated: trendJson.tradeActivated,
           lots: signalJson.lots,
@@ -329,6 +336,7 @@ useEffect(() => {
           sl: signalJson.sl
         }]);
 
+        // Also update pendingTrade with calculated TP/SL if needed
         setPendingTrade(prev => ({
           ...prev,
           tp: signalJson.tp,
@@ -343,7 +351,8 @@ useEffect(() => {
   };
 
   sendTradeToBackend();
-}, [pendingTrade, accountTotals.balance, settings]);       
+}, [pendingTrade, accountTotals.balance, settings.risk, settings.tpTargets, settings.dailyMaxLoss]);
+
 // List of all major and minor currency pairs
 const allPairs =  [
   // Forex
@@ -544,7 +553,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>Max Trades / Day:</p>
     <select
-      value={settings?.maxTrades || ""}
+      value={settings.maxTrades || 1}
       onChange={(e) => {
         const maxTrades = parseInt(e.target.value);
         setSettings(prev => {
@@ -564,7 +573,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>Risk % per Trade:</p>
     <select
-      value={settings?.risk || ""}
+      value={settings.risk || 1}
       onChange={(e) => {
         const risk = parseFloat(e.target.value);
         setSettings(prev => {
@@ -589,7 +598,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>Daily Max Loss %:</p>
     <select
-     value={settings?.dailyMaxLoss || ""}
+      value={settings.dailyMaxLoss || 1}
       onChange={(e) => {
         const dailyMaxLoss = parseFloat(e.target.value);
         setSettings(prev => {
@@ -614,7 +623,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>TP Targets:</p>
     <select
-      value={settings?.tpTargets || ""}
+      value={settings.tpTargets || "tp1"}
       onChange={(e) => {
   const tpTargets = e.target.value;
   setSettings(prev => {
