@@ -13,12 +13,7 @@ export default function BrainPage() {
   const [filteredSignals, setFilteredSignals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [settings, setSettings] = useState({
-  maxTrades: 1,
-  risk: 1,
-  dailyMaxLoss: 1,
-  tpTargets: "tp1",
-});
+  const [settings, setSettings] = useState(null); // initially null
 
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
@@ -143,7 +138,7 @@ const fetchEaUpdates = async () => {
     const resp = await fetch("http://localhost:5000/api/ftsacalculator"); // GET latest trade with tradeActivated
     if (!resp.ok) throw new Error("Failed to fetch EA trade updates");
 
-    
+
     const data = await resp.json();
 
     if (data?.trendJson) {
@@ -279,14 +274,14 @@ useEffect(() => {
       // Load saved RMS settings
       const resp = await APIControl.fetchRmsSettings();
       if (resp.success && resp.data) {
-        const s = resp.data;
-        setSettings({
-          maxTrades: s.maxTrades ?? 1,
-          risk: s.risk ?? 1,
-          dailyMaxLoss: s.dailyMaxLoss ?? 1,
-          tpTargets: s.tpTargets ?? "tp1",
-        });
-      }
+  const s = resp.data;
+  setSettings({
+    maxTrades: s.maxTrades,
+    risk: s.risk,
+    dailyMaxLoss: s.dailyMaxLoss,
+    tpTargets: s.tpTargets,
+  });
+}
 
      // Load initial brain data once, show loader only for first load
 await loadBrainData(true);
@@ -553,7 +548,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>Max Trades / Day:</p>
     <select
-      value={settings.maxTrades || 1}
+      value={settings?.maxTrades || ""}
       onChange={(e) => {
         const maxTrades = parseInt(e.target.value);
         setSettings(prev => {
@@ -573,7 +568,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>Risk % per Trade:</p>
     <select
-      value={settings.risk || 1}
+      value={settings?.risk || ""}
       onChange={(e) => {
         const risk = parseFloat(e.target.value);
         setSettings(prev => {
@@ -598,7 +593,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>Daily Max Loss %:</p>
     <select
-      value={settings.dailyMaxLoss || 1}
+     value={settings?.dailyMaxLoss || ""}
       onChange={(e) => {
         const dailyMaxLoss = parseFloat(e.target.value);
         setSettings(prev => {
@@ -623,7 +618,7 @@ const allPairs =  [
   <div style={{ marginBottom: "1rem" }}>
     <p>TP Targets:</p>
     <select
-      value={settings.tpTargets || "tp1"}
+      value={settings?.tpTargets || ""}
       onChange={(e) => {
   const tpTargets = e.target.value;
   setSettings(prev => {

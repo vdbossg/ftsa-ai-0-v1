@@ -1,16 +1,7 @@
 //FTSA_AI_0.v1\server\controllers\ftsacalculatorController.js
-const fs = require('fs');
-const path = require('path');
 const Trade = require('../models/ftsacalculator');
 const { calculateTrade } = require('../services/ftsacalculatorService');
 
-
-function getCurrentUserId() {
-    const filePath = path.join(__dirname, '../services/currentWatcherUser.json');
-    if (!fs.existsSync(filePath)) return null;
-    const jsonData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    return jsonData.userId || null;
-}
 // POST: calculate and save trade from frontend's Today's Trade
 async function ftsaCalculator(req, res) {
     try {
@@ -64,20 +55,14 @@ console.log("📥 EA UPDATE RECEIVED:", eaTrade);
         }
 
         // Save or update in DB
-       // Get current user
-const userId = getCurrentUserId();
-if (!userId) return res.status(400).json({ success: false, message: "No logged-in user found" });
+        const filter = { symbol: eaTrade.symbol, type: eaTrade.type.toUpperCase() };
+        const update = {
+            ...eaTrade,
+            updatedAt: new Date()
+        };
+        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
-// Save or update in DB only for this user
-const filter = { symbol: eaTrade.symbol, type: eaTrade.type.toUpperCase(), userId };
-const update = {
-    ...eaTrade,
-    updatedAt: new Date(),
-    userId
-};
-const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
-const updatedTrade = await Trade.findOneAndUpdate(filter, update, options);
+        const updatedTrade = await Trade.findOneAndUpdate(filter, update, options);
 
         res.json({ success: true, data: updatedTrade });
     } catch (err) {
@@ -89,10 +74,7 @@ const updatedTrade = await Trade.findOneAndUpdate(filter, update, options);
 // GET: fetch latest trade
 async function getLatestTrade(req, res) {
     try {
-        const userId = getCurrentUserId();
-if (!userId) return res.status(400).json({ success: false, message: "No logged-in user found" });
-
-const latestTrade = await Trade.findOne({ userId }).sort({ _id: -1 });
+        const latestTrade = await Trade.findOne().sort({ _id: -1 });
 
         if (!latestTrade) {
             return res.status(404).json({ success: false, message: 'No trade found' });
