@@ -1,6 +1,6 @@
 //FTSA_AI_0.v1\server\services\ftsacalculatorService.js
 const Trade = require('../models/ftsacalculator');
-
+const TVAlert = require('../models/tvAlertModel');
 // Constant pip value (for simplicity)
 
 
@@ -74,27 +74,6 @@ function calculateLotSize(riskAmount, slPips, pipValue) {
 }
 
 
-// Adjust TP based on tpTargets
-// Adjust TP based on tpTargets (fixed for TP1 and TP2)
-function adjustTp(type, entry, fullTp, tpTargets) {
-    entry = Number(entry);
-    fullTp = Number(fullTp);
-    if (isNaN(entry) || isNaN(fullTp)) return entry; // fallback
-
-    const isBuy = type.toUpperCase() === 'BUY';
-    const distance = Math.abs(fullTp - entry);
-
-    switch(tpTargets.toLowerCase()) {
-        case 'tp1':
-            return parseFloat((isBuy ? entry + distance/3 : entry - distance/3).toFixed(5));
-        case 'tp2':
-            return parseFloat((isBuy ? entry + 2*distance/3 : entry - 2*distance/3).toFixed(5));
-        case 'tp3':
-        default:
-            return parseFloat(fullTp.toFixed(5));
-    }
-}
-
 // Determine trend for second JSON
 function determineTrend(type) {
     return type.toUpperCase() === 'BUY' ? 'bullish' : 'bearish';
@@ -113,8 +92,32 @@ async function calculateTrade(tradeData) {
 const pipValue = getPipValue(tradeData.symbol);
 
 const lots = parseFloat(calculateLotSize(riskAmount, slPips, pipValue).toFixed(2)); // rounds to 2 decimals
-    const adjustedTp = adjustTp(tradeData.type, tradeData.entry, tradeData.tp, tradeData.tpTargets);
+    
+    // 🔥 Get TP directly from finalTvsignals collection
+const signal = await TVAlert.findOne({
+    symbol: tradeData.symbol,
+    status: 'NEW',
+    choch: true
+}).sort({ createdAt: -1 });
 
+if (!signal) {
+    throw new Error('No matching NEW + CHOCH signal found for TP selection');
+}
+
+let adjustedTp;
+
+switch (tradeData.tpTargets.toLowerCase()) {
+    case 'tp1':
+        adjustedTp = signal.tp1;
+        break;
+    case 'tp2':
+        adjustedTp = signal.tp2;
+        break;
+    case 'tp3':
+    default:
+        adjustedTp = signal.tp3;
+        break;
+}
     const tradeObject = {
         ...tradeData,
         lots,
@@ -123,8 +126,12 @@ const lots = parseFloat(calculateLotSize(riskAmount, slPips, pipValue).toFixed(2
     };
 
     // Keep only latest trade
-    await Trade.deleteMany({});
-    const savedTrade = await Trade.create(tradeObject);
+    // Save or update trade per user
+const savedTrade = await Trade.findOneAndUpdate(
+  { userId: tradeObject.userId },       // filter by userId
+  { $set: tradeObject },                // update with new trade data
+  { upsert: true, new: true, setDefaultsOnInsert: true } // create if not exists
+);
 
     // First JSON structure (signal)
     const signalJson = {

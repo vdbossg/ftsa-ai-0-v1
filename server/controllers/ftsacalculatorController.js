@@ -1,33 +1,31 @@
-//FTSA_AI_0.v1\server\controllers\ftsacalculatorController.js
 const Trade = require('../models/ftsacalculator');
 const { calculateTrade } = require('../services/ftsacalculatorService');
+const currentWatcherUser = require('../services/currentWatcherUser.json'); 
 
 // POST: calculate and save trade from frontend's Today's Trade
 async function ftsaCalculator(req, res) {
     try {
-        // Get the trade sent by frontend
         const tradeData = req.body.pendingTrade;
 
         if (!tradeData) {
             return res.status(400).json({ success: false, message: "No pending trade provided" });
         }
 
-        // Map frontend trade to calculation format
         const tradeForCalc = {
             tradeId: tradeData.symbol + "_" + Date.now(),
+            userId: currentWatcherUser.id,  // use JSON
             symbol: tradeData.symbol,
             type: tradeData.type,
             mode: tradeData.mode || "PENDING",
             entry: tradeData.entry,
             sl: tradeData.sl,
             tp: tradeData.tp,
-            initialBalance: tradeData.initialBalance ?? 1000, // default if frontend does not provide
-            risk: tradeData.risk ?? 1,                        // default if frontend does not provide
-            tpTargets: tradeData.tpTargets ?? "tp1",          // default if frontend does not provide
+            initialBalance: tradeData.initialBalance ?? 1000,
+            risk: tradeData.risk ?? 1,
+            tpTargets: tradeData.tpTargets ?? "tp1",
             dailyMaxLoss: tradeData.dailyMaxLoss ?? 1
         };
 
-        // Call existing calculateTrade service
         const result = await calculateTrade(tradeForCalc);
 
         res.json({
@@ -36,10 +34,7 @@ async function ftsaCalculator(req, res) {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 }
 
@@ -47,19 +42,23 @@ async function ftsaCalculator(req, res) {
 async function updateTradeStatus(req, res) {
     try {
         const eaTrade = req.body;
-console.log("📥 EA UPDATE RECEIVED:", eaTrade);
-
+        console.log("📥 EA UPDATE RECEIVED:", eaTrade);
 
         if (!eaTrade || !eaTrade.symbol || !eaTrade.tradeActivated) {
             return res.status(400).json({ success: false, message: "Invalid trade update" });
         }
 
-        // Save or update in DB
-        const filter = { symbol: eaTrade.symbol, type: eaTrade.type.toUpperCase() };
+        const filter = {
+            userId: eaTrade.userId || currentWatcherUser.id, // fallback to JSON
+            symbol: eaTrade.symbol,
+            type: eaTrade.type.toUpperCase()
+        };
+
         const update = {
             ...eaTrade,
             updatedAt: new Date()
         };
+
         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
         const updatedTrade = await Trade.findOneAndUpdate(filter, update, options);
@@ -74,13 +73,12 @@ console.log("📥 EA UPDATE RECEIVED:", eaTrade);
 // GET: fetch latest trade
 async function getLatestTrade(req, res) {
     try {
-        const latestTrade = await Trade.findOne().sort({ _id: -1 });
+        const latestTrade = await Trade.findOne({ userId: currentWatcherUser.id }).sort({ _id: -1 }); // use JSON
 
         if (!latestTrade) {
             return res.status(404).json({ success: false, message: 'No trade found' });
         }
 
-        // Rebuild JSON structures
         const signalJson = {
             symbol: latestTrade.symbol,
             type: latestTrade.type,
@@ -109,6 +107,5 @@ async function getLatestTrade(req, res) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 }
-
 
 module.exports = { ftsaCalculator, getLatestTrade, updateTradeStatus };

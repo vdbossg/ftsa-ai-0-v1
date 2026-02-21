@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const tradeSchema = new mongoose.Schema({
     tradeId: { type: String, required: true },
+    userId: { type: String, required: true }, // <-- identifies the user
     symbol: { type: String, required: true },
     type: { type: String, enum: ['BUY', 'SELL'], required: true },
     mode: { type: String, required: true },
