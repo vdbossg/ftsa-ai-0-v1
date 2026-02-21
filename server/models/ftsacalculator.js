@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 
 const tradeSchema = new mongoose.Schema({
+    userId: { type: String, required: true },  // ✅ new field for logged-in user
     tradeId: { type: String, required: true },
     symbol: { type: String, required: true },
     type: { type: String, enum: ['BUY', 'SELL'], required: true },

@@ -1,14 +1,20 @@
 //FTSA_AI_0.v1\server\services\ftsacalculatorService.js
+const fs = require('fs');
+const path = require('path');
 const Trade = require('../models/ftsacalculator');
 
-// Constant pip value (for simplicity)
 
 
 // Calculate risk amount
 function calculateRiskAmount(initialBalance, risk) {
     return initialBalance * (risk / 100);
 }
-
+function getCurrentUserId() {
+    const filePath = path.join(__dirname, 'currentWatcherUser.json');
+    if (!fs.existsSync(filePath)) return null;
+    const jsonData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    return jsonData.userId || null;
+}
 // Calculate SL pips based on trade type
 // Calculate SL pips based on instrument type
 function calculateSlPips(symbol, type, entry, sl) {
@@ -118,8 +124,15 @@ const lots = parseFloat(calculateLotSize(riskAmount, slPips, pipValue).toFixed(2
     };
 
     // Keep only latest trade
-    await Trade.deleteMany({});
-    const savedTrade = await Trade.create(tradeObject);
+    // Get current user
+const userId = getCurrentUserId();
+if (!userId) throw new Error("No logged-in user found");
+
+// Keep only this user's latest trade
+await Trade.deleteMany({ userId });
+
+// Save trade with userId
+const savedTrade = await Trade.create({ ...tradeObject, userId });
 
     // First JSON structure (signal)
     const signalJson = {
