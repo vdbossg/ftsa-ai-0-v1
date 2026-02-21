@@ -295,14 +295,13 @@ await loadBrainData(true);
 }, []);
 // Send pendingTrade to backend for calculation whenever it changes
 useEffect(() => {
-  if (!pendingTrade) return;
+  if (!pendingTrade || !settings) return; // <-- check for settings
 
   const sendTradeToBackend = async () => {
     try {
-      // Prepare a clean trade object with live balance and numeric values
       const tradeToSend = {
         ...pendingTrade,
-        initialBalance: accountTotals.balance, // live balance from MT + Prop
+        initialBalance: accountTotals.balance,
         risk: settings.risk,
         tpTargets: settings.tpTargets,
         dailyMaxLoss: settings.dailyMaxLoss,
@@ -323,7 +322,6 @@ useEffect(() => {
       if (data?.data) {
         const { signalJson, trendJson } = data.data;
 
-        // Update EA trades with backend-calculated results
         setEaUpdatedTrades([{
           tradeActivated: trendJson.tradeActivated,
           lots: signalJson.lots,
@@ -331,7 +329,6 @@ useEffect(() => {
           sl: signalJson.sl
         }]);
 
-        // Also update pendingTrade with calculated TP/SL if needed
         setPendingTrade(prev => ({
           ...prev,
           tp: signalJson.tp,
@@ -346,8 +343,7 @@ useEffect(() => {
   };
 
   sendTradeToBackend();
-}, [pendingTrade, accountTotals.balance, settings.risk, settings.tpTargets, settings.dailyMaxLoss]);
-
+}, [pendingTrade, accountTotals.balance, settings]);       
 // List of all major and minor currency pairs
 const allPairs =  [
   // Forex
