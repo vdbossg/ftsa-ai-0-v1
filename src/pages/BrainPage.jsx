@@ -143,6 +143,7 @@ const fetchEaUpdates = async () => {
     const resp = await fetch("http://localhost:5000/api/ftsacalculator"); // GET latest trade with tradeActivated
     if (!resp.ok) throw new Error("Failed to fetch EA trade updates");
 
+    
     const data = await resp.json();
 
     if (data?.trendJson) {
