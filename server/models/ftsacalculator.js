@@ -1,9 +1,8 @@
-//FTSA_AI_0.v1\server\models\ftsacalculator.js
 const mongoose = require('mongoose');
 
 const tradeSchema = new mongoose.Schema({
     tradeId: { type: String, required: true },
-    userId: { type: String, required: true }, // <-- identifies the user
+    userId: { type: String, required: true }, // NEW: link trade to user
     symbol: { type: String, required: true },
     type: { type: String, enum: ['BUY', 'SELL'], required: true },
     mode: { type: String, required: true },

@@ -2,7 +2,21 @@
 const Trade = require('../models/ftsacalculator');
 const TVAlert = require('../models/tvAlertModel');
 // Constant pip value (for simplicity)
+const fs = require("fs");
+const path = require("path");
 
+// Helper to get current userId from JSON watcher
+const getCurrentUserId = () => {
+    const watcherPath = path.join(__dirname, "./currentWatcherUser.json");
+    try {
+        const data = fs.readFileSync(watcherPath, "utf8");
+        const json = JSON.parse(data);
+        return json.userId || null;
+    } catch (err) {
+        console.error("Failed to read currentWatcherUser.json:", err);
+        return null;
+    }
+};
 
 // Calculate risk amount
 function calculateRiskAmount(initialBalance, risk) {
@@ -125,13 +139,16 @@ switch (tradeData.tpTargets.toLowerCase()) {
         tradeActivated: 'PENDING'
     };
 
-    // Keep only latest trade
-    // Save or update trade per user
-const savedTrade = await Trade.findOneAndUpdate(
-  { userId: tradeObject.userId },       // filter by userId
-  { $set: tradeObject },                // update with new trade data
-  { upsert: true, new: true, setDefaultsOnInsert: true } // create if not exists
-);
+    // Attach current userId to trade
+const userId = getCurrentUserId();
+if (!userId) {
+    throw new Error("No user logged in, cannot save trade");
+}
+
+// Keep only latest trade for this user
+await Trade.deleteMany({ userId });
+
+const savedTrade = await Trade.create({ ...tradeObject, userId });
 
     // First JSON structure (signal)
     const signalJson = {

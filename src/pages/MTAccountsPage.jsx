@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\src\pages\MTAccountsPage.jsx
 import React, { useEffect, useState } from "react";
 import NeonButton from "../components/NeonButton";
 import StatusBadge from "../components/StatusBadge";

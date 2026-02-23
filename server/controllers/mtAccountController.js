@@ -1,4 +1,5 @@
 // server/controllers/mtaccountController.js
+const fs = require("fs"); // <-- Add this
 const path = require("path");
 const { spawn } = require("child_process");
 const {
@@ -6,7 +7,18 @@ const {
   connectMTAccount,
   deleteMTAccount,
 } = require("../services/mtaccountService.js");
-
+// Helper to get current logged-in userId from currentWatcherUser.json
+const getCurrentUserId = () => {
+  const watcherPath = path.join(__dirname, "../services/currentWatcherUser.json");
+  try {
+    const data = fs.readFileSync(watcherPath, "utf8");
+    const json = JSON.parse(data);
+    return json.userId || null;
+  } catch (err) {
+    console.error("❌ Failed to read currentWatcherUser.json:", err);
+    return null;
+  }
+};
 /**
  * Helper to run Python scripts (returns parsed JSON)
  * - Doesn't fail for harmless stderr logs
@@ -53,7 +65,14 @@ async function runPython(scriptName, args = []) {
  */
 async function getMTAccount(req, res) {
   try {
-    const accounts = await fetchMTAccount(); // fetch all accounts
+    const userId = getCurrentUserId();
+if (!userId) {
+  return res.status(400).json({ success: false, message: "No user is currently logged in" });
+}
+
+// fetch only accounts belonging to this user
+const accounts = await fetchMTAccount(); 
+// MTAccountService already filters by userId
     if (!accounts || accounts.length === 0) {
       return res.status(404).json({ success: false, message: "MT accounts not found" });
     }
@@ -106,6 +125,10 @@ async function getMTAccount(req, res) {
 async function connectMT(req, res) {
   try {
     const { broker, login, password, server, platform, accountType } = req.body;
+        const userId = getCurrentUserId();
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "No user is currently logged in" });
+    }
 
     if (!login || !password || !server) {
       return res
@@ -157,6 +180,10 @@ async function deleteMT(req, res) {
   try {
     // Try getting login from either body or URL param
     const login = req.body?.login || req.params?.login;
+        const userId = getCurrentUserId();
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "No user is currently logged in" });
+    }
 
     if (!login) {
       return res.status(400).json({ success: false, message: "Missing login for deletion" });

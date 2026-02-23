@@ -4,8 +4,6 @@ import { useBrainData } from "../contexts/BrainDataContext";
 import NeonButton from "../components/NeonButton";
 import APIControl from "../brain/APIControl"; // for fetching brain data, market strength, CHoCH
 import { useRef } from "react"; // at top of file
-import currentWatcherUser from "../services/currentWatcherUser.json";
-
 
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
@@ -321,7 +319,7 @@ useEffect(() => {
       const resp = await fetch('http://localhost:5000/api/ftsacalculator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pendingTrade: { ...tradeToSend, userId: currentWatcherUser.id } }),
+        body: JSON.stringify({ pendingTrade: tradeToSend }),
       });
 
       if (!resp.ok) throw new Error('Failed to send trade to backend');

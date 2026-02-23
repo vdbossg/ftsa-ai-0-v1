@@ -1,7 +1,9 @@
+//FTSA_AI_0.v1\server\models\MTAccountModel.js
 const mongoose = require("mongoose");
 
 const MTAccountSchema = new mongoose.Schema(
   {
+    userId: { type: String, required: true }, // <-- Add this line
     broker: { type: String, default: "" },
     login: { type: String, required: true },
     password: { type: String, required: true },
@@ -14,5 +16,4 @@ const MTAccountSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 module.exports = mongoose.model("MTAccount", MTAccountSchema);
