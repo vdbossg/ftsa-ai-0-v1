@@ -2,8 +2,20 @@
 const { spawn } = require("child_process");
 const path = require("path");
 const PropAccountModel = require("../models/PropAccount");
+const fs = require("fs"); // <-- Add this
 
-
+// Helper to get current logged-in userId from currentWatcherUser.json
+const getCurrentUserId = () => {
+  const watcherPath = path.join(__dirname, "currentWatcherUser.json"); // adjust path if needed
+  try {
+    const data = fs.readFileSync(watcherPath, "utf8");
+    const json = JSON.parse(data);
+    return json.userId || null;
+  } catch (err) {
+    console.error("❌ Failed to read currentWatcherUser.json:", err);
+    return null;
+  }
+};
 /**
  * Executes the PropFirm Python script to fetch MT5 account summary.
  */
@@ -74,38 +86,43 @@ async function connectPropAccount({ broker, login, password, server, platform = 
 
     const result = await runPythonPropMT5Summary(loginStr, password, server); // <--- updated
 
-    // 1️⃣ Disconnect all other accounts first
+    // 1️⃣ Get userId once at the top
+const userId = getCurrentUserId();
+if (!userId) throw new Error("No user is currently logged in");
+
+// 2️⃣ Disconnect other accounts
 await PropAccountModel.updateMany(
-  { platform: "MT5", login: { $ne: loginStr } },
+  { platform: "MT5", login: { $ne: loginStr }, userId },
   { $set: { isConnected: false } }
 );
 
-// 2️⃣ Find or create the current account
-let account = await PropAccountModel.findOne({ login: loginStr, platform: "MT5" });
+// 3️⃣ Find or create current account
+let account = await PropAccountModel.findOne({ login: loginStr, platform: "MT5", userId });
 if (account) {
   Object.assign(account, {
-  broker: broker?.trim() || "Unknown Broker",
-  password,
-  server: server?.trim() || "Unknown Server",
-  platform,
-  accountType,
-  currency: result.data?.currency || account.currency || "USD",
-  isConnected: result.success || false,
-});
+    broker: broker?.trim() || "Unknown Broker",
+    password,
+    server: server?.trim() || "Unknown Server",
+    platform,
+    accountType,
+    currency: result.data?.currency || account.currency || "USD",
+    isConnected: result.success || false,
+  });
 
   await account.save();
   console.log("🔁 Updated existing Prop MT5 account in DB");
 } else {
- account = await PropAccountModel.create({
-  broker: broker?.trim() || "Unknown Broker",
-  login: loginStr,
-  password,
-  server: server?.trim() || "Unknown Server",
-  platform,
-  accountType,
-  currency: result.data?.currency || "USD",
-  isConnected: result.success || false,
-});
+  account = await PropAccountModel.create({
+    userId,  // already defined
+    broker: broker?.trim() || "Unknown Broker",
+    login: loginStr,
+    password,
+    server: server?.trim() || "Unknown Server",
+    platform,
+    accountType,
+    currency: result.data?.currency || "USD",
+    isConnected: result.success || false,
+  });
 
   console.log("💾 Created new Prop MT5 account in DB");
 }
@@ -130,7 +147,10 @@ if (account) {
  */
 async function getPropAccount() {
   try {
-    const accounts = await PropAccountModel.find({ platform: "MT5" }).lean();
+    const userId = getCurrentUserId();
+if (!userId) throw new Error("No user is currently logged in");
+
+const accounts = await PropAccountModel.find({ platform: "MT5", userId }).lean();
 
     const accountsWithTrades = await Promise.all(
       accounts.map(async (a) => {
@@ -166,7 +186,10 @@ async function getPropAccount() {
  */
 async function deletePropAccount(login) {
   try {
-    const result = await PropAccountModel.deleteOne({ login, platform: "MT5" });
+    const userId = getCurrentUserId();
+if (!userId) throw new Error("No user is currently logged in");
+
+const result = await PropAccountModel.deleteOne({ login, platform: "MT5", userId });
     if (result.deletedCount > 0) {
       console.log(`🗑️ Deleted Prop MT5 account ${login}`);
       return { success: true, message: `Prop MT5 account ${login} deleted successfully` };

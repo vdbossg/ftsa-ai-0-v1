@@ -1,5 +1,6 @@
 // server/controllers/propAccountController.js
 const path = require("path");
+const fs = require("fs");
 const { spawn } = require("child_process");
 const {
   getPropAccount: fetchPropAccount,
@@ -7,6 +8,19 @@ const {
   deletePropAccount: deletePropAccountService,
 } = require("../services/propAccountService.js");
 
+
+// Helper to get current logged-in userId from currentWatcherUser.json
+const getCurrentUserId = () => {
+  const watcherPath = path.join(__dirname, "../services/currentWatcherUser.json");
+  try {
+    const data = fs.readFileSync(watcherPath, "utf8");
+    const json = JSON.parse(data);
+    return json.userId || null;
+  } catch (err) {
+    console.error("❌ Failed to read currentWatcherUser.json:", err);
+    return null;
+  }
+};
 /**
  * Optional helper if you want Python summaries for PropFirm accounts
  */
@@ -46,7 +60,10 @@ async function runPython(scriptName, args = []) {
  */
 async function getPropAccount(req, res) {
   try {
-    const accounts = await fetchPropAccount(); // fetch all Prop accounts
+    const userId = getCurrentUserId();
+if (!userId) return res.status(400).json({ success: false, message: "No user is currently logged in" });
+
+const accounts = await fetchPropAccount(); // service already filters by userId
 
     if (!accounts || accounts.length === 0) {
       return res.json({ success: true, data: [] }); // return empty array for frontend
@@ -84,6 +101,8 @@ async function getPropAccount(req, res) {
  */
 async function connectPropAccount(req, res) {
   try {
+     const userId = getCurrentUserId();
+    if (!userId) return res.status(400).json({ success: false, message: "No user is currently logged in" });
     const { broker, login, password, server, platform, accountType } = req.body;
 
     if (!login || !password || !server) {
@@ -126,7 +145,9 @@ async function connectPropAccount(req, res) {
  * DELETE /api/propaccounts/:login
  */
 async function deletePropAccount(req, res) {
-  try {
+    try {
+    const userId = getCurrentUserId();
+    if (!userId) return res.status(400).json({ success: false, message: "No user is currently logged in" });
     const login = req.body?.login || req.params?.login;
     if (!login) return res.status(400).json({ success: false, message: "Missing login for deletion" });
 

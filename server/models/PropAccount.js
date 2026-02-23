@@ -1,7 +1,9 @@
+//FTSA_AI_0.v1\server\models\PropAccount.js
 const mongoose = require("mongoose");
 
 const PropAccountSchema = new mongoose.Schema(
   {
+    userId: { type: String, required: true }, // <-- Add this line to track the owner
     broker: { type: String, default: "" },
     login: { type: String, required: true },
     password: { type: String, required: true },
@@ -10,12 +12,11 @@ const PropAccountSchema = new mongoose.Schema(
     accountType: { type: String, enum: ["demo", "live"], default: "demo" },
     currency: { type: String, default: "USD" },
 
-    // ✅ Add this field to track the active/connected account
+    // Track which account is active/connected
     isConnected: { type: Boolean, default: false },
   },
   {
     timestamps: true,
   }
 );
-
 module.exports = mongoose.model("PropAccount", PropAccountSchema);
