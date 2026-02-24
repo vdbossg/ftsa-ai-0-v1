@@ -7,6 +7,21 @@ const neonColors = {
   neonBlue: "#00FFFF",
 };
 
+const styles = {
+  footer: {
+    borderTop: "2px solid #00FFFF",
+    paddingTop: "1rem",
+    paddingBottom: "1rem",
+    textAlign: "center",
+    marginTop: "40px",
+  },
+  footerText: {
+    fontSize: "0.9rem",
+    color: "#00FF00",
+    textShadow: "0 0 6px #00FF00",
+  },
+};
+
 export default function BinancePage() {
   const [isElectron, setIsElectron] = useState(false);
 
@@ -37,16 +52,15 @@ export default function BinancePage() {
           textAlign: "center",
         }}
       >
-        Binance
+        FTSA AI-Binance
       </header>
 
       {/* Main Content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {isElectron ? (
-          // Electron: load real Binance site inside iframe
-          <iframe
+          // Electron: load Binance inside webview
+          <webview
             src="https://www.binance.com/en"
-            title="Binance"
             style={{
               flex: 1,
               width: "100%",
@@ -54,7 +68,7 @@ export default function BinancePage() {
             }}
           />
         ) : (
-          // Web: show button to open Binance in new tab
+          // Web: fallback message
           <div
             style={{
               flex: 1,
@@ -83,6 +97,13 @@ export default function BinancePage() {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <p style={styles.footerText}>
+          FTSA AI - Powered by KELVIN SPECTER (MBURU G) Copyright ©️ 2025
+        </p>
+      </footer>
     </div>
   );
 }
