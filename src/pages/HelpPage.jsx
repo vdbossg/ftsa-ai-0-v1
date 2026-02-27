@@ -216,7 +216,7 @@ const HelpPage = () => {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/FtsafaqsData");
+      const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/FtsafaqsData");
       const faqsArray = res.data?.faqs || [];
       if (isMounted) {
         setFaqs(faqsArray);

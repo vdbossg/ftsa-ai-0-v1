@@ -3,7 +3,7 @@ import axios from "axios";
 // Use Vite's import.meta.env system instead of process.env
 const API_BASE = import.meta.env.VITE_BACKEND_URL
   ? `${import.meta.env.VITE_BACKEND_URL}/api`
-  : "http://localhost:5000/api";
+  : "https://ftsa-ai-backend.onrender.com/api";
 
 
 /**

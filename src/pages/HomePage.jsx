@@ -70,8 +70,8 @@ useEffect(() => {
   const fetchAccounts = async () => {
     try {
       const [mtRes, propRes] = await Promise.all([
-        fetch("http://localhost:5000/api/mtaccounts"),
-        fetch("http://localhost:5000/api/propaccounts")
+        fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts"),
+        fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts")
       ]);
       const mtData = await mtRes.json();
       const propData = await propRes.json();

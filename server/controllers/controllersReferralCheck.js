@@ -33,7 +33,7 @@ class ReferralCheckController {
       if (!referral)
         return res.json({ success: true, message: "No referral found for this user" });
 
-      const endpoint = `http://localhost:5000/api/byrer/newuser`;
+      const endpoint = `https://ftsa-ai-backend.onrender.com/api/byrer/newuser`;
 
       const response = await axios.post(endpoint, {
         userId: user._id,

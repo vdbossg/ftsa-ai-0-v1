@@ -3,7 +3,7 @@ const ClosedTradeController = require('../controllers/propTradeController');
 
 class PropTradeService {
   constructor() {
-    this.endpoint = 'http://localhost:5000/api/proptabletrades';
+    this.endpoint = 'https://ftsa-ai-backend.onrender.com/api/proptabletrades';
     this.activeTrades = new Map(); // key = ticket
   }
 

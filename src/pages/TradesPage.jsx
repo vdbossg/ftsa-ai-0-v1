@@ -30,7 +30,7 @@ useEffect(() => {
 
   const fetchPropTrades = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/proptabletrades");
+    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/proptabletrades");
     const data = await res.json();
     setPropTableData(data?.data?.[0] || null); // take first account from JSON
   } catch (err) {
@@ -52,7 +52,7 @@ useEffect(() => {
 
   const fetchMTTrades = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/mttabletrades");
+    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
     const data = await res.json();
     setMTTableData(data?.[0] || null); // take first account from JSON array
   } catch (err) {
@@ -75,7 +75,7 @@ useEffect(() => {
   const fetchConnectedAccounts = async () => {
     try {
       // MT connected account
-      const mtRes = await fetch("http://localhost:5000/api/mtaccounts");
+      const mtRes = await fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
       const mtData = await mtRes.json();
       if (mtData.success && Array.isArray(mtData.accounts)) {
         const connectedMT = mtData.accounts.find(acc => acc.account?.isConnected);
@@ -93,7 +93,7 @@ if (connectedMT) {
       }
 
       // Prop connected account
-      const propRes = await fetch("http://localhost:5000/api/propaccounts");
+      const propRes = await fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts");
       const propData = await propRes.json();
       if (propData.success && Array.isArray(propData.accounts)) {
         const connectedProp = propData.accounts.find(acc => acc.account?.isConnected);

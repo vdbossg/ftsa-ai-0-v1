@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import "../styles/AboutPage.css";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://ftsa-ai-backend.onrender.com";
 
 const SECTION_HEADERS = {
   criticalNotices: "CRITICAL ALERT",

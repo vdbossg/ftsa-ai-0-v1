@@ -1,7 +1,7 @@
 const axios = require("axios");
 const { saveSignal } = require("./fcsService");
 
-const FTSA_API_URL = "http://localhost:5000/api/ftsacalculator";
+const FTSA_API_URL = "https://ftsa-ai-backend.onrender.com/api/ftsacalculator";
 const POLL_INTERVAL_MS = 3000;
 
 let lastSignalHash = null;

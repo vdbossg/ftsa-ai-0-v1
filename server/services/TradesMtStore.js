@@ -4,7 +4,7 @@ const MTJournal = require("../models/mtAIJournalModel");
 
 const fetchClosedMTTrades = async () => {
   try {
-    const res = await axios.get("http://localhost:5000/api/closed-mt-trades");
+    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/closed-mt-trades");
     return res.data?.data || [];
   } catch (err) {
     console.error("Failed to fetch closed MT trades:", err.message);

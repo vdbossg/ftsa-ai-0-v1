@@ -4,7 +4,7 @@ const PropJournal = require("../models/propAIJournalModel");
 
 const fetchClosedPropTrades = async () => {
   try {
-    const res = await axios.get("http://localhost:5000/api/closed-prop-trades");
+    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/closed-prop-trades");
     return res.data?.data || [];
   } catch (err) {
     console.error("Failed to fetch closed Prop trades:", err.message);

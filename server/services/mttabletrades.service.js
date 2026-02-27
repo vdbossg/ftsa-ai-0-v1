@@ -5,7 +5,7 @@ const axios = require("axios");
  */
 const fetchMTAccountsRaw = async () => {
   try {
-    const res = await axios.get("http://localhost:5000/api/mtaccounts");
+    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
     if (!res.data || !res.data.accounts) return [];
     return res.data.accounts; // array of { account, summary, trades }
   } catch (err) {

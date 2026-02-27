@@ -37,7 +37,7 @@ exports.getAllPropSettings = async () => {
       try {
         // Fetch live account info (already provided by your backend)
         // Fetch all MT accounts
-        const { data } = await axios.get(`http://localhost:5000/api/mtaccounts/${setting.accountLogin}`);
+        const { data } = await axios.get(`https://ftsa-ai-backend.onrender.com/api/mtaccounts/${setting.accountLogin}`);
 if (!data || !data.data) return setting;
 
 const { balance, equity } = data.data;
