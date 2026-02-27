@@ -1,10 +1,10 @@
 {
-  "symbol": "GBPJPY",
+  "symbol": "NZDUSD",
   "type": "BUY",
   "mode": "PENDING",
-  "lots": 0.01,
-  "sl": 168,
-  "tp": 169.5,
-  "price": 168.5,
-  "id": "1771923642727"
+  "lots": 0.06,
+  "sl": 0.615,
+  "tp": 0.628,
+  "price": 0.62,
+  "id": "1772119655587"
 }

@@ -66,7 +66,10 @@ const withdrawalRoutes = require("./routes/routesWithdrawalRequest");
 
 const tvAlertsRoutes = require('./routes/tvAlertsRoutes');
 const finalTvSignalsRoute = require("./routes/finalTvSignals");
+const getStartedRoutes = require('./routes/routesGetstarted');
 
+
+const referralCheckRoutes = require("./routes/routesReferralCheck");
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -250,6 +253,13 @@ app.use("/api", finalTvSignalsRoute);
 console.log('✅ /api/finalTvSignals route mounted');
 
 
+
+// Mount at /api/referral
+app.use("/api/referral", referralCheckRoutes);
+console.log("✅ /api/referral routes mounted");
+
+app.use('/api/getstarted', getStartedRoutes);
+console.log('✅ /api/getstarted routes mounted');
 // Simple test route
 app.get('/', (req, res) => {
   res.send('FTSA AI Backend Server running');
@@ -273,6 +283,9 @@ const gracefulShutdown = async () => {
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
+const AutoReferralService = require('./services/autoReferralService');
+new AutoReferralService();
+console.log("✅ Auto-referral service started");
 // Replace app.listen(...) with:
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, path: '/brain' });
