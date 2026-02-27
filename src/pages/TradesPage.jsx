@@ -80,11 +80,12 @@ useEffect(() => {
       if (mtData.success && Array.isArray(mtData.accounts)) {
         const connectedMT = mtData.accounts.find(acc => acc.account?.isConnected);
 if (connectedMT) {
-  // Merge account + summary + trades into one object for convenience
   setMTConnectedAccount({
     ...connectedMT.account,
     summary: connectedMT.summary,
-    trades: connectedMT.trades?.data || [],
+    trades: Array.isArray(connectedMT.trades)
+      ? connectedMT.trades
+      : connectedMT.trades?.data || [],
   });
 } else {
   setMTConnectedAccount(null);
@@ -98,15 +99,19 @@ if (connectedMT) {
       if (propData.success && Array.isArray(propData.accounts)) {
         const connectedProp = propData.accounts.find(acc => acc.account?.isConnected);
 if (connectedProp) {
+  const tradesArray = Array.isArray(connectedProp.account.trades)
+    ? connectedProp.account.trades
+    : connectedProp.account.trades?.data || [];
+
   setPropConnectedAccount({
     ...connectedProp.account,
     summary: connectedProp.summary,
-    trades: connectedProp.account.trades?.data || [],
+    trades: tradesArray,
     propSettings: connectedProp.account.propSettings || {},
-    chartData: connectedProp.account.trades?.data.map(t => ({
+    chartData: tradesArray.map(t => ({
       name: t.symbol,
       profit: t.profit || 0
-    })) || []
+    })),
   });
 } else {
   setPropConnectedAccount(null);
