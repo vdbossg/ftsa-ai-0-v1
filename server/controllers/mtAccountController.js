@@ -83,6 +83,8 @@ const accounts = await fetchMTAccount();
       let summary = {};
       let trades = [];
 
+
+      
       if (acc.login && acc.password && acc.server) {
         try {
           summary = await runPython("mt5_get_summary.py", [acc.login, acc.password, acc.server]);
