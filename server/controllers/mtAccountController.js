@@ -55,6 +55,7 @@ async function runPython(scriptName, args = []) {
         return reject(new Error(parsed.message || "Python script returned failure"));
       }
 
+      
       resolve(parsed);
     });
   });
@@ -84,7 +85,7 @@ const accounts = await fetchMTAccount();
       let trades = [];
 
 
-      
+
       if (acc.login && acc.password && acc.server) {
         try {
           summary = await runPython("mt5_get_summary.py", [acc.login, acc.password, acc.server]);
