@@ -201,7 +201,7 @@ useEffect(() => {
   let ws;
 
   const initializeWebSocket = () => {
-    ws = new WebSocket("ws://localhost:5000/brain"); // <-- replace with your actual WS URL
+    ws = new WebSocket("wss://ftsa-ai-backend.onrender.com/brain");// <-- replace with your actual WS URL
 
     ws.onopen = () => console.log("Brain WebSocket connected");
 

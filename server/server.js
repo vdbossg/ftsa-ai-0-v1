@@ -95,14 +95,20 @@ app.use(
   express.static(path.join(process.cwd(), "uploads"))
 );
 
-const allowedOrigins = [
-  'http://localhost:5173',               // Vite dev server
-  'http://localhost:3000',              // optional
-  'http://192.168.1.117:5173',
-  'https://ftsa-ai.com',                 // production domain
-  'https://ftsa-ai-0-v1.netlify.app'    // your Netlify frontend
-];
-
+//const allowedOrigins = [
+  //'http://localhost:5173',               // Vite dev server
+  //'http://localhost:3000',              // optional
+  //'http://192.168.1.117:5173',
+  //'https://ftsa-ai.com',                 // production domain
+  //'https://ftsa-ai-0-v1.netlify.app'    // your Netlify frontend
+//];
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [process.env.FRONTEND_URL] // only production frontend
+  : [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ];
 
 chochService.connectMongo(process.env.MONGO_URI);
 
