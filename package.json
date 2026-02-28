@@ -75,12 +75,18 @@
     "directories": {
       "buildResources": "assets"
     },
-    "win": {
-      "icon": "assets/icons/icon.ico",
-      "target": [
-        "nsis"
-      ]
-    },
+   "win": {
+  "icon": "assets/icons/icon.ico",
+  "target": ["nsis"]
+},
+"nsis": {
+  "oneClick": false,
+  "perMachine": true,
+  "allowToChangeInstallationDirectory": true,
+  "installerIcon": "assets/icons/icon.ico",
+  "uninstallerIcon": "assets/icons/icon.ico",
+  "installerHeaderIcon": "assets/icons/icon.ico"
+},
     "mac": {
       "icon": "assets/icons/icon.icns",
       "target": [
