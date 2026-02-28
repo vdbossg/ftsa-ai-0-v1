@@ -1,4 +1,3 @@
-//\FTSA_AI_0.v1\main.js
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const isDev = require("electron-is-dev");
@@ -7,10 +6,12 @@ const { spawn } = require("child_process");
 let mainWindow;
 let serverProcess;
 
+// Kill backend if Electron exits
 process.on("exit", () => serverProcess?.kill());
 process.on("SIGINT", () => serverProcess?.kill());
 process.on("uncaughtException", () => serverProcess?.kill());
-// Start the backend server
+
+// Start the backend server (optional)
 function startServer() {
   const serverPath = path.join(__dirname, "server", "server.js");
   serverProcess = spawn("node", [serverPath], {
@@ -23,7 +24,6 @@ function startServer() {
   });
 }
 
-// Create the main Electron window
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -31,12 +31,14 @@ function createWindow() {
     minWidth: 1200,
     minHeight: 800,
     webPreferences: {
-  preload: path.join(__dirname, "preload.js"),
-  nodeIntegration: false,       // DISABLE for security
-  contextIsolation: true,       // ENABLE for security
-},
-    
-    icon: path.join(__dirname, "assets", "icons", 
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+    icon: path.join(
+      __dirname,
+      "assets",
+      "icons",
       process.platform === "win32"
         ? "icon.ico"
         : process.platform === "darwin"
@@ -45,28 +47,25 @@ function createWindow() {
     ),
   });
 
-  // Load React frontend
   if (isDev) {
-    mainWindow.loadURL("http://localhost:5173"); // Vite dev server
-  } else {
-    mainWindow.loadFile(path.join(__dirname, "dist", "index.html")); // Production build
-  }
-
-  mainWindow.on("closed", () => {
-    mainWindow = null;
+  mainWindow.loadURL("http://localhost:3000"); // <- fixed port
+} else {
+  const indexPath = path.join(__dirname, "dist", "index.html");
+  mainWindow.loadFile(indexPath).catch((err) => {
+    console.error("Failed to load index.html", err);
   });
 }
 
-// App lifecycle
+  mainWindow.on("closed", () => (mainWindow = null));
+}
+
 app.on("ready", () => {
   startServer();
   createWindow();
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  if (process.platform !== "darwin") app.quit();
   if (serverProcess) serverProcess.kill();
 });
 
