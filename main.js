@@ -3,6 +3,7 @@ const path = require("path");
 const isDev = require("electron-is-dev");
 const { spawn } = require("child_process");
 
+
 let mainWindow;
 let serverProcess;
 
@@ -50,14 +51,17 @@ function createWindow() {
   // ← ADD THIS LINE TO REMOVE THE DEFAULT MENU
   mainWindow.setMenu(null);
 
-  if (isDev) {
-    mainWindow.loadURL("http://localhost:3000"); // development
-  } else {
-    const indexPath = path.join(__dirname, "dist", "index.html");
-    mainWindow.loadFile(indexPath).catch((err) => {
-      console.error("Failed to load index.html", err);
-    });
-  }
+
+
+// Inside createWindow()
+if (isDev) {
+  mainWindow.loadURL("http://localhost:3000");
+} else {
+  const indexPath = path.join(__dirname, "dist", "index.html");
+  mainWindow.loadFile(indexPath)
+    .then(() => console.log("Loaded React frontend"))
+    .catch((err) => console.error("Failed to load React frontend:", err));
+}
 
   mainWindow.webContents.openDevTools(); // keep this for debugging
 

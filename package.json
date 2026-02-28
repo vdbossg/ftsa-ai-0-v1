@@ -64,6 +64,7 @@
   "appId": "com.ftsa.ai",
   "productName": "FTSA AI",
   "npmRebuild": false,
+  "asar": false,
     "files": [
       "dist/**/*",
       "server/**/*",
