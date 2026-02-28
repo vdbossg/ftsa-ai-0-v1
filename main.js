@@ -47,14 +47,19 @@ function createWindow() {
     ),
   });
 
+  // ← ADD THIS LINE TO REMOVE THE DEFAULT MENU
+  mainWindow.setMenu(null);
+
   if (isDev) {
-  mainWindow.loadURL("http://localhost:3000"); // <- fixed port
-} else {
-  const indexPath = path.join(__dirname, "dist", "index.html");
-  mainWindow.loadFile(indexPath).catch((err) => {
-    console.error("Failed to load index.html", err);
-  });
-}
+    mainWindow.loadURL("http://localhost:3000"); // development
+  } else {
+    const indexPath = path.join(__dirname, "dist", "index.html");
+    mainWindow.loadFile(indexPath).catch((err) => {
+      console.error("Failed to load index.html", err);
+    });
+  }
+
+  mainWindow.webContents.openDevTools(); // keep this for debugging
 
   mainWindow.on("closed", () => (mainWindow = null));
 }
