@@ -1,5 +1,6 @@
+//FTSA_AI_0.v1\src\App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SidebarMenu from './components/SidebarMenu';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BrainDataProvider } from './contexts/BrainDataContext'; // ✅ Import BrainDataProvider

@@ -112,22 +112,26 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
 
 chochService.connectMongo(process.env.MONGO_URI);
 
-// Start polling Prop and MT trades
-PropTradeService.startPolling(5000); // every 5 seconds
-MTTradeService.startPolling(5000);
-console.log('✅ Prop and MT trade polling started');
+// 🚫 Disabled MT5 polling on Render (Linux cannot run MetaTrader5)
+ PropTradeService.startPolling(5000); // every 5 seconds
+ MTTradeService.startPolling(5000);
+ console.log('✅ Prop and MT trade polling started');
 
 // ✅ Enable CORS
+// ✅ Enable CORS (robust for localhost + Netlify)
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`❌ CORS blocked request from: ${origin}`);
-      callback(new Error('CORS blocked for origin: ' + origin));
-    }
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://ftsa-ai-0-v1.netlify.app'
+    ];
+    if (!origin) return callback(null, true); // allow server-to-server requests
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn('❌ CORS blocked request from:', origin);
+    callback(new Error('CORS blocked for origin: ' + origin));
   },
-  credentials: true // Needed if sending cookies or auth headers
+  credentials: true
 }));
 
 

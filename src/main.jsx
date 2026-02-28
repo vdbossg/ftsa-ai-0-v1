@@ -1,9 +1,17 @@
+
+// FTSA_AI_0.v1\src\main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+root.render(
   <React.StrictMode>
-    <App />
+  
+        <App />
+  
   </React.StrictMode>
 );
