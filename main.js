@@ -1,20 +1,28 @@
+// main.js
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const isDev = require("electron-is-dev");
 const { spawn } = require("child_process");
-
 
 let mainWindow;
 let serverProcess;
 
 // Kill backend if Electron exits
-process.on("exit", () => serverProcess?.kill());
-process.on("SIGINT", () => serverProcess?.kill());
-process.on("uncaughtException", () => serverProcess?.kill());
+process.on("exit", () => {
+  if (serverProcess) serverProcess.kill();
+});
+process.on("SIGINT", () => {
+  if (serverProcess) serverProcess.kill();
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  if (serverProcess) serverProcess.kill();
+});
 
 // Start the backend server (optional)
 function startServer() {
   const serverPath = path.join(__dirname, "server", "server.js");
+  console.log("Starting backend server:", serverPath);
+
   serverProcess = spawn("node", [serverPath], {
     stdio: "inherit",
     shell: true,
@@ -23,19 +31,26 @@ function startServer() {
   serverProcess.on("close", (code) => {
     console.log(`Backend server exited with code ${code}`);
   });
+
+  serverProcess.on("error", (err) => {
+    console.error("Backend server failed to start:", err);
+  });
 }
 
 function createWindow() {
+  const isDev = !app.isPackaged;
+  console.log("Creating main window. isDev =", isDev);
+
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 1200,
     minHeight: 800,
     webPreferences: {
-  preload: path.join(__dirname, "preload.js"),
-  nodeIntegration: true,
-  contextIsolation: false,
-},
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
     icon: path.join(
       __dirname,
       "assets",
@@ -48,36 +63,47 @@ function createWindow() {
     ),
   });
 
-  // ← ADD THIS LINE TO REMOVE THE DEFAULT MENU
+  // Remove default menu
   mainWindow.setMenu(null);
 
+  if (isDev) {
+    console.log("Loading localhost:3000 for development");
+    mainWindow.loadURL("http://localhost:3000").catch((err) => {
+      console.error("Failed to load localhost:", err);
+    });
+  } else {
+    const indexPath = path.join(__dirname, "dist", "index.html");
+    console.log("Loading production frontend:", indexPath);
 
+    mainWindow
+      .loadFile(indexPath)
+      .then(() => console.log("Loaded React frontend"))
+      .catch((err) => console.error("Failed to load React frontend:", err));
+  }
 
-// Inside createWindow()
-if (isDev) {
-  mainWindow.loadURL("http://localhost:3000");
-} else {
-  const indexPath = path.join(__dirname, "dist", "index.html");
-  mainWindow.loadFile(indexPath)
-    .then(() => console.log("Loaded React frontend"))
-    .catch((err) => console.error("Failed to load React frontend:", err));
+  // Keep DevTools open for debugging (optional)
+  mainWindow.webContents.openDevTools();
+
+  mainWindow.on("closed", () => {
+    console.log("Main window closed");
+    mainWindow = null;
+  });
 }
 
-  mainWindow.webContents.openDevTools(); // keep this for debugging
-
-  mainWindow.on("closed", () => (mainWindow = null));
-}
-
+// Electron app lifecycle
 app.on("ready", () => {
+  console.log("App is ready");
   startServer();
   createWindow();
 });
 
 app.on("window-all-closed", () => {
+  console.log("All windows closed");
   if (process.platform !== "darwin") app.quit();
   if (serverProcess) serverProcess.kill();
 });
 
 app.on("activate", () => {
+  console.log("App activated");
   if (mainWindow === null) createWindow();
 });
