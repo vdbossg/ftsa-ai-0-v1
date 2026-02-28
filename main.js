@@ -32,10 +32,10 @@ function createWindow() {
     minWidth: 1200,
     minHeight: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
+  preload: path.join(__dirname, "preload.js"),
+  nodeIntegration: true,
+  contextIsolation: false,
+},
     icon: path.join(
       __dirname,
       "assets",
