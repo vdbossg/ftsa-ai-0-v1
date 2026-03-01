@@ -56,7 +56,7 @@ function createWindow() {
       "assets",
       "icons",
       process.platform === "win32"
-        ? "ChatGPT Image Mar 1, 2026, 11_24_59 AM.ico"
+        ? "icon1.ico"
         : process.platform === "darwin"
         ? "icon.icns"
         : "icon.png"
