@@ -56,7 +56,7 @@ function createWindow() {
       "assets",
       "icons",
       process.platform === "win32"
-        ? "icon1.ico"
+        ? "icon4.ico"
         : process.platform === "darwin"
         ? "icon.icns"
         : "icon.png"
