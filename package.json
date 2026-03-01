@@ -77,16 +77,16 @@
       "buildResources": "assets"
     },
    "win": {
-  "icon": "assets/icons/icon.ico",
+  "icon": "assets/icons/ChatGPT Image Mar 1, 2026, 11_24_59 AM.ico",
   "target": ["nsis"]
 },
 "nsis": {
   "oneClick": false,
   "perMachine": true,
   "allowToChangeInstallationDirectory": true,
-  "installerIcon": "assets/icons/icon.ico",
-  "uninstallerIcon": "assets/icons/icon.ico",
-  "installerHeaderIcon": "assets/icons/icon.ico"
+  "installerIcon": "assets/icons/ChatGPT Image Mar 1, 2026, 11_24_59 AM.ico",
+  "uninstallerIcon": "assets/icons/ChatGPT Image Mar 1, 2026, 11_24_59 AM.ico",
+  "installerHeaderIcon": "assets/icons/ChatGPT Image Mar 1, 2026, 11_24_59 AM.ico"
 },
     "mac": {
       "icon": "assets/icons/icon.icns",
