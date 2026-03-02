@@ -11,6 +11,7 @@
     "lint": "eslint . --ext .js,.jsx",
     "test": "jest",
     "start": "node server/server.js",
+     "postinstall": "npx playwright install",
     "dev": "concurrently \"vite\" \"electron .\"",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
