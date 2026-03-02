@@ -55,10 +55,7 @@ exports.getLatestEconomicEvents = async () => {
   }
 
   try {
-    const browser = await chromium.launch({
-  headless: true,
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
-});
+    const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36"
     });
@@ -117,13 +114,7 @@ exports.getLatestEconomicEvents = async () => {
   }).filter(Boolean); // removes the nulls
 });
 
-console.log("💡 Scraping completed");
-console.log("Scraped rows count:", events.length);
-if (events.length > 0) {
-  console.log("First 3 scraped events:", events.slice(0, 3));
-} else {
-  console.warn("⚠️ No rows were scraped. Check if Playwright loaded the page correctly.");
-}
+
 
     await browser.close();
    const today = getTodayObj();
@@ -132,33 +123,23 @@ const safeEvents = Array.isArray(events) ? events : [];
 
 const todayEvents = safeEvents.filter(e => {
   const eventDate = parseFFDate(e.date);
-  if (!eventDate) {
-    console.warn("⚠️ Failed to parse date:", e.date);
-    return false;
-  }
+  if (!eventDate) return false;
   return eventDate.getTime() === today.getTime();
 });
 
+
+
 cachedEvents = todayEvents.length ? todayEvents : safeEvents.slice(0, 10);
 
-lastFetched = now;
 
-// Map impact emojis
-cachedEvents.forEach(e => e.impact = mapImpact(e.impact));
+    lastFetched = now;
 
-// ✅ Log before returning
-console.log("💡 Events returned to frontend:", cachedEvents.length);
-console.log("Sample returned events:", cachedEvents.slice(0, 3));
-
-return cachedEvents;
-}
-   catch (err) {
-    console.error("Failed to fetch live news via Playwright:", err.message);
-
-    // ✅ Log what will be returned even on error
-    console.log("💡 Events returned to frontend (error case):", cachedEvents.length);
-    console.log("Sample returned events:", cachedEvents.slice(0, 3));
+    // Map impact emojis
+    cachedEvents.forEach(e => e.impact = mapImpact(e.impact));
 
     return cachedEvents;
-}
+  } catch (err) {
+    console.error("Failed to fetch live news via Playwright:", err.message);
+    return cachedEvents;
+  }
 };
