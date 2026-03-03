@@ -1,3 +1,4 @@
+//FTSA_AI_0.v1\server\controllers\controllersAboutfullData.js
 const { getAboutFullData } = require("../services/servicesAboutfullData");
 
 const fetchAboutFullData = async (req, res) => {
