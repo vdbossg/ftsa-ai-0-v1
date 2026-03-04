@@ -6,9 +6,9 @@ const axios = require("axios");
  */
 const fetchMTAccountsRaw = async () => {
   try {
-    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
-    if (!res.data || !res.data.accounts) return [];
-    return res.data.accounts; // array of { account, summary, trades }
+    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
+    if (!res.data) return [];
+    return res.data; // array of { broker, login, summary, trades }
   } catch (err) {
     console.error("Error fetching MT accounts:", err.message || err);
     return [];
@@ -22,8 +22,8 @@ const getAllMTAccountsTrades = async () => {
   const rawAccounts = await fetchMTAccountsRaw();
 
   return rawAccounts.map(item => {
-    const accountData = item.account || {};
-    const summaryData = item.summary?.data || {};
+    const accountData = item.account || {}; // Ensure 'account' is defined
+    const summaryData = item.summary?.data || {}; // Ensure 'summary' is formatted correctly
     const tradesData = Array.isArray(item.trades?.data)
       ? item.trades.data
       : [];
