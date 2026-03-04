@@ -84,3 +84,4 @@ async function getPropTableTrades() {
 }
 
 module.exports = { getPropTableTrades };
+

@@ -7,6 +7,7 @@ class PropTradeService {
     this.activeTrades = new Map(); // key = ticket
   }
 
+  
   async pollTrades() {
     try {
       const response = await axios.get(this.endpoint);

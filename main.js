@@ -1,12 +1,14 @@
 // main.js
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-const { spawn } = require("child_process");
+const { spawn, execFile } = require("child_process");
 
 let mainWindow;
 let serverProcess;
 
+// ================================
 // Kill backend if Electron exits
+// ================================
 process.on("exit", () => {
   if (serverProcess) serverProcess.kill();
 });
@@ -18,7 +20,9 @@ process.on("uncaughtException", (err) => {
   if (serverProcess) serverProcess.kill();
 });
 
+// ================================
 // Start the backend server (optional)
+// ================================
 function startServer() {
   const serverPath = path.join(__dirname, "server", "server.js");
   console.log("Starting backend server:", serverPath);
@@ -37,6 +41,55 @@ function startServer() {
   });
 }
 
+// ================================
+// Run MT5 .exe scripts
+// ================================
+function runMT5Exe(scriptName, args = []) {
+  return new Promise((resolve, reject) => {
+    const exePath = path.join(process.resourcesPath, "mt5", scriptName);
+
+    execFile(exePath, args, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error: ${stderr || error.message}`);
+        return;
+      }
+
+      try {
+        const data = JSON.parse(stdout); // Parse JSON response from exe
+        resolve(data);
+      } catch (err) {
+        reject("Error parsing JSON from exe output");
+      }
+    });
+  });
+}
+
+// ================================
+// IPC Handlers for React Frontend
+// ================================
+ipcMain.handle("fetch-mt5-trades", async (event, credentials) => {
+  const { login, password, server } = credentials;
+  try {
+    const result = await runMT5Exe("prop_mt5_get_trades.exe", [login, password, server]);
+    return result; // Send the result back to frontend
+  } catch (error) {
+    return { error: error.toString() }; // Send error if any
+  }
+});
+
+ipcMain.handle("fetch-mt5-summary", async (event, credentials) => {
+  const { login, password, server } = credentials;
+  try {
+    const result = await runMT5Exe("prop_mt5_get_summary.exe", [login, password, server]);
+    return result;
+  } catch (error) {
+    return { error: error.toString() };
+  }
+});
+
+// ================================
+// Create Electron Window
+// ================================
 function createWindow() {
   const isDev = !app.isPackaged;
   console.log("Creating main window. isDev =", isDev);
@@ -90,7 +143,9 @@ function createWindow() {
   });
 }
 
+// ================================
 // Electron app lifecycle
+// ================================
 app.on("ready", () => {
   console.log("App is ready");
   startServer();
