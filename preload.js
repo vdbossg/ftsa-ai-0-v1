@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
+  
   receive: (channel, func) => {
     const validChannels = ["from-backend", "brain-update"];
     if (validChannels.includes(channel)) {
