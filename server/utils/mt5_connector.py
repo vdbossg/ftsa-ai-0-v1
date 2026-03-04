@@ -3,6 +3,10 @@ import sys
 import json
 import MetaTrader5 as mt5
 
+if len(sys.argv) != 4:
+    print(json.dumps({"success": False, "message": "Usage: mt5_connector.py <login> <password> <server>"}))
+    sys.exit(1)
+
 login = int(sys.argv[1])
 password = sys.argv[2]
 server = sys.argv[3]
