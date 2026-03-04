@@ -8,17 +8,14 @@
 const MTConnector = {
   login: async ({ login, password, server }) => {
   return new Promise((resolve, reject) => {
-    // Get the absolute path to the Python script
     const path = require("path");
-    const py = spawn("python", [path.join(__dirname, "mt5_connector.py"), login, password, server]);
-
+const py = spawn("python", [path.join(__dirname, "mt5_connector.py"), login, password, server]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));
     py.on("close", () => {
       try {
-        const result = JSON.parse(output.trim()); // Parse the JSON output
-        resolve(result); // Pass the result back to the caller
+        resolve(JSON.parse(output.trim()));
       } catch (e) {
         reject("Invalid JSON from mt5_connector.py: " + output);
       }
@@ -28,7 +25,7 @@ const MTConnector = {
 
   getAccountSummary: async (login) => {
   return new Promise((resolve, reject) => {
-    const py = spawn("python", [path.join(__dirname, "mt5_get_summary.py"), login]);  // Updated path
+    const py = spawn("python", [__dirname + "/mt5_get_summary.py", login]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));
@@ -43,7 +40,7 @@ const MTConnector = {
 },
   getOpenTrades: async (login) => {
   return new Promise((resolve, reject) => {
-    const py = spawn("python", [path.join(__dirname, "mt5_get_trades.py"), login]); // Updated path
+    const py = spawn("python", [__dirname + "/mt5_get_trades.py", login]);
     let output = "";
     py.stdout.on("data", (data) => { output += data.toString(); });
     py.stderr.on("data", (err) => reject(err.toString()));
@@ -55,7 +52,7 @@ const MTConnector = {
       }
     });
   });
-}
+  }
 };
 
 // <- Replace this with your real MT4/MT5 library or wrapper for Node/Python bridge
