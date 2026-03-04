@@ -1,59 +1,107 @@
-//FTSA_AI_0.v1\server\services\mttabletrades.service.js
-const axios = require("axios");
+// server/services/mttabletrades.service.js
 
-/**
- * Fetch raw MT accounts from backend
- */
-const fetchMTAccountsRaw = async () => {
+const { spawn } = require("child_process");
+const path = require("path");
+const fs = require("fs");
+const MTAccountModel = require("../models/MTAccountModel");
+
+
+// Get current logged in user
+const getCurrentUserId = () => {
+  const watcherPath = path.join(__dirname, "currentWatcherUser.json");
+
   try {
-    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
-    if (!res.data || !res.data.accounts) return [];
-    return res.data.accounts; // array of { account, summary, trades }
+    const data = fs.readFileSync(watcherPath, "utf8");
+    const json = JSON.parse(data);
+    return json.userId || null;
   } catch (err) {
-    console.error("Error fetching MT accounts:", err.message || err);
-    return [];
+    console.error("❌ Failed to read currentWatcherUser.json:", err);
+    return null;
   }
 };
 
-/**
- * Transform MT accounts to frontend expected format
- */
-const getAllMTAccountsTrades = async () => {
-  const rawAccounts = await fetchMTAccountsRaw();
 
-  return rawAccounts.map(item => {
-    const accountData = item.account || {};
-    const summaryData = item.summary?.data || {};
-    const tradesData = Array.isArray(item.trades?.data)
-      ? item.trades.data
-      : [];
+// Run Python helper
+const runPython = (scriptPath, args) => {
+  return new Promise((resolve) => {
+    const py = spawn("python", [scriptPath, ...args]);
 
-    return {
-      broker: accountData.broker || "",
-      login: accountData.login || "",
-      summary: {
-        data: {
-          balance: summaryData.balance || 0,
-          equity: summaryData.equity || 0,
-          margin: summaryData.margin || 0,
-          freeMargin: summaryData.freeMargin || 0
-        }
-      },
-      trades: tradesData.map(trade => ({
-        symbol: trade.symbol || "",
-        ticket: trade.ticket || 0,
-        time: trade.time || "",
-        type: trade.type || "",
-        volume: trade.volume || 0,
-        open_price: trade.open_price || 0,
-        current_price: trade.current_price || 0,
-        sl: trade.sl || 0,
-        tp: trade.tp || 0,
-        profit: trade.profit || 0
-      }))
-    };
+    let stdout = "";
+    let stderr = "";
+
+    py.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    py.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    py.on("close", () => {
+      if (stderr) {
+        console.warn("⚠️ Python stderr:", stderr.trim());
+      }
+
+      try {
+        const parsed = JSON.parse(stdout.trim());
+        resolve(parsed);
+      } catch (err) {
+        console.warn("❌ Invalid JSON from Python:", stdout);
+        resolve({ success: false });
+      }
+    });
   });
 };
+
+
+const getAllMTAccountsTrades = async () => {
+
+  const userId = getCurrentUserId();
+  if (!userId) {
+    throw new Error("No user logged in");
+  }
+
+  // Get this user's MT5 account from DB
+  const account = await MTAccountModel.findOne({
+    userId,
+    platform: "MT5"
+  });
+
+  if (!account) {
+    return [];
+  }
+
+  const summaryScript = path.join(__dirname, "../utils/mt5_get_summary.py");
+  const tradesScript = path.join(__dirname, "../utils/mt5_get_trades.py");
+
+  // Run summary
+  const summaryResult = await runPython(summaryScript, [
+    account.login,
+    account.password,
+    account.server
+  ]);
+
+  // Run trades
+  const tradesResult = await runPython(tradesScript, [
+    account.login,
+    account.password,
+    account.server
+  ]);
+
+  return [
+    {
+      broker: account.broker,
+      login: account.login,
+      summary: summaryResult.success
+        ? summaryResult
+        : { data: {} },
+      trades: tradesResult.success
+        ? tradesResult.data
+        : []
+    }
+  ];
+};
+
 
 module.exports = {
   getAllMTAccountsTrades
