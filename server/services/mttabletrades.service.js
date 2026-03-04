@@ -1,114 +1,60 @@
-// server/services/mttabletrades.service.js
-const { spawn } = require("child_process");
-const path = require("path");
-const fs = require("fs");
+//FTSA_AI_0.v1\server\services\mttabletrades.service.js
 const axios = require("axios");
-const MTAccountModel = require("../models/MTAccountModel"); // Assuming MongoDB model for MT Account
 
-// Helper to get current logged-in userId from currentWatcherUser.json
-const getCurrentUserId = () => {
-  const watcherPath = path.join(__dirname, "currentWatcherUser.json");
+/**
+ * Fetch raw MT accounts from backend
+ */
+const fetchMTAccountsRaw = async () => {
   try {
-    const data = fs.readFileSync(watcherPath, "utf8");
-    const json = JSON.parse(data);
-    return json.userId || null;
+    const res = await axios.get("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
+    if (!res.data || !res.data.accounts) return [];
+    return res.data.accounts; // array of { account, summary, trades }
   } catch (err) {
-    console.error("❌ Failed to read currentWatcherUser.json:", err);
-    return null;
+    console.error("Error fetching MT accounts:", err.message || err);
+    return [];
   }
 };
 
 /**
- * Run a Python script with the provided arguments
- * @param {string} scriptPath - Path to the Python script
- * @param {array} args - Arguments to pass to the Python script
- * @returns {Promise<Object>} - Returns the parsed JSON data from the Python script output
+ * Transform MT accounts to frontend expected format
  */
-const runPythonScript = (scriptPath, args) => {
-  return new Promise((resolve, reject) => {
-    const py = spawn("python", [scriptPath, ...args]);
-    let stdout = "";
-    let stderr = "";
+const getAllMTAccountsTrades = async () => {
+  const rawAccounts = await fetchMTAccountsRaw();
 
-    py.stdout.on("data", (data) => stdout += data.toString());
-    py.stderr.on("data", (data) => stderr += data.toString());
+  return rawAccounts.map(item => {
+    const accountData = item.account || {};
+    const summaryData = item.summary?.data || {};
+    const tradesData = Array.isArray(item.trades?.data)
+      ? item.trades.data
+      : [];
 
-    py.on("close", (code) => {
-      if (stderr) {
-        console.error("⚠️ Python stderr:", stderr.trim());
-      }
-      if (code !== 0) {
-        console.error("⚠️ Python process exited with code", code);
-        reject(stderr || "Python script error");
-      }
-
-      try {
-        const parsed = JSON.parse(stdout.trim());
-        resolve(parsed);
-      } catch (err) {
-        console.error("❌ Failed to parse Python output:", stdout.trim());
-        reject("Failed to parse Python output");
-      }
-    });
+    return {
+      broker: accountData.broker || "",
+      login: accountData.login || "",
+      summary: {
+        data: {
+          balance: summaryData.balance || 0,
+          equity: summaryData.equity || 0,
+          margin: summaryData.margin || 0,
+          freeMargin: summaryData.freeMargin || 0
+        }
+      },
+      trades: tradesData.map(trade => ({
+        symbol: trade.symbol || "",
+        ticket: trade.ticket || 0,
+        time: trade.time || "",
+        type: trade.type || "",
+        volume: trade.volume || 0,
+        open_price: trade.open_price || 0,
+        current_price: trade.current_price || 0,
+        sl: trade.sl || 0,
+        tp: trade.tp || 0,
+        profit: trade.profit || 0
+      }))
+    };
   });
 };
 
-/**
- * Fetch raw MT accounts from the backend (or MongoDB)
- * @returns {Promise<Object[]>} - Returns a list of accounts
- */
-const fetchMTAccountsFromDB = async () => {
-  const userId = getCurrentUserId();
-  if (!userId) {
-    console.error("❌ No user is currently logged in");
-    return [];
-  }
-
-  const account = await MTAccountModel.findOne({ userId });
-  if (!account) {
-    console.error(`❌ No account found for userId: ${userId}`);
-    return [];
-  }
-
-  return account;
-};
-
-/**
- * Transform MT accounts to frontend expected format, using data from MongoDB and Python
- * @returns {Promise<Object[]>} - Returns transformed data
- */
-const getAllMTAccountsTrades = async () => {
-  const account = await fetchMTAccountsFromDB();
-
-  if (!account || !account.login || !account.password || !account.server) {
-    console.error("❌ Missing required account details in the database");
-    return [];  // Ensure we have all necessary data
-  }
-
-  const { login, password, server } = account;
-  const summaryScriptPath = path.join(__dirname, "../utils/mt5_get_summary.py");
-  const tradesScriptPath = path.join(__dirname, "../utils/mt5_get_trades.py");
-
-  try {
-    // Fetch summary and trades data by running Python scripts
-    const summaryResult = await runPythonScript(summaryScriptPath, [login, password, server]);
-    const tradesResult = await runPythonScript(tradesScriptPath, [login, password, server]);
-
-    // Return the data in the expected format
-    return [
-      {
-        broker: account.broker || "Unknown",
-        login: account.login || "",
-        summary: summaryResult.success ? summaryResult.data : {},
-        trades: tradesResult.success ? tradesResult.data : [],
-      },
-    ];
-  } catch (err) {
-    console.error("❌ Error fetching data from Python scripts:", err);
-    return [];
-  }
-};
-
 module.exports = {
-  getAllMTAccountsTrades,
+  getAllMTAccountsTrades
 };
