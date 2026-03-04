@@ -47,6 +47,7 @@ useEffect(() => {
 }, [isAuthenticated, propConnectedAccount]);
 
 
+
 useEffect(() => {
   if (!isAuthenticated || !mtConnectedAccount) return;
 

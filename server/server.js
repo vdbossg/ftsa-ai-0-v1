@@ -272,6 +272,7 @@ app.use('/api/getstarted', getStartedRoutes);
 console.log('✅ /api/getstarted routes mounted');
 
 
+
 // Simple test route
 app.get('/', (req, res) => {
   res.send('FTSA AI Backend Server running');
