@@ -81,6 +81,7 @@ const getAllMTAccountsTrades = async () => {
   const account = await fetchMTAccountsFromDB();
 
   if (!account || !account.login || !account.password || !account.server) {
+    console.error("❌ Missing required account details in the database");
     return [];  // Ensure we have all necessary data
   }
 
@@ -93,6 +94,7 @@ const getAllMTAccountsTrades = async () => {
     const summaryResult = await runPythonScript(summaryScriptPath, [login, password, server]);
     const tradesResult = await runPythonScript(tradesScriptPath, [login, password, server]);
 
+    // Return the data in the expected format
     return [
       {
         broker: account.broker || "Unknown",
