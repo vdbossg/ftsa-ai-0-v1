@@ -52,8 +52,8 @@ useEffect(() => {
 
   const fetchMTTrades = async () => {
   try {
-    //const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
-    const res = await fetch("http://localhost:5000/api/bypass/mttabletrades");
+    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
+    
     const data = await res.json();
     setMTTableData(data?.[0] || null); // take first account from JSON array
   } catch (err) {
