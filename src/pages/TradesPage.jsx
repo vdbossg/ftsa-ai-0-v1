@@ -6,6 +6,7 @@ import "../styles/TradesPage.css";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://ftsa-ai-backend.onrender.com";
 const neonColors = {
   background: "#000000",
   neonBlue: "#00FFFF",
@@ -32,7 +33,7 @@ useEffect(() => {
   const fetchPropTrades = async () => {
     setPropLoading(true); // start loading
     try {
-      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/proptabletrades");
+      const res = await fetch(`${BACKEND_URL}/api/proptabletrades`);
       const data = await res.json();
       setPropTableData(data?.data?.[0] || null); // first account
     } catch (err) {
@@ -52,7 +53,7 @@ useEffect(() => {
 
   const fetchMTTrades = async () => {
     try {
-      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
+      const res = await fetch(`${BACKEND_URL}/api/mttabletrades`);
       const json = await res.json();
       if (json.success && json.data) {
         setMTTableData(json.data); // <-- directly use data object
@@ -78,7 +79,7 @@ useEffect(() => {
   const fetchConnectedAccounts = async () => {
     try {
       // MT connected account
-      const mtRes = await fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
+      const mtRes = await fetch(`${BACKEND_URL}/api/mtaccounts`);
       const mtData = await mtRes.json();
       if (mtData.success && Array.isArray(mtData.accounts)) {
         const connectedMT = mtData.accounts.find(acc => acc.account?.isConnected);
@@ -97,7 +98,7 @@ if (connectedMT) {
       }
 
       // Prop connected account
-      const propRes = await fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts");
+      const propRes = await fetch(`${BACKEND_URL}/api/propaccounts`);
       const propData = await propRes.json();
       if (propData.success && Array.isArray(propData.accounts)) {
         const connectedProp = propData.accounts.find(acc => acc.account?.isConnected);
