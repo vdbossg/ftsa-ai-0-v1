@@ -1,3 +1,4 @@
+
 // src/pages/TradesPage.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -6,7 +7,6 @@ import "../styles/TradesPage.css";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://ftsa-ai-backend.onrender.com";
 const neonColors = {
   background: "#000000",
   neonBlue: "#00FFFF",
@@ -18,42 +18,43 @@ const neonColors = {
 export default function TradesPage() {
   const { isAuthenticated } = useAuth();
   const [mtTableData, setMTTableData] = useState(null); // for /api/mttabletrades
-  const [propLoading, setPropLoading] = useState(true);
-const [mtLoading, setMTLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [propTableData, setPropTableData] = useState(null); // for /api/proptabletrades
   const [mtConnectedAccount, setMTConnectedAccount] = useState(null);
   const [propConnectedAccount, setPropConnectedAccount] = useState(null);
 
 
 
- // Auto-refresh Prop trades every second
+  // Auto-refresh every second
 useEffect(() => {
-  if (!isAuthenticated) return; // only check auth
+  if (!isAuthenticated || !propConnectedAccount) return;
 
   const fetchPropTrades = async () => {
-    setPropLoading(true); // start loading
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/proptabletrades`);
-      const data = await res.json();
-      setPropTableData(data?.data?.[0] || null); // first account
-    } catch (err) {
-      console.error("Failed to fetch prop trades:", err);
-    } finally {
-      setPropLoading(false); // stop loading
-    }
-  };
+  try {
+    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/proptabletrades");
+    const data = await res.json();
+    setPropTableData(data?.data?.[0] || null); // take first account from JSON
+  } catch (err) {
+    console.error("Failed to fetch prop table trades:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   fetchPropTrades();
   const interval = setInterval(fetchPropTrades, 1000);
   return () => clearInterval(interval);
-}, [isAuthenticated]);
+}, [isAuthenticated, propConnectedAccount]);
+
+
 
 useEffect(() => {
   if (!isAuthenticated || !mtConnectedAccount) return;
 
   const fetchMTTrades = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/mttabletrades`);
+      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
       const json = await res.json();
       if (json.success && json.data) {
         setMTTableData(json.data); // <-- directly use data object
@@ -79,7 +80,7 @@ useEffect(() => {
   const fetchConnectedAccounts = async () => {
     try {
       // MT connected account
-      const mtRes = await fetch(`${BACKEND_URL}/api/mtaccounts`);
+      const mtRes = await fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
       const mtData = await mtRes.json();
       if (mtData.success && Array.isArray(mtData.accounts)) {
         const connectedMT = mtData.accounts.find(acc => acc.account?.isConnected);
@@ -98,7 +99,7 @@ if (connectedMT) {
       }
 
       // Prop connected account
-      const propRes = await fetch(`${BACKEND_URL}/api/propaccounts`);
+      const propRes = await fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts");
       const propData = await propRes.json();
       if (propData.success && Array.isArray(propData.accounts)) {
         const connectedProp = propData.accounts.find(acc => acc.account?.isConnected);
@@ -454,12 +455,7 @@ return { profitLoss, gainDrawdown };
 
   <h3 style={{ textAlign: "center", marginBottom: "0.5rem" }}>Prop Trades</h3>
 
- {propConnectedAccount ? (
-  propLoading ? (
-    <div style={{ textAlign: "center", padding: "1rem" }}>
-      <LoadingSpinner size={36} color={neonColors.neonBlue} />
-    </div>
-  ) : (
+  {propConnectedAccount ? (
     <div
       style={{
         display: "flex",
@@ -477,12 +473,11 @@ return { profitLoss, gainDrawdown };
       <div>{renderCards(propStats, true)}</div>
       <div>{renderGraph(propTableData, true)}</div>
     </div>
-  )
-) : (
-  <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
-    No connected Prop Firm account.
-  </p>
-)}
+  ) : (
+    <p style={{ textAlign: "center", color: neonColors.neonOrange }}>
+      No connected Prop Firm account.
+    </p>
+  )}
 </div>
 {/* MTAccounts Trades Section */}
 <div
