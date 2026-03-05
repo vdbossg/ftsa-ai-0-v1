@@ -66,49 +66,48 @@ const [accountTotals, setAccountTotals] = useState({
   }, [isAuthenticated]);
 useEffect(() => {
   if (!isAuthenticated) return;
+const fetchAccounts = async () => {
+  try {
+    const [mtRes, propRes] = await Promise.all([
+      fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades"),
+      fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts")
+    ]);
 
-  const fetchAccounts = async () => {
-    try {
-      const [mtRes, propRes] = await Promise.all([
-        fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts"),
-        fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts")
-      ]);
-      const mtData = await mtRes.json();
-      const propData = await propRes.json();
+    const mtData = await mtRes.json();
+    const propData = await propRes.json();
 
-      let balance = 0, equity = 0, freeMargin = 0, profitLoss = 0;
+    let balance = 0, equity = 0, freeMargin = 0, profitLoss = 0;
 
-      if (mtData.success && Array.isArray(mtData.accounts)) {
-        mtData.accounts.forEach(acc => {
-          if (acc.account?.isConnected) {
-            const summary = acc.summary?.data || {};
-            const trades = acc.trades?.data || [];
-            balance += summary.balance || 0;
-            equity += summary.equity || 0;
-            freeMargin += summary.freeMargin || 0;
-            profitLoss += trades.reduce((sum, t) => sum + (t.profit || 0), 0);
-          }
-        });
-      }
+    // MTAccount (single object)
+    if (mtData.success && mtData.data) {
+      const summary = mtData.data.summary?.data || {};
+      const trades = mtData.data.trades || [];
 
-      if (propData.success && Array.isArray(propData.accounts)) {
-        propData.accounts.forEach(acc => {
-          if (acc.account?.isConnected) {
-            const summary = acc.summary?.data || {};
-            const trades = acc.account.trades?.data || [];
-            balance += summary.balance || 0;
-            equity += summary.equity || 0;
-            freeMargin += summary.freeMargin || 0;
-            profitLoss += trades.reduce((sum, t) => sum + (t.profit || 0), 0);
-          }
-        });
-      }
-
-      setAccountTotals({ balance, equity, freeMargin, profitLoss });
-    } catch (err) {
-      console.error("Failed to fetch accounts:", err);
+      balance += summary.balance || 0;
+      equity += summary.equity || 0;
+      freeMargin += summary.freeMargin || 0;
+      profitLoss += trades.reduce((sum, t) => sum + (t.profit || 0), 0);
     }
-  };
+
+    // PropAccounts (array)
+    if (propData.success && Array.isArray(propData.accounts)) {
+      propData.accounts.forEach(acc => {
+        if (acc.account?.isConnected) {
+          const summary = acc.summary?.data || {};
+          const trades = acc.account.trades?.data || [];
+          balance += summary.balance || 0;
+          equity += summary.equity || 0;
+          freeMargin += summary.freeMargin || 0;
+          profitLoss += trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+        }
+      });
+    }
+
+    setAccountTotals({ balance, equity, freeMargin, profitLoss });
+  } catch (err) {
+    console.error("Failed to fetch accounts:", err);
+  }
+};
 
   fetchAccounts(); // run immediately
 
