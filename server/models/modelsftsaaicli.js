@@ -5,20 +5,19 @@ const TradeSchema = new mongoose.Schema({
   symbol: String,
   type: String,
   volume: Number,
-  price_open: Number,
-  price_current: Number,
+  open_price: Number,
+  current_price: Number,
   profit: Number,
   sl: Number,
   tp: Number,
-  time: Number
+  time: String
 }, { _id: false });
 
 const SummarySchema = new mongoose.Schema({
   balance: Number,
   equity: Number,
   margin: Number,
-  free_margin: Number,
-  margin_level: Number
+  freeMargin: Number
 }, { _id: false });
 
 const MT5LiveSchema = new mongoose.Schema({
