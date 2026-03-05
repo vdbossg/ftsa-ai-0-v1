@@ -2,7 +2,7 @@
 const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
-const MTAccountModel = require("../models/mtAccount"); // Your Mongoose model
+const MTAccountModel = require("../models/mttabletrades.model"); // Your Mongoose model
 
 // Helper: get current logged-in userId from currentWatcherUser.json
 const getCurrentUserId = () => {

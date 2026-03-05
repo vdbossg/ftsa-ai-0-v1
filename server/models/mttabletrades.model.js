@@ -34,4 +34,5 @@ const mtAccountSchema = new mongoose.Schema(
   { timestamps: true } // adds createdAt & updatedAt
 );
 
-module.exports = mongoose.model("MTAccount", mtAccountSchema);
+// ✅ Prevent OverwriteModelError
+module.exports = mongoose.models.MTAccount || mongoose.model("MTAccount", mtAccountSchema);
