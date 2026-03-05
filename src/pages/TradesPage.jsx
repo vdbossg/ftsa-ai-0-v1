@@ -48,29 +48,30 @@ useEffect(() => {
 
 
 
-
 useEffect(() => {
   if (!isAuthenticated || !mtConnectedAccount) return;
 
   const fetchMTTrades = async () => {
-  try {
-    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
-    
-    const data = await res.json();
-    setMTTableData(data?.[0] || null); // take first account from JSON array
-  } catch (err) {
-    console.error("Failed to fetch MT table trades:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mttabletrades");
+      const json = await res.json();
+      if (json.success && json.data) {
+        setMTTableData(json.data); // <-- directly use data object
+      } else {
+        setMTTableData(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch MT table trades:", err);
+      setMTTableData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   fetchMTTrades();
   const interval = setInterval(fetchMTTrades, 1000);
   return () => clearInterval(interval);
 }, [isAuthenticated, mtConnectedAccount]);
-
 // Fetch connected accounts for MT and Prop from updated JSON endpoints
 useEffect(() => {
   if (!isAuthenticated) return;
