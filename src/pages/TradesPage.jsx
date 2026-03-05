@@ -46,8 +46,6 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [isAuthenticated, propConnectedAccount]);
 
-
-
 useEffect(() => {
   if (!isAuthenticated || !mtConnectedAccount) return;
 
@@ -541,3 +539,4 @@ return { profitLoss, gainDrawdown };
     </div>
   );
 }
+ 
