@@ -38,4 +38,10 @@ const MT5LiveSchema = new mongoose.Schema({
   collection: "mt5_live_accounts"
 });
 
+// Prevent duplicate documents for same MT5 account
+MT5LiveSchema.index(
+  { userId: 1, login: 1, broker: 1 },
+  { unique: true }
+);
+
 module.exports = mongoose.model("MT5LiveAccount", MT5LiveSchema);
