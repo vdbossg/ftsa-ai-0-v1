@@ -70,7 +70,7 @@ const getStartedRoutes = require('./routes/routesGetstarted');
 
 
 const referralCheckRoutes = require("./routes/routesReferralCheck");
-
+const ftsaCliRoutes = require("./routes/routesftsaaicli");
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
 // 🚀 Start EA EX5 Auto-Compiler Service (runs every 2 seconds)
@@ -271,7 +271,8 @@ console.log("✅ /api/referral routes mounted");
 app.use('/api/getstarted', getStartedRoutes);
 console.log('✅ /api/getstarted routes mounted');
 
-
+app.use("/api", ftsaCliRoutes);
+console.log("✅ /api/ftsaaicli routes mounted");
 
 
 // Simple test route
