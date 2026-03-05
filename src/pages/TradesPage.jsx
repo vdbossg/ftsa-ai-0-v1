@@ -24,28 +24,26 @@ export default function TradesPage() {
 
 
 
-  // Auto-refresh every second
+ // Auto-refresh every second
 useEffect(() => {
   if (!isAuthenticated || !propConnectedAccount) return;
 
   const fetchPropTrades = async () => {
-  try {
-    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/proptabletrades");
-    const data = await res.json();
-    setPropTableData(data?.data?.[0] || null); // take first account from JSON
-  } catch (err) {
-    console.error("Failed to fetch prop table trades:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/proptabletrades");
+      const data = await res.json();
+      setPropTableData(data?.data?.[0] || null); // take first account from JSON
+    } catch (err) {
+      console.error("Failed to fetch prop table trades:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   fetchPropTrades();
   const interval = setInterval(fetchPropTrades, 1000);
   return () => clearInterval(interval);
 }, [isAuthenticated, propConnectedAccount]);
-
 
 
 useEffect(() => {
