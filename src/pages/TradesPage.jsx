@@ -1,4 +1,3 @@
-
 // src/pages/TradesPage.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
