@@ -1,126 +1,157 @@
 // server/utils/metaTraderAPI.js
 /**
  * MetaTrader API Utility
- * Uses FTSA backend API instead of Python scripts
+ * Handles connecting to MT4/MT5 accounts and fetching live account info
  */
 
-const axios = require("axios");
-const path = require("path");
-const fs = require("fs");
+ const { spawn } = require("child_process");
+const MTConnector = {
+  login: async ({ login, password, server }) => {
+  return new Promise((resolve, reject) => {
+    const path = require("path");
+const py = spawn("python", [path.join(__dirname, "mt5_connector.py"), login, password, server]);
+    let output = "";
+    py.stdout.on("data", (data) => { output += data.toString(); });
+    py.stderr.on("data", (err) => reject(err.toString()));
+    py.on("close", () => {
+      try {
+        resolve(JSON.parse(output.trim()));
+      } catch (e) {
+        reject("Invalid JSON from mt5_connector.py: " + output);
+      }
+    });
+  });
+},
 
-const MT_API_URL =
-  "https://ftsa-ai-backend.onrender.com/api/ftsaaicli/mt5trades";
-
-// Helper to get current logged-in userId from currentWatcherUser.json
-const getCurrentUserId = () => {
-  const watcherPath = path.join(__dirname, "currentWatcherUser.json");
-
-  try {
-    const data = fs.readFileSync(watcherPath, "utf8");
-    const json = JSON.parse(data);
-    return json.userId || null;
-  } catch (err) {
-    console.error("❌ Failed to read currentWatcherUser.json:", err);
-    return null;
+  getAccountSummary: async (login) => {
+  return new Promise((resolve, reject) => {
+    const py = spawn("python", [__dirname + "/mt5_get_summary.py", login]);
+    let output = "";
+    py.stdout.on("data", (data) => { output += data.toString(); });
+    py.stderr.on("data", (err) => reject(err.toString()));
+    py.on("close", () => {
+      try {
+        resolve(JSON.parse(output.trim()));
+      } catch (e) {
+        reject("Invalid JSON from mt5_get_summary.py: " + output);
+      }
+    });
+  });
+},
+  getOpenTrades: async (login) => {
+  return new Promise((resolve, reject) => {
+    const py = spawn("python", [__dirname + "/mt5_get_trades.py", login]);
+    let output = "";
+    py.stdout.on("data", (data) => { output += data.toString(); });
+    py.stderr.on("data", (err) => reject(err.toString()));
+    py.on("close", () => {
+      try {
+        resolve(JSON.parse(output.trim()));
+      } catch (e) {
+        reject("Invalid JSON from mt5_get_trades.py: " + output);
+      }
+    });
+  });
   }
 };
 
+// <- Replace this with your real MT4/MT5 library or wrapper for Node/Python bridge
+
 /**
  * Connect to MT account
- * (Now checks if MT data exists via API)
+ * @param {Object} param0
+ * @param {string} param0.login - MT account login
+ * @param {string} param0.password - MT account password
+ * @param {string} param0.server - MT server
+ * @returns {Promise<{success: boolean, message?: string, currency?: string}>}
  */
 async function connect({ login, password, server }) {
   try {
-    const userId = getCurrentUserId();
-
-    if (!userId) {
-      return { success: false, message: "No active watcher user" };
+    if (!login || !password || !server) {
+      return { success: false, message: "Login, password, and server are required" };
     }
 
-    console.log(`🌐 Checking MT account via API for user ${userId}`);
+    console.log(`🌐 Connecting to MT account ${login} on server ${server}...`);
 
-    const res = await axios.get(MT_API_URL, {
-      params: { userId }
-    });
+    const connected = await MTConnector.login({ login, password, server });
 
-    if (!res.data.success) {
-      return {
-        success: false,
-        message: res.data.message || "Failed to connect MT account"
-      };
+    // If Python failed
+    if (!connected.success) {
+      return { success: false, message: connected.message || "Failed to connect MT account" };
     }
 
-    const mt = res.data.data;
-
+    // Return all relevant info
     return {
       success: true,
-      currency: "USD", // API does not provide yet
-      login: mt.login,
-      balance: mt.summary?.balance || 0,
-      equity: mt.summary?.equity || 0,
-      margin: mt.summary?.margin || 0,
-      freeMargin: mt.summary?.freeMargin || 0,
-      marginLevel: 0
+      currency: connected.currency,
+      login: connected.login,
+      balance: connected.balance,
+      equity: connected.equity,
+      margin: connected.margin,
+      freeMargin: connected.freeMargin,
+      marginLevel: connected.marginLevel
     };
 
   } catch (err) {
-    console.error("Error in MetaTraderAPI.connect:", err.message);
+    console.error("Error in MetaTraderAPI.connect:", err);
     return { success: false, message: "Failed to connect to MT account" };
   }
 }
 
+
 /**
  * Fetch live account info
+ * @param {Object} param0
+ * @param {string} param0.login
+ * @param {string} param0.password
+ * @param {string} param0.server
+ * @returns {Promise<{success: boolean, data: Object, message?: string}>}
  */
 async function fetchAccountInfo({ login, password, server }) {
   try {
-    const userId = getCurrentUserId();
-
-    if (!userId) {
-      return { success: false, message: "No active watcher user" };
+    if (!login || !password || !server) {
+      return { success: false, message: "Login, password, and server are required" };
     }
 
-    const res = await axios.get(MT_API_URL, {
-      params: { userId }
-    });
+    // Connect first
+    const connected = await MTConnector.login({ login, password, server });
+if (!connected.success) {
+  return { success: false, message: connected.message || "Failed to connect MT account" };
+}
 
-    if (!res.data.success) {
-      return {
-        success: false,
-        message: res.data.message || "Failed to fetch account info"
-      };
-    }
+// Fetch live account summary
+const summary = await MTConnector.getAccountSummary(login);
 
-    const mt = res.data.data;
+// Fetch live open trades
+const trades = await MTConnector.getOpenTrades(login);
 
-    const data = {
-      balance: mt.summary?.balance || 0,
-      equity: mt.summary?.equity || 0,
-      margin: mt.summary?.margin || 0,
-      freeMargin: mt.summary?.freeMargin || 0,
-      marginLevel: 0,
-      currency: "USD",
+const data = {
+  balance: summary.balance,
+  equity: summary.equity,
+  margin: summary.margin,
+  freeMargin: summary.freeMargin,
+  marginLevel: summary.marginLevel,
+  currency: summary.currency,
+  trades: Array.isArray(trades) && trades.length > 0
+    ? trades.map(t => ({
+        symbol: t.symbol,
+        ticket: t.ticket,
+        type: t.type,
+        volume: t.volume,
+        entryPrice: t.entry_price,
+        sl: t.sl,
+        tp: t.tp,
+        price: t.price,
+        profit: t.profit,
+        time: t.time
+    }))
+    : [],
+};
 
-      trades: Array.isArray(mt.trades) && mt.trades.length > 0
-        ? mt.trades.map((t) => ({
-            symbol: t.symbol,
-            ticket: t.ticket,
-            type: t.type,
-            volume: t.volume,
-            entryPrice: t.open_price,
-            sl: t.sl,
-            tp: t.tp,
-            price: t.current_price,
-            profit: t.profit,
-            time: t.time
-          }))
-        : []
-    };
-
-    return { success: true, data };
+return { success: true, data };
 
   } catch (err) {
-    console.error("Error in MetaTraderAPI.fetchAccountInfo:", err.message);
+    console.error("Error in MetaTraderAPI.fetchAccountInfo:", err);
     return { success: false, message: "Failed to fetch account info" };
   }
 }
