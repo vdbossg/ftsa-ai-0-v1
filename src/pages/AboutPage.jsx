@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import "../styles/AboutPage.css";
 
-//const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://ftsa-ai-backend.onrender.com";
+//const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const SECTION_HEADERS = {
   criticalNotices: "CRITICAL ALERT",
@@ -25,7 +25,7 @@ const AboutPage = () => {
   const fetchAboutData = async () => {
     try {
       //const res = await fetch(`${BACKEND_URL}/api/aboutfullData`);
-      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/aboutfullData");
+      const res = await fetch("http://localhost:5000/api/aboutfullData");
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
       setAboutData(data);

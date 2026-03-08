@@ -6,7 +6,7 @@
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Base URL of your backend API — change this to your actual backend URL
-const BASE_URL = "https://ftsa-ai-backend.onrender.com";
+const BASE_URL = "http://localhost:5000";
 
 
 const APIControl = {

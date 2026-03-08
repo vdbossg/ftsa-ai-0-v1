@@ -41,7 +41,7 @@ export default function MTAccountsPage() {
 const fetchAccounts = async () => {
   try {
     setLoading(true);
-    const res = await fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts");
+    const res = await fetch("http://localhost:5000/api/mtaccounts");
     const data = await res.json();
 
     if (data.success && Array.isArray(data.accounts)) {
@@ -101,7 +101,7 @@ const fetchAccounts = async () => {
 });
 // ✅ Save the new account to backend so it persists after refresh
 try {
-  await fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts", {
+  await fetch("http://localhost:5000/api/mtaccounts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newAccount),
@@ -139,7 +139,7 @@ try {
 const handleDelete = async (acc) => {
   try {
     setLoading(true);
-    const res = await fetch(`https://ftsa-ai-backend.onrender.com/api/mtaccounts`, {
+    const res = await fetch(`http://localhost:5000/api/mtaccounts`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login: acc.login }), // ✅ backend expects body

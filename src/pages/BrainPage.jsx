@@ -31,8 +31,8 @@ useEffect(() => {
   const fetchAccounts = async () => {
     try {
       const [mtRes, propRes] = await Promise.all([
-        fetch("https://ftsa-ai-backend.onrender.com/api/mtaccounts"),
-        fetch("https://ftsa-ai-backend.onrender.com/api/propaccounts")
+        fetch("http://localhost:5000/api/mtaccounts"),
+        fetch("http://localhost:5000/api/propaccounts")
       ]);
       const mtData = await mtRes.json();
       const propData = await propRes.json();
@@ -141,7 +141,7 @@ const loadBrainData = async (showLoader = false) => {
 };
 const fetchEaUpdates = async () => {
   try {
-    const resp = await fetch("https://ftsa-ai-backend.onrender.com/api/ftsacalculator"); // GET latest trade with tradeActivated
+    const resp = await fetch("http://localhost:5000/api/ftsacalculator"); // GET latest trade with tradeActivated
     if (!resp.ok) throw new Error("Failed to fetch EA trade updates");
 
     const data = await resp.json();
@@ -316,7 +316,7 @@ useEffect(() => {
         tp: Number(pendingTrade.tp) || 0
       };
 
-      const resp = await fetch('https://ftsa-ai-backend.onrender.com/api/ftsacalculator', {
+      const resp = await fetch('http://localhost:5000/api/ftsacalculator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pendingTrade: tradeToSend }),

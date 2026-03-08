@@ -2,8 +2,8 @@ const axios = require("axios");
 const { PropSettings } = require("../models/PropTradesAccount");
 
 // Replace with your API URLs
-const PROP_ACCOUNTS_API = "https://ftsa-ai-backend.onrender.com/api/propaccounts";
-const PROP_SETTINGS_API = "https://ftsa-ai-backend.onrender.com/api/propsetting";
+const PROP_ACCOUNTS_API = "http://localhost:5000/api/propaccounts";
+const PROP_SETTINGS_API = "http://localhost:5000/api/propsetting";
 
 async function getPropTableTrades() {
   try {

@@ -3,7 +3,7 @@ const ClosedTradeController = require('../controllers/mtTradeController');
 
 class MTTradeService {
   constructor() {
-    this.endpoint = 'https://ftsa-ai-backend.onrender.com/api/mttabletrades';
+    this.endpoint = 'http://localhost:5000/api/mttabletrades';
     this.activeTrades = new Map();
   }
 

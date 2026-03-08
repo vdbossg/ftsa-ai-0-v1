@@ -19,7 +19,7 @@ export default function TopNav() {
   const loadMessages = async () => {
     if (!isAuthenticated) return;
     try {
-      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/messageData/userid");
+      const res = await fetch("http://localhost:5000/api/messageData/userid");
       const data = await res.json();
       setMessages(data);
     } catch (err) {
@@ -70,7 +70,7 @@ export default function TopNav() {
 
       try {
         try {
-  const res = await fetch(`https://ftsa-ai-backend.onrender.com/api/messageData/read/${msg._id}`, {
+  const res = await fetch(`http://localhost:5000/api/messageData/read/${msg._id}`, {
     method: "PATCH"
   });
   if (!res.ok) throw new Error("Thankyou for taking Actions!");

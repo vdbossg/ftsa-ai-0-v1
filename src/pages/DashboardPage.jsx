@@ -77,7 +77,7 @@ const [showModal, setShowModal] = useState(false);
 
   async function fetchScrollingText() {
     try {
-      const res = await fetch("https://ftsa-ai-backend.onrender.com/api/scrollingtexts/live");
+      const res = await fetch("http://localhost:5000/api/scrollingtexts/live");
       const data = await res.json();
       if (data.length > 0) {
         setLiveScrolling(data[0]); // only one go_live
@@ -95,7 +95,7 @@ useEffect(() => {
 
   async function fetchLiveAds() {
     try {
-      const res = await fetch('https://ftsa-ai-backend.onrender.com/api/live-ads');
+      const res = await fetch('http://localhost:5000/api/live-ads');
       const json = await res.json();
       if (json.success) {
         setLiveAds(json.data);

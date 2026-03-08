@@ -99,7 +99,7 @@ const watcherUserId = user?.id; // use actual logged-in user
 const fetchEverything = async () => {
   try {
     const res = await fetch(
-  `https://ftsa-ai-backend.onrender.com/api/affiliatestatus/userid`
+  `http://localhost:5000/api/affiliatestatus/userid`
 );
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -266,7 +266,7 @@ useEffect(() => {
 
   try {
     setWithdrawing(true);
-    const res = await fetch(`https://ftsa-ai-backend.onrender.com${endpoint}`, {
+    const res = await fetch(`http://localhost:5000${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
