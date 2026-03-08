@@ -2,10 +2,15 @@ const fs = require("fs-extra");
 const path = require("path");
 const { exec } = require("child_process");
 
-const SOURCE_DIR = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mql5\\Licensed_mq5";
-const OUTPUT_DIR = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mql5\\Licensed_ex5";
-const MT5_EDITOR = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mt5\\MetaEditor64.exe";
-const MT5_EXPERTS = "C:\\Users\\LENOVO\\Desktop\\FTSA_AI_0.v1\\mt5\\MQL5\\Experts";
+
+// Project root (adjust if your EA compiler file is nested differently)
+const PROJECT_ROOT = path.resolve(__dirname, "../../"); 
+
+const SOURCE_DIR = path.join(PROJECT_ROOT, "mql5", "Licensed_mq5");
+const OUTPUT_DIR = path.join(PROJECT_ROOT, "mql5", "Licensed_ex5");
+const MT5_EDITOR = path.join(PROJECT_ROOT, "mt5", "MetaEditor64.exe");
+const MT5_EXPERTS = path.join(PROJECT_ROOT, "mt5", "MQL5", "Experts");
+
 
 let isCompiling = false; // prevents multiple compiles at once
 
