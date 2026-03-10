@@ -496,10 +496,9 @@ const allPairs =  [
         minHeight: "100vh",
       }}
     >
-      <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-  {/*<h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>*/}
-
+      
+  <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
+<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
   {/* High-Impact News Panel */}
   <div style={{
     textAlign: "right",
