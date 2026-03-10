@@ -24,8 +24,8 @@ export default function BrainPage() {
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
 const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
-const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); 
-// default 1000 or whatever you want as initial balance
+const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); // default 1000 or whatever you want as initial balance
+const [cotData, setCotData] = useState(null); // holds COT data for today's trade
 // Fetch live account balances from MT and Prop accounts
 useEffect(() => {
   const fetchAccounts = async () => {
@@ -154,49 +154,89 @@ const fetchEaUpdates = async () => {
   }
 };
 
-const updatePendingTrade = () => {
+const updatePendingTrade = async () => {
   if (!filteredSignals.length || !marketStrength.length) return;
 
   // Get top 3 strongest pairs
   const top3Pairs = [...marketStrength]
     .sort((a, b) => b.strength - a.strength)
-    .slice(0, 3)
-    .map(p => p.pair);
+    .slice(0, 3);
 
   // Find first valid signal that is in top 3
-  const validTrade = filteredSignals.find(signal =>
-    top3Pairs.includes(signal.symbol)
+  const validSignal = filteredSignals.find(signal =>
+    top3Pairs.some(p => p.pair === signal.symbol)
   );
 
-  if (!validTrade) {
-    // No valid trade, remove pending
+  if (!validSignal) {
     setPendingTrade(null);
     return;
   }
 
-  // If the current pending trade is already the same, do nothing
-  if (pendingTrade?.symbol === validTrade.symbol) return;
+  const top3PairData = top3Pairs.find(p => p.pair === validSignal.symbol);
 
-  // Otherwise, set new pending trade
-  setPendingTrade({
-    symbol: validTrade.symbol,
-    type: validTrade.type,
-    mode: validTrade.mode || "-",
-    trend: validTrade.type === "BUY" ? "bullish" : "bearish",
-    entry: validTrade.entry ?? "-",
-    sl: validTrade.sl ?? "-",
-    tp: validTrade.tp3 ?? "-",
-    time: new Date().toLocaleTimeString(),
-    tradeActivated: "PENDING",
-  });
+  // Fetch COT bias for this symbol
+  let cotData;
+  try {
+    const resp = await fetch(`http://localhost:5000/api/ftsacot/${validSignal.symbol}`);
+    cotData = await resp.json();
+  } catch (err) {
+    console.error("Failed to fetch COT data:", err);
+    setPendingTrade(null);
+    return;
+  }
+
+  // Convert signals to unified bias
+  const signalBias = validSignal.type === "BUY" ? "bullish" :
+                     validSignal.type === "SELL" ? "bearish" : "neutral";
+  const top3Bias = (top3PairData.trend || "").toLowerCase();
+  const cotBias = (cotData.bias || "neutral").toLowerCase().includes("bull") ? "bullish" :
+                  (cotData.bias || "neutral").toLowerCase().includes("bear") ? "bearish" : "neutral";
+
+  // Only proceed if all three biases match
+  if (signalBias === top3Bias && top3Bias === cotBias) {
+    if (pendingTrade?.symbol === validSignal.symbol) return; // already same
+    setPendingTrade({
+      symbol: validSignal.symbol,
+      type: validSignal.type,
+      mode: validSignal.mode || "-",
+      trend: signalBias,
+      entry: validSignal.entry ?? "-",
+      sl: validSignal.sl ?? "-",
+      tp: validSignal.tp3 ?? "-",
+      time: new Date().toLocaleTimeString(),
+      tradeActivated: "PENDING",
+    });
+  } else {
+    setPendingTrade(null); // biases mismatch
+  }
 };
-
 useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
 useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
 useEffect(() => {
-  updatePendingTrade();
+  (async () => {
+    await updatePendingTrade();
+  })();
 }, [filteredSignals, marketStrength]);
+useEffect(() => {
+  const fetchCotForPendingTrade = async () => {
+    if (!pendingTrade) {
+      setCotData(null); // clear if no trade
+      return;
+    }
 
+    try {
+      const resp = await fetch(`http://localhost:5000/api/ftsacot/${pendingTrade.symbol}`);
+      if (!resp.ok) throw new Error("Failed to fetch COT data");
+      const data = await resp.json();
+      setCotData(data); // store in state
+    } catch (err) {
+      console.error("Error fetching COT data:", err);
+      setCotData(null);
+    }
+  };
+
+  fetchCotForPendingTrade();
+}, [pendingTrade]);
 useEffect(() => {
   let ws;
 
@@ -445,6 +485,39 @@ const allPairs =  [
     </table>
   </div>
 </section>
+{cotData && (
+<section style={scrollableTableContainer}>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Commitments of Traders Report (COT)</h2>
+  <div style={{ overflowX: "auto" }}>
+    <table style={{ ...tableStyle, minWidth: "700px" }}>
+      <thead>
+        <tr>
+          <th style={thShadowStyle}>Pair</th>
+          <th style={thShadowStyle}>Currency</th>
+          <th style={thShadowStyle}>Long</th>
+          <th style={thShadowStyle}>Short</th>
+          <th style={thShadowStyle}>Net</th>
+          <th style={thShadowStyle}>Percent %</th>
+          <th style={thShadowStyle}>Bias</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style={tdVerticalLineStyle}>{cotData.pair}</td>
+          <td style={tdVerticalLineStyle}>{cotData.cotCurrency}</td>
+          <td style={tdVerticalLineStyle}>{cotData.nonCommercial.long}</td>
+          <td style={tdVerticalLineStyle}>{cotData.nonCommercial.short}</td>
+          <td style={tdVerticalLineStyle}>{cotData.nonCommercial.net}</td>
+          <td style={tdVerticalLineStyle}>{cotData.nonCommercial.percent}</td>
+          <td style={{ ...lastTdStyle, color: cotData.bias?.includes("bull") ? "#00FF00" : "#FF0000" }}>
+            {cotData.bias}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+)}
       {/* Market Strength Table */}
       <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Market Strength</h2>

@@ -1,10 +1,10 @@
 {
-  "symbol": "USDCHF",
-  "type": "BUY",
+  "symbol": "GBPUSD",
+  "type": "SELL",
   "mode": "PENDING",
-  "lots": 0.1,
-  "sl": 0.925,
-  "tp": 0.938,
-  "price": 0.93,
-  "id": "1772747691985"
+  "lots": 0.07,
+  "sl": 1.35115,
+  "tp": 1.34512,
+  "price": 1.34914,
+  "id": "1773116710651"
 }

@@ -1,0 +1,42 @@
+// Maps Forex pairs to the COT currency names
+const cotMap = {
+  "EURUSD": "EURO FX",
+  "GBPUSD": "BRITISH POUND",
+  "USDJPY": "JAPANESE YEN",
+  "USDCHF": "SWISS FRANC",
+  "AUDUSD": "AUSTRALIAN DOLLAR",
+  "NZDUSD": "NEW ZEALAND DOLLAR",
+  "USDCAD": "CANADIAN DOLLAR",
+  "EURGBP": "EURO FX",
+  "EURJPY": "EURO FX",
+  "EURCHF": "EURO FX",
+  "EURAUD": "EURO FX",
+  "EURCAD": "EURO FX",
+  "EURNZD": "EURO FX",
+  "GBPJPY": "BRITISH POUND",
+  "GBPCHF": "BRITISH POUND",
+  "GBPAUD": "BRITISH POUND",
+  "GBPCAD": "BRITISH POUND",
+  "GBPNZD": "BRITISH POUND",
+  "AUDJPY": "AUSTRALIAN DOLLAR",
+  "AUDNZD": "AUSTRALIAN DOLLAR",
+  "AUDCHF": "AUSTRALIAN DOLLAR",
+  "AUDCAD": "AUSTRALIAN DOLLAR",
+  "CADJPY": "CANADIAN DOLLAR",
+  "CADCHF": "CANADIAN DOLLAR",
+  "CHFJPY": "SWISS FRANC",
+  "NZDJPY": "NEW ZEALAND DOLLAR",
+  "NZDCHF": "NEW ZEALAND DOLLAR",
+  "NZDCAD": "NEW ZEALAND DOLLAR",
+  "US30": null,
+  "NAS100": null,
+  "XAUUSD": null,
+  "BTCUSD": null,
+  "ETHUSD": null
+};
+
+function getCOTCurrency(pair) {
+  return cotMap[pair.toUpperCase()] || null;
+}
+
+module.exports = { getCOTCurrency };

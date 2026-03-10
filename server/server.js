@@ -68,7 +68,8 @@ const tvAlertsRoutes = require('./routes/tvAlertsRoutes');
 const finalTvSignalsRoute = require("./routes/finalTvSignals");
 const getStartedRoutes = require('./routes/routesGetstarted');
 
-
+// Near other route imports
+const cotRoutes = require("./routes/cotMapping");
 const referralCheckRoutes = require("./routes/routesReferralCheck");
 const ftsaCliRoutes = require("./routes/routesftsaaicli");
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -273,7 +274,9 @@ console.log('✅ /api/getstarted routes mounted');
 
 app.use("/api", ftsaCliRoutes);
 console.log("✅ /api/ftsaaicli routes mounted");
-
+// Later, after app.use(express.json());
+app.use("/api", cotRoutes);
+console.log("✅ /api/ftsacot routes mounted");
 
 // Simple test route
 app.get('/', (req, res) => {
