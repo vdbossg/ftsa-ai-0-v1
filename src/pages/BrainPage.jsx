@@ -108,6 +108,7 @@ const tdVerticalLineStyle = {
   borderBottom: "1px solid #252e2eff",
   borderRight: "1px solid #00FFFF",
   padding: "0.5rem",
+  textAlign: "center",  // <-- added
 };
 
 const lastTdStyle = {
@@ -498,7 +499,7 @@ const allPairs =  [
     >
       
   <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
-<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+<div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-start" }}>
   {/* High-Impact News Panel */}
   <div style={{
     textAlign: "right",
