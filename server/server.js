@@ -67,7 +67,14 @@ const withdrawalRoutes = require("./routes/routesWithdrawalRequest");
 const tvAlertsRoutes = require('./routes/tvAlertsRoutes');
 const finalTvSignalsRoute = require("./routes/finalTvSignals");
 const getStartedRoutes = require('./routes/routesGetstarted');
+const topdownRoutes = require('./routes/routesTopdownStrength');
 
+const { setWebSocketServer: topdownWS } = require('./services/servicesTopdownStrength');
+
+// Inside your existing brain loop (or WS loop) every 5s:
+const { updateAllTopdownSymbols } = require('./services/servicesTopdownStrength');
+
+const { allPairs, candlesStore } = require('./services/brainService');
 // Near other route imports
 const cotRoutes = require("./routes/cotMapping");
 const referralCheckRoutes = require("./routes/routesReferralCheck");
@@ -149,7 +156,8 @@ app.use((req, res, next) => {
 });
 
 
-
+app.use('/api/topdownstrength', topdownRoutes);
+console.log('✅ /api/topdownstrength routes mounted');
 
 app.use('/api/user', userRoutes);
 console.log('✅ /api/user routes mounted');
@@ -333,7 +341,7 @@ wss.on('connection', (ws) => {
 
 
 const { setWebSocketServer: strongestPairWS, startWatcher } = require('./services/strongestPairWatcher');
-
+topdownWS(wss);
 strongestPairWS(wss); // connect WS server
 startWatcher(5000);    // check every 5 seconds
 
@@ -354,6 +362,22 @@ setInterval(async () => {
 }, 5000);
 
 
+// ✅ server.js — replace the old interval
+async function updateTopdownIfCandlesReady() {
+  const readySymbols = allPairs.filter(s => candlesStore[s]?.[14400]?.length >= 7);
+  if (readySymbols.length === 0) return; // wait for candles
+
+  await updateAllTopdownSymbols(readySymbols);
+}
+
+// Run every 5 seconds
+setInterval(async () => {
+  try {
+    await updateTopdownIfCandlesReady();
+  } catch (err) {
+    console.error("Failed updating TopdownStrength:", err.message);
+  }
+}, 5000);
 // Start server (both Express + WS)
 server.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT} with WS support`);

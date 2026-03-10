@@ -1,3 +1,12 @@
+
+
+
+
+
+
+
+
+
 // server/services/brainService.js
 // Production-grade brain service: real Deriv data → deterministic HTF strength, clean strongest selection.
 // No mocks, no randomness. Tunable constants at the top.
@@ -49,7 +58,8 @@ const allPairs = Array.isArray(configPairs) && configPairs.length > 0
 // ---------- TUNABLE CONSTANTS ----------
 const DERIV_API_TOKEN = process.env.DERIV_API_TOKEN;
 const DERIV_APP_ID = process.env.DERIV_APP_ID || 1089;
-const MOMENTUM_SCALE_PCT = 1.0; // 1% momentum -> 100 strength
+const MOMENTUM_SCALE_PCT = 2.0; // 1% momentum -> 100 strength
+
 const STRONG_PAIR_THRESHOLD = 80; // require ≥80 to be selected as daily trade
 const COLOR_GREEN = 80; // ≥ 80 -> 🟩
 const COLOR_ORANGE = 60; // ≥ 60 -> 🟧 else 🟥
@@ -127,13 +137,24 @@ function connectDerivWS() {
     if (DERIV_API_TOKEN) derivWS.send(JSON.stringify({ authorize: DERIV_API_TOKEN }));
 
     allPairs.forEach(pair => {
-      try {
-        subscribePair(pair, 900);    
-        subscribePair(pair, 14400);  
-      } catch (e) {
-        console.error("❌ subscribePair error:", e?.message || e);
-      }
-    });
+  try {
+
+    // 1D
+    subscribePair(pair, 86400);
+
+    // 4H
+    subscribePair(pair, 14400);
+
+    // 1H
+    subscribePair(pair, 3600);
+
+    // 30M
+    subscribePair(pair, 1800);
+
+  } catch (e) {
+    console.error("❌ subscribePair error:", e?.message || e);
+  }
+});
   });
 
   derivWS.on('message', (msg) => {
@@ -361,5 +382,6 @@ module.exports = {
   updateBrainData,
   startBrainLoop,
   getStrongestPair,
-  candlesStore
+  candlesStore,
+  allPairs   // ← ADD THIS LINE
 };

@@ -153,7 +153,6 @@ const fetchEaUpdates = async () => {
     console.error("Error fetching EA updates:", err);
   }
 };
-
 const updatePendingTrade = async () => {
   if (!filteredSignals.length || !marketStrength.length) return;
 
@@ -174,7 +173,7 @@ const updatePendingTrade = async () => {
 
   const top3PairData = top3Pairs.find(p => p.pair === validSignal.symbol);
 
-  // Fetch COT bias for this symbol
+  // Fetch COT bias
   let cotData;
   try {
     const resp = await fetch(`http://localhost:5000/api/ftsacot/${validSignal.symbol}`);
@@ -185,15 +184,31 @@ const updatePendingTrade = async () => {
     return;
   }
 
-  // Convert signals to unified bias
+  // Fetch Top-Down Strength bias
+  let topDownData;
+  try {
+    const resp = await fetch(`http://localhost:5000/api/topdownstrength/${validSignal.symbol}`);
+    topDownData = await resp.json();
+  } catch (err) {
+    console.error("Failed to fetch Top-Down Strength:", err);
+    setPendingTrade(null);
+    return;
+  }
+
+  // Normalize all biases
   const signalBias = validSignal.type === "BUY" ? "bullish" :
                      validSignal.type === "SELL" ? "bearish" : "neutral";
+
   const top3Bias = (top3PairData.trend || "").toLowerCase();
+  
   const cotBias = (cotData.bias || "neutral").toLowerCase().includes("bull") ? "bullish" :
                   (cotData.bias || "neutral").toLowerCase().includes("bear") ? "bearish" : "neutral";
 
-  // Only proceed if all three biases match
-  if (signalBias === top3Bias && top3Bias === cotBias) {
+  const topDownBias = (topDownData.multiTFBias || "neutral").toLowerCase().includes("bull") ? "bullish" :
+                      (topDownData.multiTFBias || "neutral").toLowerCase().includes("bear") ? "bearish" : "neutral";
+
+  // Only proceed if all four biases match
+  if (signalBias === top3Bias && top3Bias === cotBias && cotBias === topDownBias) {
     if (pendingTrade?.symbol === validSignal.symbol) return; // already same
     setPendingTrade({
       symbol: validSignal.symbol,
@@ -518,6 +533,36 @@ const allPairs =  [
   </div>
 </section>
 )}
+{pendingTrade && topDownData && (
+  <section style={scrollableTableContainer}>
+    <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Top-Down Strength (TDS)</h2>
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ ...tableStyle, minWidth: "600px" }}>
+        <thead>
+          <tr>
+            <th style={thShadowStyle}>Symbol</th>
+            <th style={thShadowStyle}>1D</th>
+            <th style={thShadowStyle}>4H</th>
+            <th style={thShadowStyle}>1H</th>
+            <th style={thShadowStyle}>30M</th>
+            <th style={thShadowStyle}>multiTFBias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={tdVerticalLineStyle}>{topDownData.symbol}</td>
+            <td style={tdVerticalLineStyle}>{topDownData.timeframes["1D"].bias}</td>
+            <td style={tdVerticalLineStyle}>{topDownData.timeframes["4H"].bias}</td>
+            <td style={tdVerticalLineStyle}>{topDownData.timeframes["1H"].bias}</td>
+            <td style={tdVerticalLineStyle}>{topDownData.timeframes["30M"].bias}</td>
+            <td style={lastTdStyle}>{topDownData.multiTFBias}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+)}
+
       {/* Market Strength Table */}
       <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Market Strength</h2>
