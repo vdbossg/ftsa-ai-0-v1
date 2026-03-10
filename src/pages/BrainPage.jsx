@@ -160,7 +160,13 @@ const fetchEaUpdates = async () => {
   }
 };
 const updatePendingTrade = async () => {
-  if (!filteredSignals.length || !marketStrength.length) return;
+  // 🚫 BLOCK NEW TRADES DURING NEWS WINDOW
+if (currentNews || nextNews || recentNewsWithinHour) {
+  console.log("🚫 Trade blocked due to news window");
+  return;
+}
+
+if (!filteredSignals.length || !marketStrength.length) return;
 
   // Get top 3 strongest pairs
   const top3Pairs = [...marketStrength]
@@ -323,9 +329,20 @@ useEffect(() => {
     return { ...n, dateTime: new Date(`${cleanDate} ${timeStr}`) };
   }).sort((a,b) => a.dateTime - b.dateTime);
 
-  const ongoing = newsTimes.find(n => n.impact === "🟥" && now >= n.dateTime && now <= new Date(n.dateTime.getTime() + 60*60*1000));
-  const upcoming = newsTimes.find(n => n.dateTime > now);
-  const recent = newsTimes.find(n => now > new Date(n.dateTime.getTime() + 60*60*1000) && now - (n.dateTime.getTime() + 60*60*1000) <= 3600000);
+  const ongoing = newsTimes.find(n => 
+  n.impact === "🟥" &&
+  now >= n.dateTime &&
+  now <= new Date(n.dateTime.getTime() + 15 * 60 * 1000)
+);
+  const upcoming = newsTimes.find(n => {
+  const startWindow = new Date(n.dateTime.getTime() - 60 * 60 * 1000);
+  return now >= startWindow && now < n.dateTime;
+});
+  const recent = newsTimes.find(n => {
+  const endActive = new Date(n.dateTime.getTime() + 15 * 60 * 1000);
+  const cooldownEnd = new Date(n.dateTime.getTime() + 60 * 60 * 1000);
+  return now > endActive && now <= cooldownEnd;
+});
 
   setCurrentNews(ongoing || null);
   setNextNews(upcoming || null);
@@ -333,11 +350,11 @@ useEffect(() => {
 
   // countdown logic
   if (ongoing) {
-    setCountdown(Math.max(0, Math.floor((ongoing.dateTime.getTime() + 60*60*1000 - now.getTime())/1000)));
+    setCountdown(Math.max(0, Math.floor((ongoing.dateTime.getTime() + 15*60*1000 - now.getTime())/1000)));
   } else if (upcoming) {
     setCountdown(Math.max(0, Math.floor((upcoming.dateTime.getTime() - now.getTime())/1000)));
   } else if (recent) {
-    setCountdown(Math.max(0, Math.floor((3600 - (now - (recent.dateTime.getTime() + 60*60*1000)))/1000)));
+    setCountdown(Math.max(0, Math.floor((recent.dateTime.getTime() + 60*60*1000 - now.getTime())/1000)));
   } else {
     setCountdown("");
   }
