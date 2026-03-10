@@ -26,6 +26,7 @@ const [pendingTrade, setPendingTrade] = useState(null); // for a single valid tr
 const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
 const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); // default 1000 or whatever you want as initial balance
 const [cotData, setCotData] = useState(null); // holds COT data for today's trade
+const [topDownData, setTopDownData] = useState(null); // holds Top-Down Strength for pending trade
 // Fetch live account balances from MT and Prop accounts
 useEffect(() => {
   const fetchAccounts = async () => {
@@ -185,15 +186,17 @@ const updatePendingTrade = async () => {
   }
 
   // Fetch Top-Down Strength bias
-  let topDownData;
-  try {
-    const resp = await fetch(`http://localhost:5000/api/topdownstrength/${validSignal.symbol}`);
-    topDownData = await resp.json();
-  } catch (err) {
-    console.error("Failed to fetch Top-Down Strength:", err);
-    setPendingTrade(null);
-    return;
-  }
+ // Fetch Top-Down Strength bias
+let topDownResponse;
+try {
+  const resp = await fetch(`http://localhost:5000/api/topdownstrength/${validSignal.symbol}`);
+  topDownResponse = await resp.json();
+  setTopDownData(topDownResponse); // <-- store in state
+} catch (err) {
+  console.error("Failed to fetch Top-Down Strength:", err);
+  setPendingTrade(null);
+  return;
+}
 
   // Normalize all biases
   const signalBias = validSignal.type === "BUY" ? "bullish" :
