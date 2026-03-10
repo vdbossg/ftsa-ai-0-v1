@@ -20,7 +20,11 @@ export default function BrainPage() {
   dailyMaxLoss: 1,
   tpTargets: "tp1",
 });
-
+const [todayNews, setTodayNews] = useState([]);
+const [currentNews, setCurrentNews] = useState(null);
+const [nextNews, setNextNews] = useState(null);
+const [recentNewsWithinHour, setRecentNewsWithinHour] = useState(null);
+const [countdown, setCountdown] = useState("");
 const [saveMessage, setSaveMessage] = useState(""); // for showing save confirmation
 const [pendingTrade, setPendingTrade] = useState(null); // for a single valid trade from TV + Top3
 const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
@@ -291,6 +295,56 @@ useEffect(() => {
     if (ws) ws.close();
   };
 }, []);
+useEffect(() => {
+  const fetchNews = async () => {
+    try {
+      const resp = await fetch("http://localhost:5000/api/news/today");
+      const data = await resp.json();
+      if (data.success && Array.isArray(data.data)) {
+        setTodayNews(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch news:", err);
+    }
+  };
+
+  fetchNews();
+  const interval = setInterval(fetchNews, 60000); // refresh every 60s
+  return () => clearInterval(interval);
+}, []);
+useEffect(() => {
+  if (!todayNews.length) return;
+
+  const now = new Date();
+  const newsTimes = todayNews.map(n => {
+    let cleanDate = n.date.replace(/\n/g, " "); 
+    let timeStr = n.time.includes("am") || n.time.includes("pm") ? n.time : "00:00";
+    return { ...n, dateTime: new Date(`${cleanDate} ${timeStr}`) };
+  }).sort((a,b) => a.dateTime - b.dateTime);
+
+  const ongoing = newsTimes.find(n => n.impact === "🟥" && now >= n.dateTime && now <= new Date(n.dateTime.getTime() + 60*60*1000));
+  const upcoming = newsTimes.find(n => n.dateTime > now);
+  const recent = newsTimes.find(n => now > new Date(n.dateTime.getTime() + 60*60*1000) && now - (n.dateTime.getTime() + 60*60*1000) <= 3600000);
+
+  setCurrentNews(ongoing || null);
+  setNextNews(upcoming || null);
+  setRecentNewsWithinHour(recent || null);
+
+  // countdown logic
+  if (ongoing) {
+    setCountdown(Math.max(0, Math.floor((ongoing.dateTime.getTime() + 60*60*1000 - now.getTime())/1000)));
+  } else if (upcoming) {
+    setCountdown(Math.max(0, Math.floor((upcoming.dateTime.getTime() - now.getTime())/1000)));
+  } else if (recent) {
+    setCountdown(Math.max(0, Math.floor((3600 - (now - (recent.dateTime.getTime() + 60*60*1000)))/1000)));
+  } else {
+    setCountdown("");
+  }
+
+  const timer = setInterval(() => setCountdown(prev => prev > 0 ? prev-1 : 0), 1000);
+  return () => clearInterval(timer);
+
+}, [todayNews]);
 // Auto-refresh brain data every 5 seconds
 useEffect(() => {
   const interval = setInterval(() => {
@@ -443,6 +497,47 @@ const allPairs =  [
       }}
     >
       <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+  <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
+
+  {/* High-Impact News Panel */}
+  <div style={{
+    textAlign: "right",
+    fontSize: "0.9rem",
+    backgroundColor: "#111",
+    border: "2px solid #00FFFF",
+    borderRadius: "8px",
+    padding: "0.5rem 1rem",
+    minWidth: "280px",
+    boxShadow: "0 0 10px #00FFFF"
+  }}>
+    {currentNews ? (
+      <>
+        <div>{currentNews.currency} 🟥 ONGOING</div>
+        <div>{currentNews.event}</div>
+        <div>{currentNews.date} {currentNews.time} | Ends in {countdown}s</div>
+      </>
+    ) : nextNews ? (
+      <>
+        <div>{nextNews.currency} 🟧 Upcoming</div>
+        <div>{nextNews.event}</div>
+        <div>{nextNews.date} {nextNews.time} | Countdown: {countdown}s</div>
+      </>
+    ) : recentNewsWithinHour ? (
+      <>
+        <div>{recentNewsWithinHour.currency} 🟩 Ended</div>
+        <div>Waiting market to stabilize</div>
+        <div>Countdown: {countdown}s</div>
+      </>
+    ) : (
+      <>
+        <div>⚪ No High-Impact Event</div>
+        <div>[—]</div>
+        <div>[—]</div>
+      </>
+    )}
+  </div>
+</div>
 
       {loading && <p style={{ color: "#00FFFF" }}>Loading AI brain data...</p>}
       {error && <p style={{ color: "#FF0000" }}>{error}</p>}
