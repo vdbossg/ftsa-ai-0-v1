@@ -73,11 +73,16 @@ const { setWebSocketServer: topdownWS } = require('./services/servicesTopdownStr
 const currentUserBpRoutes = require("./routes/routesCurrentUserBp");
 // Inside your existing brain loop (or WS loop) every 5s:
 const { updateAllTopdownSymbols } = require('./services/servicesTopdownStrength');
-
+const currentUserRoutes = require("./routes/currentUser");
 const { allPairs, candlesStore } = require('./services/brainService');
 // Near other route imports
 const cotRoutes = require("./routes/cotMapping");
 const referralCheckRoutes = require("./routes/routesReferralCheck");
+const toggleRoutes = require("./routes/routestoggleButton");
+
+
+
+
 const ftsaCliRoutes = require("./routes/routesftsaaicli");
 console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB(); // Connect to MongoDB
@@ -154,6 +159,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+app.use("/api/brain", toggleRoutes);
+console.log("✅ /api/brain/risk-state/toggle route mounted");
+app.use("/api", currentUserRoutes);
+console.log("✅ /api/current-user route mounted");
 app.use("/api", riskStateRoutes);
 console.log("✅ /api/brain/risk-state routes mounted");
 app.use("/api", currentUserBpRoutes);

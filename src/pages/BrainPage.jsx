@@ -31,6 +31,7 @@ const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
 const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); // default 1000 or whatever you want as initial balance
 const [cotData, setCotData] = useState(null); // holds COT data for today's trade
 const [topDownData, setTopDownData] = useState(null); // holds Top-Down Strength for pending trade
+const [currentUser, setCurrentUser] = useState(null);
 const [riskState, setRiskState] = useState(null);
 const toggleRSC = async () => {
   if (!riskState || togglingRSC) return;
@@ -286,6 +287,26 @@ try {
 };
 useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
 useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
+useEffect(() => {
+  const fetchCurrentUser = async () => {
+    try {
+      const resp = await fetch("http://localhost:5000/api/current-user");
+      const userData = await resp.json();
+
+      if (userData?.userId) {
+        // Fetch full user info for name
+        const fullResp = await fetch(`http://localhost:5000/api/CurrentUserBp/${userData.userId}`);
+        const fullData = await fullResp.json();
+
+        if (fullData.success) setCurrentUser(fullData.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch current user:", err);
+    }
+  };
+
+  fetchCurrentUser();
+}, []);
 useEffect(() => {
   (async () => {
     await updatePendingTrade();
@@ -593,6 +614,11 @@ const allPairs =  [
     >
       
   <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
+  {currentUser && (
+  <h3 style={{ textShadow: "0 0 6px #00FFFF", marginTop: "0.5rem" }}>
+    Welcome, {currentUser.name.charAt(0).toUpperCase() + currentUser.name.slice(1)}!
+  </h3>
+)}
 <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-start" }}>
   {/* High-Impact News Panel */}
   <div style={{
