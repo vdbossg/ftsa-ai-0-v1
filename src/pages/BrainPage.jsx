@@ -4,8 +4,7 @@ import { useBrainData } from "../contexts/BrainDataContext";
 import NeonButton from "../components/NeonButton";
 import APIControl from "../brain/APIControl"; // for fetching brain data, market strength, CHoCH
 import { useRef } from "react"; // at top of file
-// for dynamic user ID
-import getCurrentUserId from "../utils/getCurrentUserId";
+
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
 
@@ -40,30 +39,39 @@ const toggleRSC = async () => {
   const newStatus = riskState.autoTrade.status === "RUNNING" ? "STOPPED" : "RUNNING";
 
   try {
-  const userId = await getCurrentUserId();
-  if (!userId) return; // exit if no current user
+
+  // get active user from watcher
+  const userResp = await fetch("http://localhost:5000/api/current-user");
+  const userData = await userResp.json();
+
+  if (!userData.userId) {
+    console.error("No logged-in user");
+    return;
+  }
 
   const resp = await fetch("http://localhost:5000/api/brain/risk-state/toggle", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      userId,
+      userId: userData.userId,
       status: newStatus,
     }),
   });
 
-  const data = await resp.json();
-  if (data.success) {
-    setRiskState(prev => ({
-      ...prev,
-      autoTrade: { status: newStatus },
-    }));
+
+    const data = await resp.json();
+
+    if (data.success) {
+      setRiskState(prev => ({
+        ...prev,
+        autoTrade: { status: newStatus },
+      }));
+    }
+  } catch (err) {
+    console.error("Failed to toggle RSC:", err);
+  } finally {
+    setTogglingRSC(false);
   }
-} catch (err) {
-  console.error("Failed to toggle RSC:", err);
-} finally {
-  setTogglingRSC(false);
-}
 };
 const [riskLoading, setRiskLoading] = useState(false);
 const [togglingRSC, setTogglingRSC] = useState(false);
@@ -305,22 +313,35 @@ useEffect(() => {
 }, [pendingTrade]);
 
 useEffect(() => {
-  const fetchRiskState = async () => {
-    const userId = await getCurrentUserId();
-    if (!userId) return;
 
+  const fetchRiskState = async () => {
     try {
-      const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
+
+      const userResp = await fetch("http://localhost:5000/api/current-user");
+      const userData = await userResp.json();
+
+      if (!userData.userId) return;
+
+      const resp = await fetch(
+        `http://localhost:5000/api/brain/risk-state/${userData.userId}`
+      );
+
       const data = await resp.json();
-      if (data.success) setRiskState(data.data);
+
+      if (data.success) {
+        setRiskState(data.data);
+      }
+
     } catch (err) {
       console.error("Failed to fetch Risk State:", err);
     }
   };
 
   fetchRiskState();
+
   const interval = setInterval(fetchRiskState, 3000);
   return () => clearInterval(interval);
+
 }, []);
 useEffect(() => {
   let ws;
