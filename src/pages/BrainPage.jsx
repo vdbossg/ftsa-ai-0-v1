@@ -33,6 +33,37 @@ const [cotData, setCotData] = useState(null); // holds COT data for today's trad
 const [topDownData, setTopDownData] = useState(null); // holds Top-Down Strength for pending trade
 const [riskState, setRiskState] = useState(null);
 const [riskLoading, setRiskLoading] = useState(false);
+const [togglingRSC, setTogglingRSC] = useState(false);
+const toggleRSC = async () => {
+  if (!riskState || togglingRSC) return; // stop if not loaded or already toggling
+  setTogglingRSC(true);
+
+  const newStatus = riskState.autoTrade.status === "RUNNING" ? "STOPPED" : "RUNNING";
+
+  try {
+    const resp = await fetch("http://localhost:5000/api/brain/risk-state/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: "6948f28e020e8794071b5c5d",
+        status: newStatus,
+      }),
+    });
+
+    const data = await resp.json();
+
+    if (data.success) {
+      setRiskState(prev => ({
+        ...prev,
+        autoTrade: { status: newStatus },
+      }));
+    }
+  } catch (err) {
+    console.error("Failed to toggle RSC:", err);
+  } finally {
+    setTogglingRSC(false);
+  }
+};
 // Fetch live account balances from MT and Prop accounts
 useEffect(() => {
   const fetchAccounts = async () => {
@@ -268,39 +299,7 @@ useEffect(() => {
 
   fetchCotForPendingTrade();
 }, [pendingTrade]);
-const toggleRSC = async () => {
-  if (!riskState) return;
 
-  const newStatus =
-    riskState.autoTrade.status === "RUNNING"
-      ? "STOPPED"
-      : "RUNNING";
-
-  try {
-    const resp = await fetch(
-      "http://localhost:5000/api/brain/risk-state/toggle",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: "6948f28e020e8794071b5c5d",
-          status: newStatus,
-        }),
-      }
-    );
-
-    const data = await resp.json();
-
-    if (data.success) {
-      setRiskState(prev => ({
-        ...prev,
-        autoTrade: { status: newStatus },
-      }));
-    }
-  } catch (err) {
-    console.error("Failed to toggle RSC:", err);
-  }
-};
 useEffect(() => {
   const userId = "6948f28e020e8794071b5c5d"; // later this should come from login/session
 
@@ -973,27 +972,20 @@ const allPairs =  [
   </h2>
 
   <button
-    onClick={toggleRSC}
-    style={{
-      padding: "6px 14px",
-      borderRadius: "20px",
-      border: "1px solid #00FFFF",
-      background:
-        riskState?.autoTrade.status === "RUNNING"
-          ? "#003300"
-          : "#330000",
-      color:
-        riskState?.autoTrade.status === "RUNNING"
-          ? "#00FF00"
-          : "#FF0000",
-      cursor: "pointer",
-      fontFamily: "Orbitron"
-    }}
-  >
-    {riskState?.autoTrade.status === "RUNNING"
-      ? "ON"
-      : "OFF"}
-  </button>
+  onClick={toggleRSC}
+  disabled={togglingRSC} // disable while processing
+  style={{
+    padding: "6px 14px",
+    borderRadius: "20px",
+    border: "1px solid #00FFFF",
+    background: riskState?.autoTrade?.status === "RUNNING" ? "#003300" : "#330000",
+    color: riskState?.autoTrade?.status === "RUNNING" ? "#00FF00" : "#FF0000",
+    cursor: togglingRSC ? "not-allowed" : "pointer",
+    fontFamily: "Orbitron"
+  }}
+>
+  {togglingRSC ? "Toggling..." : riskState?.autoTrade?.status === "RUNNING" ? "ON" : "OFF"}
+</button>
 </div>
 
   {!riskState ? (
