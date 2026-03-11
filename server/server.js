@@ -68,9 +68,9 @@ const tvAlertsRoutes = require('./routes/tvAlertsRoutes');
 const finalTvSignalsRoute = require("./routes/finalTvSignals");
 const getStartedRoutes = require('./routes/routesGetstarted');
 const topdownRoutes = require('./routes/routesTopdownStrength');
-
+const riskStateRoutes = require("./routes/routesRiskStateCenter");
 const { setWebSocketServer: topdownWS } = require('./services/servicesTopdownStrength');
-
+const currentUserBpRoutes = require("./routes/routesCurrentUserBp");
 // Inside your existing brain loop (or WS loop) every 5s:
 const { updateAllTopdownSymbols } = require('./services/servicesTopdownStrength');
 
@@ -154,8 +154,10 @@ app.use((req, res, next) => {
   }
   next();
 });
-
-
+app.use("/api", riskStateRoutes);
+console.log("✅ /api/brain/risk-state routes mounted");
+app.use("/api", currentUserBpRoutes);
+console.log("✅ /api/CurrentUserBp route mounted");
 app.use('/api/topdownstrength', topdownRoutes);
 console.log('✅ /api/topdownstrength routes mounted');
 

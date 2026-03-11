@@ -31,6 +31,8 @@ const [eaUpdatedTrades, setEaUpdatedTrades] = useState([]);
 const [accountTotals, setAccountTotals] = useState({ balance: 1000 }); // default 1000 or whatever you want as initial balance
 const [cotData, setCotData] = useState(null); // holds COT data for today's trade
 const [topDownData, setTopDownData] = useState(null); // holds Top-Down Strength for pending trade
+const [riskState, setRiskState] = useState(null);
+const [riskLoading, setRiskLoading] = useState(false);
 // Fetch live account balances from MT and Prop accounts
 useEffect(() => {
   const fetchAccounts = async () => {
@@ -266,6 +268,28 @@ useEffect(() => {
 
   fetchCotForPendingTrade();
 }, [pendingTrade]);
+useEffect(() => {
+  const userId = "6948f28e020e8794071b5c5d"; // later this should come from login/session
+
+  const fetchRiskState = async () => {
+    try {
+      const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
+      const data = await resp.json();
+
+      if (data.success) {
+        setRiskState(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Risk State:", err);
+    }
+  };
+
+  fetchRiskState();
+
+  const interval = setInterval(fetchRiskState, 3000); // refresh every 3 seconds
+  return () => clearInterval(interval);
+
+}, []);
 useEffect(() => {
   let ws;
 
@@ -893,24 +917,107 @@ const allPairs =  [
   </div>
 </section>
 
+{/* Risk State Center */}
+<section
+  style={{
+    marginBottom: "2rem",
+    border: "1px solid #00FFFF",
+    padding: "1rem",
+    borderRadius: "12px",
+    boxShadow: "0 0 10px #00FFFF",
+  }}
+>
+  <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>
+    Risk State Center (RSC)
+  </h2>
 
-      {/* Auto Trade Control */}
-      <section
-        style={{
-          marginBottom: "2rem",
-          border: "1px solid #00FFFF",
-          padding: "1rem",
-          borderRadius: "12px",
-          boxShadow: "0 0 10px #00FFFF",
-        }}
-      >
-        <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Auto-Trade Control</h2>
-        <div style={{ display: "flex", gap: "1rem", marginBottom: "0.5rem" }}>
-          <NeonButton onClick={() => toggleAutoTrade(true)}>Start</NeonButton>
-          <NeonButton onClick={() => toggleAutoTrade(false)}>Stop</NeonButton>
-        </div>
-        <p>Status: {autoTradeStatus || "Unknown"}</p>
-      </section>
+  {!riskState ? (
+    <p>Loading Risk State...</p>
+  ) : (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <tbody>
+
+        <tr>
+          <td>Date</td>
+          <td>{riskState.date}</td>
+        </tr>
+
+        <tr>
+          <td>Status</td>
+          <td
+            style={{
+              color:
+                riskState.autoTrade.status === "RUNNING"
+                  ? "#00FF00"
+                  : "#FF0000",
+            }}
+          >
+            {riskState.autoTrade.status}
+          </td>
+        </tr>
+
+        <tr>
+          <td>Max Trades</td>
+          <td>{riskState.limits.maxTrades}</td>
+        </tr>
+
+        <tr>
+          <td>Daily Max Loss</td>
+          <td>{riskState.limits.dailyMaxLoss}%</td>
+        </tr>
+
+        <tr>
+          <td>Trades Taken</td>
+          <td>{riskState.today.tradesTaken}</td>
+        </tr>
+
+        <tr>
+          <td>Remaining Trades</td>
+          <td>{riskState.today.remainingTrades}</td>
+        </tr>
+
+        <tr>
+          <td>Total Loss Today</td>
+          <td>{riskState.today.totalLossPercent}%</td>
+        </tr>
+
+        <tr>
+          <td>Pending Trades</td>
+          <td>{riskState.todayTrades.pending}</td>
+        </tr>
+
+        <tr>
+          <td>Active Trades</td>
+          <td>{riskState.todayTrades.active}</td>
+        </tr>
+
+        <tr>
+          <td>Closed Trades</td>
+          <td>{riskState.todayTrades.closed}</td>
+        </tr>
+
+        <tr>
+          <td>Can Trade</td>
+          <td
+            style={{
+              color: riskState.permissions.canTrade
+                ? "#00FF00"
+                : "#FF0000",
+            }}
+          >
+            {riskState.permissions.canTrade ? "YES" : "NO"}
+          </td>
+        </tr>
+
+        <tr>
+          <td>Blocked Reason</td>
+          <td>{riskState.permissions.blockedReason || "-"}</td>
+        </tr>
+
+      </tbody>
+    </table>
+  )}
+</section>
 {/* Top 3 Pairs */}
    <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Top 3 Pairs</h2>
