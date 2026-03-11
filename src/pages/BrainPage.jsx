@@ -4,7 +4,21 @@ import { useBrainData } from "../contexts/BrainDataContext";
 import NeonButton from "../components/NeonButton";
 import APIControl from "../brain/APIControl"; // for fetching brain data, market strength, CHoCH
 import { useRef } from "react"; // at top of file
+// Helper to get current logged-in userId from currentWatcherUser.json
+import fs from "fs";
+import path from "path";
 
+const getCurrentUserId = () => {
+  try {
+    const watcherPath = path.join(__dirname, "currentWatcherUser.json"); // adjust path if needed
+    const data = fs.readFileSync(watcherPath, "utf8");
+    const json = JSON.parse(data);
+    return json.userId || null;
+  } catch (err) {
+    console.error("❌ Failed to read currentWatcherUser.json:", err);
+    return null;
+  }
+};
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
 
@@ -39,15 +53,17 @@ const toggleRSC = async () => {
   const newStatus = riskState.autoTrade.status === "RUNNING" ? "STOPPED" : "RUNNING";
 
   try {
-    const resp = await fetch("http://localhost:5000/api/brain/risk-state/toggle", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: "6948f28e020e8794071b5c5d",
-        status: newStatus,
-      }),
-    });
+  const userId = getCurrentUserId(); // ✅ get dynamic userId
+  if (!userId) return console.error("No current user found"); // safety check
 
+  const resp = await fetch("http://localhost:5000/api/brain/risk-state/toggle", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId,   // use dynamic userId
+      status: newStatus,
+    }),
+  });
     const data = await resp.json();
 
     if (data.success) {
@@ -302,9 +318,10 @@ useEffect(() => {
 }, [pendingTrade]);
 
 useEffect(() => {
-  const userId = "6948f28e020e8794071b5c5d"; // later this should come from login/session
-
   const fetchRiskState = async () => {
+    const userId = getCurrentUserId();
+    if (!userId) return console.error("No current user found");
+
     try {
       const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
       const data = await resp.json();
@@ -318,10 +335,8 @@ useEffect(() => {
   };
 
   fetchRiskState();
-
   const interval = setInterval(fetchRiskState, 3000); // refresh every 3 seconds
   return () => clearInterval(interval);
-
 }, []);
 useEffect(() => {
   let ws;
