@@ -4,21 +4,8 @@ import { useBrainData } from "../contexts/BrainDataContext";
 import NeonButton from "../components/NeonButton";
 import APIControl from "../brain/APIControl"; // for fetching brain data, market strength, CHoCH
 import { useRef } from "react"; // at top of file
-// Helper to get current logged-in userId from currentWatcherUser.json
-import fs from "fs";
-import path from "path";
-
-const getCurrentUserId = () => {
-  try {
-    const watcherPath = path.join(__dirname, "currentWatcherUser.json"); // adjust path if needed
-    const data = fs.readFileSync(watcherPath, "utf8");
-    const json = JSON.parse(data);
-    return json.userId || null;
-  } catch (err) {
-    console.error("❌ Failed to read currentWatcherUser.json:", err);
-    return null;
-  }
-};
+// for dynamic user ID
+import getCurrentUserId from "../utils/getCurrentUserId";
 export default function BrainPage() {
   const { autoTradeStatus, toggleAutoTrade } = useBrainData();
 
@@ -53,30 +40,30 @@ const toggleRSC = async () => {
   const newStatus = riskState.autoTrade.status === "RUNNING" ? "STOPPED" : "RUNNING";
 
   try {
-  const userId = getCurrentUserId(); // ✅ get dynamic userId
-  if (!userId) return console.error("No current user found"); // safety check
+  const userId = await getCurrentUserId();
+  if (!userId) return; // exit if no current user
 
   const resp = await fetch("http://localhost:5000/api/brain/risk-state/toggle", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      userId,   // use dynamic userId
+      userId,
       status: newStatus,
     }),
   });
-    const data = await resp.json();
 
-    if (data.success) {
-      setRiskState(prev => ({
-        ...prev,
-        autoTrade: { status: newStatus },
-      }));
-    }
-  } catch (err) {
-    console.error("Failed to toggle RSC:", err);
-  } finally {
-    setTogglingRSC(false);
+  const data = await resp.json();
+  if (data.success) {
+    setRiskState(prev => ({
+      ...prev,
+      autoTrade: { status: newStatus },
+    }));
   }
+} catch (err) {
+  console.error("Failed to toggle RSC:", err);
+} finally {
+  setTogglingRSC(false);
+}
 };
 const [riskLoading, setRiskLoading] = useState(false);
 const [togglingRSC, setTogglingRSC] = useState(false);
@@ -319,23 +306,20 @@ useEffect(() => {
 
 useEffect(() => {
   const fetchRiskState = async () => {
-    const userId = getCurrentUserId();
-    if (!userId) return console.error("No current user found");
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     try {
       const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
       const data = await resp.json();
-
-      if (data.success) {
-        setRiskState(data.data);
-      }
+      if (data.success) setRiskState(data.data);
     } catch (err) {
       console.error("Failed to fetch Risk State:", err);
     }
   };
 
   fetchRiskState();
-  const interval = setInterval(fetchRiskState, 3000); // refresh every 3 seconds
+  const interval = setInterval(fetchRiskState, 3000);
   return () => clearInterval(interval);
 }, []);
 useEffect(() => {
