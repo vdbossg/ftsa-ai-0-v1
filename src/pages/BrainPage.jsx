@@ -285,7 +285,39 @@ useEffect(() => {
   };
 
   fetchRiskState();
+const toggleRSC = async () => {
+  if (!riskState) return;
 
+  const newStatus =
+    riskState.autoTrade.status === "RUNNING"
+      ? "STOPPED"
+      : "RUNNING";
+
+  try {
+    const resp = await fetch(
+      "http://localhost:5000/api/brain/risk-state/toggle",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "6948f28e020e8794071b5c5d",
+          status: newStatus,
+        }),
+      }
+    );
+
+    const data = await resp.json();
+
+    if (data.success) {
+      setRiskState(prev => ({
+        ...prev,
+        autoTrade: { status: newStatus },
+      }));
+    }
+  } catch (err) {
+    console.error("Failed to toggle RSC:", err);
+  }
+};
   const interval = setInterval(fetchRiskState, 3000); // refresh every 3 seconds
   return () => clearInterval(interval);
 
@@ -927,9 +959,41 @@ const allPairs =  [
     boxShadow: "0 0 10px #00FFFF",
   }}
 >
+ <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "1rem"
+  }}
+>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>
     Risk State Center (RSC)
   </h2>
+
+  <button
+    onClick={toggleRSC}
+    style={{
+      padding: "6px 14px",
+      borderRadius: "20px",
+      border: "1px solid #00FFFF",
+      background:
+        riskState?.autoTrade.status === "RUNNING"
+          ? "#003300"
+          : "#330000",
+      color:
+        riskState?.autoTrade.status === "RUNNING"
+          ? "#00FF00"
+          : "#FF0000",
+      cursor: "pointer",
+      fontFamily: "Orbitron"
+    }}
+  >
+    {riskState?.autoTrade.status === "RUNNING"
+      ? "ON"
+      : "OFF"}
+  </button>
+</div>
 
   {!riskState ? (
     <p>Loading Risk State...</p>
