@@ -35,7 +35,7 @@ const [riskState, setRiskState] = useState(null);
 const [riskLoading, setRiskLoading] = useState(false);
 const [togglingRSC, setTogglingRSC] = useState(false);
 const toggleRSC = async () => {
-  if (!riskState || togglingRSC) return; // stop if not loaded or already toggling
+  if (!riskState || togglingRSC) return;
   setTogglingRSC(true);
 
   const newStatus = riskState.autoTrade.status === "RUNNING" ? "STOPPED" : "RUNNING";
@@ -241,6 +241,7 @@ try {
   setPendingTrade(null);
   return;
 }
+
 
   // Normalize all biases
   const signalBias = validSignal.type === "BUY" ? "bullish" :
