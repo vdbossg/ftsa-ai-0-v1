@@ -268,23 +268,6 @@ useEffect(() => {
 
   fetchCotForPendingTrade();
 }, [pendingTrade]);
-useEffect(() => {
-  const userId = "6948f28e020e8794071b5c5d"; // later this should come from login/session
-
-  const fetchRiskState = async () => {
-    try {
-      const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
-      const data = await resp.json();
-
-      if (data.success) {
-        setRiskState(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch Risk State:", err);
-    }
-  };
-
-  fetchRiskState();
 const toggleRSC = async () => {
   if (!riskState) return;
 
@@ -318,6 +301,24 @@ const toggleRSC = async () => {
     console.error("Failed to toggle RSC:", err);
   }
 };
+useEffect(() => {
+  const userId = "6948f28e020e8794071b5c5d"; // later this should come from login/session
+
+  const fetchRiskState = async () => {
+    try {
+      const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
+      const data = await resp.json();
+
+      if (data.success) {
+        setRiskState(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Risk State:", err);
+    }
+  };
+
+  fetchRiskState();
+
   const interval = setInterval(fetchRiskState, 3000); // refresh every 3 seconds
   return () => clearInterval(interval);
 
