@@ -33,6 +33,7 @@ const [cotData, setCotData] = useState(null); // holds COT data for today's trad
 const [topDownData, setTopDownData] = useState(null); // holds Top-Down Strength for pending trade
 const [riskState, setRiskState] = useState(null);
 const [riskLoading, setRiskLoading] = useState(false);
+const [currentUser, setCurrentUser] = useState(null); // holds logged-in user info
 const [togglingRSC, setTogglingRSC] = useState(false);
 const toggleRSC = async () => {
   if (!riskState || togglingRSC) return;
@@ -45,7 +46,7 @@ const toggleRSC = async () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: "6948f28e020e8794071b5c5d",
+        userId: currentUser.userId,
         status: newStatus,
       }),
     });
@@ -274,6 +275,19 @@ try {
   }
 };
 useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
+useEffect(() => {
+  const fetchCurrentUser = async () => {
+    try {
+      const resp = await fetch("http://localhost:5000/api/CurrentUserBp/current"); 
+      const data = await resp.json();
+      if (data.success) setCurrentUser(data.data);
+    } catch (err) {
+      console.error("Failed to fetch current user:", err);
+    }
+  };
+
+  fetchCurrentUser();
+}, []);
 useEffect(() => { marketStrengthRef.current = marketStrength; }, [marketStrength]);
 useEffect(() => {
   (async () => {
@@ -302,27 +316,22 @@ useEffect(() => {
 }, [pendingTrade]);
 
 useEffect(() => {
-  const userId = "6948f28e020e8794071b5c5d"; // later this should come from login/session
+  if (!currentUser?.userId) return; // wait until currentUser is loaded
 
   const fetchRiskState = async () => {
     try {
-      const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${userId}`);
+      const resp = await fetch(`http://localhost:5000/api/brain/risk-state/${currentUser.userId}`);
       const data = await resp.json();
-
-      if (data.success) {
-        setRiskState(data.data);
-      }
+      if (data.success) setRiskState(data.data);
     } catch (err) {
       console.error("Failed to fetch Risk State:", err);
     }
   };
 
   fetchRiskState();
-
   const interval = setInterval(fetchRiskState, 3000); // refresh every 3 seconds
   return () => clearInterval(interval);
-
-}, []);
+}, [currentUser]);
 useEffect(() => {
   let ws;
 
