@@ -615,8 +615,11 @@ const allPairs =  [
       
   <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
   {currentUser && (
-  <h3 style={{ textShadow: "0 0 6px #00FFFF", marginTop: "0.5rem" }}>
-    Welcome, {currentUser.name.charAt(0).toUpperCase() + currentUser.name.slice(1)}!
+  <h3 style={{ marginTop: "0.5rem" }}>
+    <span style={{ color: "#00FFFF", textShadow: "0 0 6px #00FFFF" }}>Welcome, </span>
+    <span style={{ color: "#00FF00", textShadow: "0 0 8px #00FF00" }}>
+      {currentUser.name.charAt(0).toUpperCase() + currentUser.name.slice(1)}!
+    </span>
   </h3>
 )}
 <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-start" }}>

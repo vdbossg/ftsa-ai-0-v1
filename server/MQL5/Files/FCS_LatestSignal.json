@@ -1,10 +1,10 @@
 {
-  "symbol": "AUDUSD",
+  "symbol": "USDCHF",
   "type": "BUY",
   "mode": "PENDING",
-  "lots": 0.03,
-  "sl": 0.68,
-  "tp": 0.693,
-  "price": 0.685,
-  "id": "1773228376928"
+  "lots": 0.1,
+  "sl": 0.925,
+  "tp": 0.934,
+  "price": 0.93,
+  "id": "1773229529248"
 }
