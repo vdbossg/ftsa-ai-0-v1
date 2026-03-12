@@ -765,7 +765,13 @@ const allPairs =  [
   </div>
 </div>
 
-      {loading && <p style={{ color: "#00FFFF" }}>Loading AI brain data...</p>}
+      {loading ? (
+  <p style={{ color: "#00FFFF" }}>Loading AI brain data...</p>
+) : (
+  <p style={{ color: "#00FF00", textShadow: "0 0 8px #00FF00", fontWeight: "bold" }}>
+    FTSA AI Brain Online
+  </p>
+)}
       {error && <p style={{ color: "#FF0000" }}>{error}</p>}
       {/* Today's Trade */}
 <section style={scrollableTableContainer}>
