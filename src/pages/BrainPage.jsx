@@ -421,21 +421,42 @@ useEffect(() => {
   if (!todayNews.length) return;
 
   const now = new Date();
- const newsTimes = todayNews.map(n => {
-  // Combine date and time safely
-  let cleanDate = n.date.replace(/\n/g, " ").trim();
-  let timeStr = n.time?.trim() || "00:00";
-  
-  // Ensure 24h format works
-  let dateTime = new Date(`${cleanDate} ${timeStr}`);
-  
-  // If invalid, skip by setting null
-  if (isNaN(dateTime)) dateTime = null;
+const newsTimes = todayNews
+  .map(n => {
+    const now = new Date();
 
-  return { ...n, dateTime };
-})
-.filter(n => n.dateTime) // remove invalid dates
-.sort((a, b) => a.dateTime - b.dateTime);
+    // Skip if time is not a valid string (like "Tentative")
+    if (!n.time || n.time.toLowerCase() === "tentative") return null;
+
+    // Parse hours and minutes from "4:30am", "12:01pm", etc.
+    let hours = 0;
+    let minutes = 0;
+
+    const match = n.time.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+    if (match) {
+      hours = parseInt(match[1], 10);
+      minutes = parseInt(match[2], 10);
+      const period = match[3];
+
+      if (period === "pm" && hours !== 12) hours += 12;
+      if (period === "am" && hours === 12) hours = 0;
+    } else {
+      // fallback if format doesn't match
+      return null;
+    }
+
+    const dateTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hours,
+      minutes
+    );
+
+    return { ...n, dateTime };
+  })
+  .filter(n => n) // remove nulls
+  .sort((a, b) => a.dateTime - b.dateTime);
 
   const ongoing = newsTimes.find(n => 
   n.impact === "🟥" &&
