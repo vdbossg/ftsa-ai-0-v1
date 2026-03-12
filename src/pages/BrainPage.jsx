@@ -773,20 +773,9 @@ const allPairs =  [
   </p>
 )}
       {error && (
-  <div style={{
-    color: "#FF4500",
-    backgroundColor: "#220000",
-    border: "1px solid #FF4500",
-    padding: "1rem",
-    borderRadius: "8px",
-    textAlign: "center",
-    boxShadow: "0 0 10px #FF4500",
-    margin: "1rem 0",
-    fontWeight: "bold",
-  }}>
-    ⚠️ Brain data failed to load.<br/>
-    Don’t worry — the system is checking for issues and will try to reconnect shortly.
-  </div>
+  <p style={{ color: "#FF4500", fontWeight: "bold" }}>
+    ⚠️ Brain data failed to load. The system is checking and will be back shortly.
+  </p>
 )}
       {/* Today's Trade */}
 <section style={scrollableTableContainer}>
