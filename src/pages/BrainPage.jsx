@@ -400,6 +400,7 @@ useEffect(() => {
     if (ws) ws.close();
   };
 }, []);
+
 useEffect(() => {
   const fetchNews = async () => {
     try {
@@ -419,13 +420,21 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  if (!todayNews.length) return;
+  if (!todayNews.length) {
+    setCurrentNews(null);
+    setNextNews(null);
+    setRecentNewsWithinHour(null);
+    setCountdown("00:00:00");
+    return;
+  }
 
   const now = new Date();
-  const newsTimes = todayNews
+
+  // Only high-impact news
+  const highImpactNews = todayNews
+    .filter(n => n.impact === "🟥")
     .map(n => {
       if (!n.time || n.time.toLowerCase() === "tentative") return null;
-
       const match = n.time.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
       if (!match) return null;
 
@@ -449,15 +458,18 @@ useEffect(() => {
     .filter(n => n)
     .sort((a, b) => a.dateTime - b.dateTime);
 
-  const ongoing = newsTimes.find(
-    n => n.impact === "🟥" && now >= n.dateTime && now <= new Date(n.dateTime.getTime() + 15 * 60 * 1000)
+  // 🟥 Ongoing: now to 15 min after
+  const ongoing = highImpactNews.find(
+    n => now >= n.dateTime && now <= new Date(n.dateTime.getTime() + 15 * 60 * 1000)
   );
 
-  const upcoming = newsTimes.find(
+  // 🟧 Upcoming: 1h before until start
+  const upcoming = highImpactNews.find(
     n => now >= new Date(n.dateTime.getTime() - 60 * 60 * 1000) && now < n.dateTime
   );
 
-  const recent = newsTimes.find(
+  // 🟩 Cooling: 15min to 1h after
+  const recent = highImpactNews.find(
     n => now > new Date(n.dateTime.getTime() + 15 * 60 * 1000) && now <= new Date(n.dateTime.getTime() + 60 * 60 * 1000)
   );
 
@@ -474,11 +486,20 @@ useEffect(() => {
 
   let initialCountdown = 0;
   if (ongoing) {
-    initialCountdown = Math.max(0, Math.floor((ongoing.dateTime.getTime() + 15 * 60 * 1000 - now.getTime()) / 1000));
+    initialCountdown = Math.max(
+      0,
+      Math.floor((ongoing.dateTime.getTime() + 15 * 60 * 1000 - now.getTime()) / 1000)
+    );
   } else if (upcoming) {
-    initialCountdown = Math.max(0, Math.floor((upcoming.dateTime.getTime() - now.getTime()) / 1000));
+    initialCountdown = Math.max(
+      0,
+      Math.floor((upcoming.dateTime.getTime() - now.getTime()) / 1000)
+    );
   } else if (recent) {
-    initialCountdown = Math.max(0, Math.floor((recent.dateTime.getTime() + 60 * 60 * 1000 - now.getTime()) / 1000));
+    initialCountdown = Math.max(
+      0,
+      Math.floor((recent.dateTime.getTime() + 60 * 60 * 1000 - now.getTime()) / 1000)
+    );
   }
 
   setCountdown(getHHMMSS(initialCountdown));
@@ -495,7 +516,9 @@ useEffect(() => {
 
   return () => clearInterval(timer);
 
-}, [todayNews]);// Auto-refresh brain data every 5 seconds
+}, [todayNews]);
+
+
 useEffect(() => {
   const interval = setInterval(() => {
     loadBrainData(false); // refresh in background silently
