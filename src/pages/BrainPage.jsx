@@ -772,7 +772,22 @@ const allPairs =  [
     FTSA AI Brain Online
   </p>
 )}
-      {error && <p style={{ color: "#FF0000" }}>{error}</p>}
+      {error && (
+  <div style={{
+    color: "#FF4500",
+    backgroundColor: "#220000",
+    border: "1px solid #FF4500",
+    padding: "1rem",
+    borderRadius: "8px",
+    textAlign: "center",
+    boxShadow: "0 0 10px #FF4500",
+    margin: "1rem 0",
+    fontWeight: "bold",
+  }}>
+    ⚠️ Brain data failed to load.<br/>
+    Don’t worry — the system is checking for issues and will try to reconnect shortly.
+  </div>
+)}
       {/* Today's Trade */}
 <section style={scrollableTableContainer}>
   <h2 style={{ textShadow: "0 0 5px #00FFFF" }}>Today's Trade</h2>
