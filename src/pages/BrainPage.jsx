@@ -417,85 +417,85 @@ useEffect(() => {
   const interval = setInterval(fetchNews, 60000); // refresh every 60s
   return () => clearInterval(interval);
 }, []);
+
 useEffect(() => {
   if (!todayNews.length) return;
 
   const now = new Date();
-const newsTimes = todayNews
-  .map(n => {
-    const now = new Date();
+  const newsTimes = todayNews
+    .map(n => {
+      if (!n.time || n.time.toLowerCase() === "tentative") return null;
 
-    // Skip if time is not a valid string (like "Tentative")
-    if (!n.time || n.time.toLowerCase() === "tentative") return null;
+      const match = n.time.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+      if (!match) return null;
 
-    // Parse hours and minutes from "4:30am", "12:01pm", etc.
-    let hours = 0;
-    let minutes = 0;
-
-    const match = n.time.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
-    if (match) {
-      hours = parseInt(match[1], 10);
-      minutes = parseInt(match[2], 10);
+      let hours = parseInt(match[1], 10);
+      let minutes = parseInt(match[2], 10);
       const period = match[3];
 
       if (period === "pm" && hours !== 12) hours += 12;
       if (period === "am" && hours === 12) hours = 0;
-    } else {
-      // fallback if format doesn't match
-      return null;
-    }
 
-    const dateTime = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      hours,
-      minutes
-    );
+      const dateTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hours,
+        minutes
+      );
 
-    return { ...n, dateTime };
-  })
-  .filter(n => n) // remove nulls
-  .sort((a, b) => a.dateTime - b.dateTime);
+      return { ...n, dateTime };
+    })
+    .filter(n => n)
+    .sort((a, b) => a.dateTime - b.dateTime);
 
-  const ongoing = newsTimes.find(n => 
-  n.impact === "🟥" &&
-  now >= n.dateTime &&
-  now <= new Date(n.dateTime.getTime() + 15 * 60 * 1000)
-);
-  // Upcoming: 1 hour before the news
-const upcoming = newsTimes.find(n => {
-  if (!n.dateTime) return false;
-  const startWindow = new Date(n.dateTime.getTime() - 60 * 60 * 1000); // 1h before
-  const endWindow = n.dateTime; // up to the event start
-  return now >= startWindow && now < endWindow;
-});
-  const recent = newsTimes.find(n => {
-  const endActive = new Date(n.dateTime.getTime() + 15 * 60 * 1000);
-  const cooldownEnd = new Date(n.dateTime.getTime() + 60 * 60 * 1000);
-  return now > endActive && now <= cooldownEnd;
-});
+  const ongoing = newsTimes.find(
+    n => n.impact === "🟥" && now >= n.dateTime && now <= new Date(n.dateTime.getTime() + 15 * 60 * 1000)
+  );
+
+  const upcoming = newsTimes.find(
+    n => now >= new Date(n.dateTime.getTime() - 60 * 60 * 1000) && now < n.dateTime
+  );
+
+  const recent = newsTimes.find(
+    n => now > new Date(n.dateTime.getTime() + 15 * 60 * 1000) && now <= new Date(n.dateTime.getTime() + 60 * 60 * 1000)
+  );
 
   setCurrentNews(ongoing || null);
   setNextNews(upcoming || null);
   setRecentNewsWithinHour(recent || null);
 
-  // countdown logic
+  const getHHMMSS = (totalSeconds) => {
+    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+    const s = String(totalSeconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  };
+
+  let initialCountdown = 0;
   if (ongoing) {
-    setCountdown(Math.max(0, Math.floor((ongoing.dateTime.getTime() + 15*60*1000 - now.getTime())/1000)));
+    initialCountdown = Math.max(0, Math.floor((ongoing.dateTime.getTime() + 15 * 60 * 1000 - now.getTime()) / 1000));
   } else if (upcoming) {
-    setCountdown(Math.max(0, Math.floor((upcoming.dateTime.getTime() - now.getTime())/1000)));
+    initialCountdown = Math.max(0, Math.floor((upcoming.dateTime.getTime() - now.getTime()) / 1000));
   } else if (recent) {
-    setCountdown(Math.max(0, Math.floor((recent.dateTime.getTime() + 60*60*1000 - now.getTime())/1000)));
-  } else {
-    setCountdown("");
+    initialCountdown = Math.max(0, Math.floor((recent.dateTime.getTime() + 60 * 60 * 1000 - now.getTime()) / 1000));
   }
 
-  const timer = setInterval(() => setCountdown(prev => prev > 0 ? prev-1 : 0), 1000);
+  setCountdown(getHHMMSS(initialCountdown));
+
+  const timer = setInterval(() => {
+    setCountdown(prev => {
+      if (!prev) return "00:00:00";
+      const [h, m, s] = prev.split(":").map(Number);
+      let totalSeconds = h * 3600 + m * 60 + s;
+      totalSeconds = Math.max(0, totalSeconds - 1);
+      return getHHMMSS(totalSeconds);
+    });
+  }, 1000);
+
   return () => clearInterval(timer);
 
-}, [todayNews]);
-// Auto-refresh brain data every 5 seconds
+}, [todayNews]);// Auto-refresh brain data every 5 seconds
 useEffect(() => {
   const interval = setInterval(() => {
     loadBrainData(false); // refresh in background silently
