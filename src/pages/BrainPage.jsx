@@ -421,20 +421,33 @@ useEffect(() => {
   if (!todayNews.length) return;
 
   const now = new Date();
-  const newsTimes = todayNews.map(n => {
-    let cleanDate = n.date.replace(/\n/g, " "); 
-    let timeStr = n.time.includes("am") || n.time.includes("pm") ? n.time : "00:00";
-    return { ...n, dateTime: new Date(`${cleanDate} ${timeStr}`) };
-  }).sort((a,b) => a.dateTime - b.dateTime);
+ const newsTimes = todayNews.map(n => {
+  // Combine date and time safely
+  let cleanDate = n.date.replace(/\n/g, " ").trim();
+  let timeStr = n.time?.trim() || "00:00";
+  
+  // Ensure 24h format works
+  let dateTime = new Date(`${cleanDate} ${timeStr}`);
+  
+  // If invalid, skip by setting null
+  if (isNaN(dateTime)) dateTime = null;
+
+  return { ...n, dateTime };
+})
+.filter(n => n.dateTime) // remove invalid dates
+.sort((a, b) => a.dateTime - b.dateTime);
 
   const ongoing = newsTimes.find(n => 
   n.impact === "🟥" &&
   now >= n.dateTime &&
   now <= new Date(n.dateTime.getTime() + 15 * 60 * 1000)
 );
-  const upcoming = newsTimes.find(n => {
-  const startWindow = new Date(n.dateTime.getTime() - 60 * 60 * 1000);
-  return now >= startWindow && now < n.dateTime;
+  // Upcoming: 1 hour before the news
+const upcoming = newsTimes.find(n => {
+  if (!n.dateTime) return false;
+  const startWindow = new Date(n.dateTime.getTime() - 60 * 60 * 1000); // 1h before
+  const endWindow = n.dateTime; // up to the event start
+  return now >= startWindow && now < endWindow;
 });
   const recent = newsTimes.find(n => {
   const endActive = new Date(n.dateTime.getTime() + 15 * 60 * 1000);
