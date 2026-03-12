@@ -669,7 +669,53 @@ const allPairs =  [
         minHeight: "100vh",
       }}
     >
-      
+      <style>
+{`
+  /* Blinking alerts */
+  .blinking-red {
+    color: #FF0000;
+    font-weight: bold;
+    animation: blink 1s infinite;
+  }
+
+  .blinking-orange {
+    color: #FFA500;
+    font-weight: bold;
+    animation: blink 1s infinite;
+  }
+
+  .blinking-green {
+    color: #00FF00;
+    font-weight: bold;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+  }
+
+  /* Animated dots for live scanning */
+  .blinking-dots {
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  .blinking-dots .dot {
+    display: inline-block;
+    animation: blink-dot 1s infinite;
+  }
+
+  .blinking-dots .dot:nth-child(1) { animation-delay: 0s; }
+  .blinking-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+  .blinking-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink-dot {
+    0%, 20%, 50%, 80%, 100% { opacity: 0; }
+    10%, 30%, 60%, 90% { opacity: 1; }
+  }
+`}
+</style>
   <h1 style={{ textShadow: "0 0 8px #00FFFF" }}>FTSA AI Brain Control</h1>
   {currentUser && (
   <h3 style={{ marginTop: "0.5rem" }}>
@@ -770,8 +816,29 @@ const allPairs =  [
     </tr>
   ) : (
     <tr>
-      <td colSpan={9} style={{ textAlign: "center" }}>No trades yet</td>
-    </tr>
+  <td colSpan={9} style={{ textAlign: "center" }}>
+    {currentNews ? (
+      <span className="blinking-red">
+        ⚠️ High-Impact News Ongoing — Avoid trading! ({countdown})
+      </span>
+    ) : nextNews ? (
+      <span className="blinking-orange">
+        ⚠️ Upcoming High-Impact News — All trades blocked! ({countdown})
+      </span>
+    ) : recentNewsWithinHour ? (
+      <span className="blinking-green">
+        ✅ Market stabilizing after news — Please wait! ({countdown})
+      </span>
+    ) : (
+      <span className="blinking-dots">
+        FTSA AI is scanning for trades
+        <span className="dot">.</span>
+        <span className="dot">.</span>
+        <span className="dot">.</span>
+      </span>
+    )}
+  </td>
+</tr>
   )}
 </tbody>
 
